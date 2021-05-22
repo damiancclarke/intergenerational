@@ -1,0 +1,22 @@
+--------------------------------------------------------------------------------
+README For:
+The Long­Term and Intergenerational Effects of Neonatal Health Interventions
+ Damian Clarke, Nicolas Lillo & Kathya Tapia Schythe
+ yyyy-mm-dd: 2021-05-22
+--------------------------------------------------------------------------------
+
+The directory structure of this project is:
+MAIN/
+  intergen.tex
+  refs.bib
+|_ source/
+|_ results/
+|_ log/
+|_ data/
+
+
+All references to figures and tables in the integen.tex file are relative to
+results in the "results" sub-folder.  In order to view results as they are pro-
+vided in the paper, the tex file should be compiled using: 
+   xelatex intergen.tex
+
