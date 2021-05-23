@@ -23,8 +23,8 @@
 
 
 \title{The Long-Term and Intergenerational Effects of Neonatal Health Interventions\thanks{We are grateful to X, Y and Z for useful comments, and to seminar audiences at A, B and C. Clarke acknowledges financial support from ANID Chile (FONDECYT Regular 1200634).  OTHER.  }}
-\author{Damian Clarke\thanks{Department of Economics, University of Chile \& IZA.  Contact:}
-  \and Nicol\'as Lillo\thanks{Department of Economics, University of Chile.  Contact:}
+\author{Damian Clarke\thanks{Department of Economics, University of Chile \& IZA.  Contact: dclarke@fen.uchile.cl.}
+  \and Nicol\'as Lillo Bustos\thanks{Department of Economics, University of Chile.  Contact:}
   \and Kathya Tapia Schythe\thanks{Department of Economics, University of California, Davis.  Contact:}
 }
 \date{\today}
@@ -52,7 +52,44 @@
   
   \clearpage
   \section{Data}
+  Between 1992 and 2017 we observe x,xxx,xxx births occurring to x,xxx,xxx mothers.  Birth registries in Chile are universal, estimated to cover 99.9\% of all births [check cite DEIS].  Individuals are recorded using their national idendity number, assigned at birth. Data on these births are merged (using a masked version og the national identity number) with the hospitalization registry and the death registry, which cover all deaths and in-patient hospitalizations in the country.  In total, xx,xxx births are matched to a death record before the age of 1 year. This closely agrees with the average infant mortality rate reported over this time by the World Bank (which is 8.7 per 1,000 live births).\footnote{Note that there are x,xxx deaths which occur under 1 year of age in the death registry which are not observed in the birth registry. This will occur when a child arrives to the country after being born but does not survive up until 1 year.}  And in total xx,xxx births are observed to appear in the death registry at any point during this period.  Of all births, x,xxx,xxx are matched to at least one hospitalization, and in total xx,xxx,xxx hospitalizations are matched with births, implying that the average number of hospitalizations per matched birth is x.xx.  In Appendix \ref{app:data} we document tha match quality, observing that across registries individuals which are matched based on their unique national identity number are reported to have precisely the same birth date and sex.  In less than xx\% of the matches, we observe a reporting inconsistency.
 
+  Of the births between 1992-2017, x,xxx,xxx (xx\%) are girls.  Of these, xx,xxx are observed to have \emph{their own} child in the birth registry.  This occurs when an individual who was born in an early year (say 1992) has a birth in a later year (say 2017, in which case she would be aged 25 years at the time of her own child's birth).  In Appendix \ref{app:data} (Table \ref{tab:birthChart}) we present the number of births from each year which went on to have a birth in the future.
+
+  
+  
+  
+  %Chile IMR (World Bank: https://data.worldbank.org/indicator/SP.DYN.IMRT.IN?locations=CL)
+  %1992 - 13.7
+  %1993 - 12.7
+  %1994 - 11.8
+  %1995 - 11.1
+  %1996 - 10.6
+  %1997 - 10.3
+  %1998 - 10.1
+  %1999 - 9.8
+  %2000 - 9.2
+  %2001 - 8.7
+  %2002 - 8.3
+  %2003 - 8.1
+  %2004 - 7.9
+  %2005 - 7.7
+  %2006 - 7.6
+  %2007 - 7.6
+  %2008 - 7.6
+  %2009 - 7.5
+  %2010 - 7.4
+  %2011 - 7.3
+  %2012 - 7.2
+  %2013 - 7.1
+  %2014 - 6.9
+  %2015 - 6.7
+  %2016 - 6.6
+  %2017 - 6.4
+  
+  
+
+  
   \clearpage
   \section{Methods}
 
@@ -76,16 +113,92 @@
 
 
 
-  \section{Data Consistency}
-
+  \section{Data Consistency and Descriptions}
+  \label{app:data}
   In progress...
+
+
   \begin{table}[htpb!]
     \centering
-    \caption{Data Consistency Checks of Matched Microdata Bases}
-    \begin{tabular}{lccc} \toprule
-      Births & Hospitalization & Deaths \\ \midrule
+    \caption{Matched Observations between Microdata Registers}
+    \begin{tabular}{lcccc} \toprule
+      Register & Observations & Matched to & Matched to  & Matched to \\
+               &              & Births     & Hospitalization & Deaths \\ \midrule
+      Births          & x,xxx,xxx  & xxx,xxx    & x,xxx,xxx & xx,xxx \\
+      Hospitalization & xx,xxx,xxx & xx,xxx,xxx & ---       & xx,xxx \\
+      Deaths          & x,xxx,xxx  & xxx,xxx    & x,xxx,xxx & ---    \\ \midrule
+      \multicolumn{5}{p{12.4cm}}{\footnotesize Notes: Column 1 presents the
+        total number of observations in each dataset between 1992 and 2017.
+        Column 2 notes the number of births which match to each dataset.  In the
+        case of the birth register, it refers to the number of births which match
+        to other births in the data (ie mother--child links). Column 3 notes the
+        number of hospitalizations which match to each other database.  Note that
+        in the case of births, the nuber of hospitalizations linked to births is not
+        the same as the number of births linked to hospitalizations in the preceding
+        column given that a single birth can be hospitalized multiple times.  Finally,
+        column 4 notes the total number of deaths which are matched with births
+        [AND HOSPITALIZATIONS???] occurring in the sample.}
     \end{tabular}
   \end{table}
+
+
+    \begin{table}[htpb!]
+    \centering
+    \caption{Data Consistency Checks of Matched Microdata Bases}  
+    \begin{tabular}{lccc} \toprule
+               & \multicolumn{3}{c}{Linkage Register} \\ \cmidrule(r){2-4}  
+      Original Register & Births & Hospitalization & Deaths \\ \midrule
+      \multicolumn{4}{l}{\textbf{Panel A: Inconsistencies in Exact Birth Dates}} \\
+      Births          & xx\% & xx\% & xx\% \\
+      Hospitalization \hspace{2cm} & xx\% &      & xx\% \\
+      Deaths          & xx\% & xx\% &      \\
+      \multicolumn{4}{l}{\textbf{Panel B: Inconsistencies in Sex}} \\
+      Births          & xx\% & xx\% & xx\% \\
+      Hospitalization & xx\% &      & xx\% \\
+      Deaths          & xx\% & xx\% &      \\ \bottomrule
+      \multicolumn{4}{p{10.2cm}}{\footnotesize Each proportion refers to
+        the proportion of observations which are observed with one value
+        for birth date (panel A) or sex (panel B) in the ``Original Register''
+        and another (inconsistent) value in the linked register. In the
+        hospitalization register, prior to year xxxx exact date of birth
+        is not provided, and so ``inconsistencies'' here refer only to cases
+        which record different birth dates, not birth dates which are recorded
+        in the birth register, and then not recorded in the hospitalization
+        register.  Similarly, in a small number of cases, sex is reported
+        as unkown or intersex.  Here inconsistencies only refer to cases where
+        sex is recorded as female in one database, and male in another.} \\
+    \end{tabular}
+  \end{table}
+
+    
+  \begin{landscape}
+  \begin{table}[htpb!]
+    \centering
+    \caption{Temporal Links between Mother--Child Matched Birth Years}
+    \label{tab:birthChart}
+    \begin{tabular}{lcccccccccccccccc} \toprule
+    Mother & \multicolumn{16}{c}{Child} \\ \cmidrule(r){2-17}
+    Year & 2003 & 2004 & 2005 & 2006 & 2007 & 2008 & 2009 & 2009 & 2010 & 2011 & 2012 & 2013 & 2014 & 2015 & 2016 & 2017 \\ \midrule
+    1992 & x & xx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx \\
+    1993 & x & xx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx \\
+    1994 & 0 & 0  & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx \\
+    1995 & 0 & 0  & 0   & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx \\
+    1996 & 0 & 0  & 0   & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx \\
+    1997 & 0 & 0  & 0   & 0   & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx \\
+    1998 & 0 & 0  & 0   & 0   & 0   & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx \\
+    1999 & 0 & 0  & 0   & 0   & 0   & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx \\
+    2000 & 0 & 0  & 0   & 0   & 0   & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx \\
+    2001 & 0 & 0  & 0   & 0   & 0   & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx \\
+    2002 & 0 & 0  & 0   & 0   & 0   & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx \\
+    2003 & 0 & 0  & 0   & 0   & 0   & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx \\
+    2004 & 0 & 0  & 0   & 0   & 0   & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx \\
+    2005 & 0 & 0  & 0   & 0   & 0   & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx \\
+    2006 & 0 & 0  & 0   & 0   & 0   & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx & xxx \\
+    \bottomrule
+    \end{tabular}
+  \end{table}
+  \end{landscape}
+
 
   \clearpage
   \section{Appendix Figures and Tables}
