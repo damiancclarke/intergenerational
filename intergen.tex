@@ -4,9 +4,10 @@
 \usepackage{appendix}
 \usepackage{bm}
 \usepackage{booktabs}
+\usepackage[capposition=top]{floatrow}
 \usepackage{fontspec}
 \usepackage[bottom]{footmisc}
-\usepackage[margin=0.9in,footskip=0.25in]{geometry}
+\usepackage[margin=1in,footskip=0.25in]{geometry}
 \usepackage{graphicx}
 \usepackage{lscape}
 \usepackage{natbib}
@@ -44,14 +45,15 @@
   \clearpage
 
   \section{Introduction}
+  Returns to early life investment programs accrue over life.  For how long does this accrual last?  
+
+  
+
   How long are returns to early life investment programs accrued?  Large public health programs focused on children with poor birth outcomes have been shown to result in immediate improvements in health and survival \citep{Almondetal2010}, which impact educational outcomes in childhood and adolescence \citep{Bharadwajetal2013}.  A broader literature suggests intergenerational transfers in education and well-being.  If neonatal and early life health programs spillover to future generations, this suggests that the already large benefits of such programs could be a (considerable) lower bound.
 
-  ...
-
-  \citet{Cattaneoetal2019}.
 
   ...
-
+  
   We trace out impacts of an early life program through childhood, adolescence, and early adulthood, and additionally follow impacted individuals into the next generation.  Linking comprehensive microdata registries, we are able to observe all births in Chile between 1992-2017, their full inpatient hospitalization history, and for those that go on to have \emph{their own} births, we observe the early life health stocks and hospitalization records for their own children.  We study ...
 
   
@@ -102,14 +104,97 @@
   
   \clearpage
   \section{Methods}
+  \citet{Almondetal2010,Bharadwajetal2013}
 
+  \citet{Calonicoetal2020a,Calonicoetal2014}
+  
+  \citet{Barrecaetal2011}
+
+  \citet{RomanoWolf2005}
+  
   \clearpage
   \section{Results}
+  \subsection{The Early Life Impacts of Treatment on the First Generation}
+  \begin{figure}[htpb!]
+    \caption{Birthweight Assignment Thresholds and Infant Mortality}
+    \label{fig:IMR}
+    \begin{subfigure}{.45\textwidth}
+      \centering
+      %\includegraphics[width=.8\linewidth]{image_file_name}
+      \caption{Infant Mortality $\geq$ 32 Weeks (BLN Method)}
+      \label{fig:IMRBLN32}
+    \end{subfigure}
+    \begin{subfigure}{.45\textwidth}
+      \centering
+      %\includegraphics[width=.8\linewidth]{image_file_name}
+      \caption{Infant Mortality $\leq$ 31 Weeks (BLN Method)}
+      \label{fig:IMRBLN31}
+    \end{subfigure}
 
+    \begin{subfigure}{.45\textwidth}
+      \centering
+      %\includegraphics[width=.8\linewidth]{image_file_name}
+      \caption{Infant Mortality $\geq$ 32 Weeks (Optimal)}
+      \label{fig:IMROPT32}
+    \end{subfigure}
+    \begin{subfigure}{.45\textwidth}
+      \centering
+      %\includegraphics[width=.8\linewidth]{image_file_name}
+      \caption{Infant Mortality $\leq$ 31 Weeks (Optimal)}
+      \label{fig:IMROPT31}
+    \end{subfigure}
+
+    \begin{subfigure}{.45\textwidth}
+      \centering
+      %\includegraphics[width=.8\linewidth]{image_file_name}
+      \caption{Infant Mortality $\geq$ 32 Weeks (Early Cohorts)}
+      \label{fig:IMROPT32}
+    \end{subfigure}
+    \begin{subfigure}{.45\textwidth}
+      \centering
+      %\includegraphics[width=.8\linewidth]{image_file_name}
+      \caption{Infant Mortality $\leq$ 31 Weeks (Early Cohorts)}
+      \label{fig:IMROPT31}
+    \end{subfigure}
+    \floatfoot{Note: Each sub-plot estimates the impact of crossing the
+      VLBW threshold on infant mortality.  Left-hand panels present estimates
+      for gestational weeks 32 and above (where assignment rules apply), while
+      right hand panels present estimates for gestational weeks 31 and below
+      where assignment rules suggest no differential assignment.  Panels
+      (a) and (b) replicate \citet{Bharadwajetal2013}'s methods using overlapping
+      (30 g) bins and a 100 gram bandwidth.  Panels (c) and (d) use optimal
+      bandwidth and bin selection.  Panels (e) and (f) replicate optimal
+      plots from panels (c) and (d) focusing only on earlier birth cohorts,
+      who are represented as mothers in the intergenerational sample.}
+  \end{figure}
+
+
+  Tabular results from above.
+  
+
+  Could also add days of hospitalization at birth here following figure 1 (alternatively, could look at this in sub-section below, or as an appendix).
+  
+  \subsection{Longer-Term Health Outcomes of the First Generation}
+  Let's look at health outcomes over the full life, as well as their dynamic nature.  Ie first look at total nights hospitalization.  Then look at effects by age (1 yr, 2 yrs, ...). This could be shown graphically with a single point estimate and CI per year.  Then break out and look at particular ICD classes (perhaps this is conditional on there being significant impacts on health)?
+  
+  
+  \subsection{The Intergenerational Transmission of Health at Birth}
+
+  Should start with an illustrative bin scatter \citep{Cattaneoetal2019} showing general patterns of intergenerational transmission.
+
+  Then should look at birth outcomes: birth weight, gestation, size.  I think we should also look at impacts across the range of birth weight (and size?) distribution.  I can implement multiple hypothesis corrections for this.
+
+  \subsection{Identification Checks}
+  Checks of covariate balance of mothers and fathers [FIRST GENERATION!!]  (ie grandparents of our most recent generation).  Density manipulations checks.  Most recent iterations \citep{Cattaneoetal2020}, earlier iterations \citet{McCrary2008}
+
+  
+
+  
   \clearpage
   \section{Discussion}
 
   \clearpage
+  \end{spacing}
   \bibliography{refs}
   
   \clearpage
@@ -214,5 +299,4 @@
   \section{Appendix Figures and Tables}
     
   \end{appendices}
-\end{spacing}
 \end{document}
