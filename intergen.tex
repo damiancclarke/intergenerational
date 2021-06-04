@@ -2,6 +2,7 @@
 
 \usepackage{amsmath}
 \usepackage{appendix}
+\usepackage{bbold}
 \usepackage{bm}
 \usepackage{booktabs}
 \usepackage[capposition=top]{floatrow}
@@ -23,7 +24,7 @@
 \setlength{\parskip}{6pt}
 
 
-\title{The Long-Term and Intergenerational Effects of Neonatal Health Interventions\thanks{We are grateful to X, Y and Z for useful comments, and to seminar audiences at A, B and C. Clarke acknowledges financial support from ANID Chile (FONDECYT Regular 1200634).  OTHER.  }}
+\title{The Long-Term and Intergenerational Effects of Health Intervention at Birth\thanks{We are grateful to X, Y and Z for useful comments, and to seminar audiences at A, B and C. Clarke acknowledges financial support from ANID Chile (FONDECYT Regular 1200634).  OTHER.  }}
 \author{Damian Clarke\thanks{Department of Economics, University of Chile \& IZA.  Contact: dclarke@fen.uchile.cl.}
   \and Nicol\'as Lillo Bustos\thanks{Department of Economics, University of Chile.  Contact:}
   \and Kathya Tapia Schythe\thanks{Department of Economics, University of California, Davis.  Contact:}
@@ -104,6 +105,11 @@
   
   \clearpage
   \section{Methods}
+
+  \begin{equation}
+    y_i = \alpha + f(BW_i-1500) + \beta \cdot \mathbb{1}(BW_i<1500)+X_i\gamma + \varepsilon_i
+  \end{equation}
+
   \citet{Almondetal2010,Bharadwajetal2013}
 
   \citet{Calonicoetal2020a,Calonicoetal2014}
@@ -185,7 +191,7 @@
   Then should look at birth outcomes: birth weight, gestation, size.  I think we should also look at impacts across the range of birth weight (and size?) distribution.  I can implement multiple hypothesis corrections for this.
 
   \subsection{Identification Checks}
-  Checks of covariate balance of mothers and fathers [FIRST GENERATION!!]  (ie grandparents of our most recent generation).  Density manipulations checks.  Most recent iterations \citep{Cattaneoetal2020}, earlier iterations \citet{McCrary2008}
+  Checks of covariate balance of mothers and fathers [FIRST GENERATION!!]  (ie grandparents of our most recent generation).  Density manipulations checks.  Most recent iterations \citep{Cattaneoetal2020}, earlier iterations \citet{McCrary2008}.  Checks of bias induced by heaping \citep{Barrecaetal2016}.
 
   
 
