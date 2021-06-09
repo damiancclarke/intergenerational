@@ -117,6 +117,8 @@
   \citet{Barrecaetal2011}
 
   \citet{RomanoWolf2005}
+
+  \citet{GelmanImbens2019}
   
   \clearpage
   \section{Results}
@@ -124,41 +126,41 @@
   \begin{figure}[htpb!]
     \caption{Birthweight Assignment Thresholds and Infant Mortality}
     \label{fig:IMR}
-    \begin{subfigure}{.45\textwidth}
+    \begin{subfigure}{.49\textwidth}
       \centering
-      %\includegraphics[width=.8\linewidth]{image_file_name}
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_o32_BLN_1992_2007.eps}
       \caption{Infant Mortality $\geq$ 32 Weeks (BLN Method)}
       \label{fig:IMRBLN32}
     \end{subfigure}
-    \begin{subfigure}{.45\textwidth}
+    \begin{subfigure}{.49\textwidth}
       \centering
-      %\includegraphics[width=.8\linewidth]{image_file_name}
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_u32_BLN_1992_2007.eps}
       \caption{Infant Mortality $\leq$ 31 Weeks (BLN Method)}
       \label{fig:IMRBLN31}
     \end{subfigure}
 
-    \begin{subfigure}{.45\textwidth}
+    \begin{subfigure}{.49\textwidth}
       \centering
-      %\includegraphics[width=.8\linewidth]{image_file_name}
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_o32_optimal_19922007.eps}
       \caption{Infant Mortality $\geq$ 32 Weeks (Optimal)}
       \label{fig:IMROPT32}
     \end{subfigure}
-    \begin{subfigure}{.45\textwidth}
+    \begin{subfigure}{.49\textwidth}
       \centering
-      %\includegraphics[width=.8\linewidth]{image_file_name}
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_u32_optimal_19922007.eps}
       \caption{Infant Mortality $\leq$ 31 Weeks (Optimal)}
       \label{fig:IMROPT31}
     \end{subfigure}
 
-    \begin{subfigure}{.45\textwidth}
+    \begin{subfigure}{.49\textwidth}
       \centering
-      %\includegraphics[width=.8\linewidth]{image_file_name}
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_o32_optimal_19922001.eps}
       \caption{Infant Mortality $\geq$ 32 Weeks (Early Cohorts)}
       \label{fig:IMROPT32}
     \end{subfigure}
-    \begin{subfigure}{.45\textwidth}
+    \begin{subfigure}{.49\textwidth}
       \centering
-      %\includegraphics[width=.8\linewidth]{image_file_name}
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_u32_optimal_19922001.eps}
       \caption{Infant Mortality $\leq$ 31 Weeks (Early Cohorts)}
       \label{fig:IMROPT31}
     \end{subfigure}
@@ -169,16 +171,30 @@
       where assignment rules suggest no differential assignment.  Panels
       (a) and (b) replicate \citet{Bharadwajetal2013}'s methods using overlapping
       (30 g) bins and a 100 gram bandwidth.  Panels (c) and (d) use optimal
-      bandwidth and bin selection.  Panels (e) and (f) replicate optimal
+      bandwidth selection [xxxxCITExxxx], and a quadratic fit.  Panels (e) and (f) replicate optimal
       plots from panels (c) and (d) focusing only on earlier birth cohorts,
       who are represented as mothers in the intergenerational sample.}
   \end{figure}
 
 
-  Tabular results from above.
+  \begin{table}[htpb!]
+    \caption{Impacts of Assignment Threshold on Infant Mortality (Generation 1)}
+    \scalebox{0.94}{
+    \begin{tabular}{lcccccc} \toprule
+      %& (1) & (2) & (3) & (4) & (5) & (6) \\ 
+      & \multicolumn{2}{c}{BLN Sample \& Methods} & \multicolumn{2}{c}{BLN Sample, Optimal} & \multicolumn{2}{c}{Intergen Sample, Optimal} \\ \cmidrule(r){2-3}\cmidrule(r){4-5}\cmidrule(r){6-7} 
+      & $\geq 32$ weeks & $< 32$ weeks       & $\geq 32$ weeks & $< 32$ weeks       & $\geq 32$ weeks & $< 32$ weeks \\ \midrule
+      \multicolumn{7}{l}{\textit{Infant mortality (death within one year of birth)}} \\
+      \input{./results/gen1IMR/IMRgen1.tex}
+      \bottomrule
+      \multicolumn{7}{p{\dimexpr\linewidth+5mm}}{\footnotesize Each column displays estimates of the change in mortality rates moving from below to above the 1,500 gram assignment threshold.  In each case, local linear regression is used with a triangular kernel.  The first two columns conduct a replication of the procedure in \citet{Bharadwajetal2013} using a bandwidth of 100 grams on either side of the cutoff, and including their controls and sample restrictions.  Columns 3-4 use the same time period as \citet{Bharadwajetal2013}, calculating the MSE optimal bandwidth of [CITE] and including all feasible observations, without controls. Columns 5 and 6 replicate the optimal calculations of columns 3 and 4, focusing only on cohorts in which there are individuals who go on and have children in the intergenerational sample (birth years 1992--2001). * p$<$0.10; ** p$<$0.05; *** p$<$0.01.}
+    \end{tabular}}
+  \end{table}
   
 
   Could also add days of hospitalization at birth here following figure 1 (alternatively, could look at this in sub-section below, or as an appendix).
+
+  \clearpage
   
   \subsection{Longer-Term Health Outcomes of the First Generation}
   Let's look at health outcomes over the full life, as well as their dynamic nature.  Ie first look at total nights hospitalization.  Then look at effects by age (1 yr, 2 yrs, ...). This could be shown graphically with a single point estimate and CI per year.  Then break out and look at particular ICD classes (perhaps this is conditional on there being significant impacts on health)?
