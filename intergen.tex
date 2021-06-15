@@ -23,8 +23,9 @@
 \setmainfont{Times New Roman}
 \setlength{\parskip}{6pt}
 
+%\thanks{We are grateful to X, Y and Z for useful comments, and to seminar audiences at A, B and C. Clarke acknowledges financial support from ANID Chile (FONDECYT Regular 1200634).  OTHER.}
 
-\title{The Long-Term and Intergenerational Effects of Health Intervention at Birth\thanks{We are grateful to X, Y and Z for useful comments, and to seminar audiences at A, B and C. Clarke acknowledges financial support from ANID Chile (FONDECYT Regular 1200634).  OTHER.  }}
+\title{The Long-Term and Intergenerational Effects of Health Intervention at Birth\thanks{Clarke acknowledges financial support from ANID Chile (FONDECYT Regular 1200634).}}
 \author{Damian Clarke\thanks{Department of Economics, University of Chile \& IZA.  Contact: dclarke@fen.uchile.cl.}
   \and Nicol\'as Lillo Bustos\thanks{Department of Economics, University of Chile.  Contact:}
   \and Kathya Tapia Schythe\thanks{Department of Economics, University of California, Davis.  Contact:}
@@ -57,9 +58,31 @@
   
   We trace out impacts of an early life program through childhood, adolescence, and early adulthood, and additionally follow impacted individuals into the next generation.  Linking comprehensive microdata registries, we are able to observe all births in Chile between 1992-2017, their full inpatient hospitalization history, and for those that go on to have \emph{their own} births, we observe the early life health stocks and hospitalization records for their own children.  We study ...
 
+  This papers also contributes, in a limited way, to a literature on the replicability crisis in social sciences, and concerns with the use of non-public data.  For a particular study, when previously private data was subsequently published without restrictions, we were able to substantively replicate the findings of the original paper's private data, starting from scratch in data collation and generation.  Further, updating results based on technical advances in the intervening period, and additionally updating to include a substantially longer time-frame which more than duplicated the original sample points to results that are consistent with those in the originally published research. 
+
+  
   
   \clearpage
   \section{Background and Context}
+
+  \begin{figure}[htpb!]
+    \caption{Intergenerational Transmission of Early Life Health Measures}
+    \label{fig:intergen}
+    \begin{subfigure}{0.99\textwidth}
+      \centering
+      \includegraphics[width=0.8\linewidth]{./results/gen2Health/birthWeightIntergen.pdf}
+      \caption{Maternal birth weight and children's birth weight}
+      \label{fig:intergenBW}
+    \end{subfigure}
+    \begin{subfigure}{0.99\textwidth}
+      \centering
+      \includegraphics[width=0.8\linewidth]{./results/gen2Health/lbwIntergen.pdf}
+      \caption{Maternal birth weight and child's low birth weight status}
+      \label{fig:intergenLBW}
+    \end{subfigure}
+    \floatfoot{Note: Each sub-plot documents ... \citet{Cattaneoetal2019}.
+    }
+  \end{figure}
   
   
   
@@ -106,13 +129,15 @@
   \clearpage
   \section{Methods}
 
+  Estimated impacts of assignment thresholds to preferential neonatal care regimes are estimated using a standard implementation of regression discontinuity.  In the case of first generation impacts of assignment on each individual's health measures (at birth and throughout life), this consists of estimating:
   \begin{equation}
-    y_i = \alpha + f(BW_i-1500) + \beta \cdot \mathbb{1}(BW_i<1500)+X_i\gamma + \varepsilon_i
+    y_i = \alpha + f(BW_i-1500) + \beta \cdot \mathbb{1}(BW_i<1500)+X_i\gamma + \varepsilon_i.
   \end{equation}
+  Our principal model consists of estimating local-linear models such that $f(BW_i<1500)$ allows separate linear functions on either side of the 1500 gram assignment threshold.  Bandwidth choice for these local linear regressions are chosen optimally following MSE minimisation criteria derived by \citet{Calonicoetal2020a} with robust bias corrected inference of \citet{Calonicoetal2014}.  A triangular kernel is used to weight observations by distance from the cut-off.  As well as following recent optimal criteria for bandwidth selection and weighting, we follow document the robustness of results to the design implemented by \citet{Bharadwajetal2013}, where bandwidth is set at 200 grams on either side of the cut-off, a triangular kernel is used, and identical inclusion criteria are adopted.\footnote{In Appendix \ref{app:BLNcomp} we discuss their precise exclusion criteria as well as how it compares to our full sample.  While we consistently replicate the results of \citet{Bharadwajetal2013} as a baseline comparison of first generation results, we note that when extending to a longer sample and intergenerational links, the definition of controls and inclusion criteria should not be precisely the same as in \citet{Bharadwajetal2013}.  Among other things, geographic regions in Chile have been subdivided, implying alternative regional controls.  Nevertheless, we document that results also hold based on their earlier definitions.}  
 
-  \citet{Almondetal2010,Bharadwajetal2013}
 
-  \citet{Calonicoetal2020a,Calonicoetal2014}
+  
+  \citet{Almondetal2010}
   
   \citet{Barrecaetal2011}
 
@@ -171,7 +196,8 @@
       where assignment rules suggest no differential assignment.  Panels
       (a) and (b) replicate \citet{Bharadwajetal2013}'s methods using overlapping
       (30 g) bins and a 100 gram bandwidth.  Panels (c) and (d) use optimal
-      bandwidth selection [xxxxCITExxxx], and a quadratic fit.  Panels (e) and (f) replicate optimal
+      bandwidth selection \citep{Calonicoetal2020a}, and a quadratic fit.
+      Panels (e) and (f) replicate optimal
       plots from panels (c) and (d) focusing only on earlier birth cohorts,
       who are represented as mothers in the intergenerational sample.}
   \end{figure}
@@ -187,7 +213,7 @@
       \multicolumn{7}{l}{\textit{Infant mortality (death within one year of birth)}} \\
       \input{./results/gen1IMR/IMRgen1.tex}
       \bottomrule
-      \multicolumn{7}{p{\dimexpr\linewidth+5mm}}{\footnotesize Each column displays estimates of the change in mortality rates moving from below to above the 1,500 gram assignment threshold.  In each case, local linear regression is used with a triangular kernel.  The first two columns conduct a replication of the procedure in \citet{Bharadwajetal2013} using a bandwidth of 100 grams on either side of the cutoff, and including their controls and sample restrictions.  Columns 3-4 use the same time period as \citet{Bharadwajetal2013}, calculating the MSE optimal bandwidth of [CITE] and including all feasible observations, without controls. Columns 5 and 6 replicate the optimal calculations of columns 3 and 4, focusing only on cohorts in which there are individuals who go on and have children in the intergenerational sample (birth years 1992--2001). * p$<$0.10; ** p$<$0.05; *** p$<$0.01.}
+      \multicolumn{7}{p{\dimexpr\linewidth+5mm}}{\footnotesize Each column displays estimates of the change in mortality rates moving from below to above the 1,500 gram assignment threshold.  In each case, local linear regression is used with a triangular kernel.  The first two columns conduct a replication of the procedure in \citet{Bharadwajetal2013} using a bandwidth of 100 grams on either side of the cutoff, and including their controls and sample restrictions.  Columns 3-4 use the same time period as \citet{Bharadwajetal2013}, calculating the MSE optimal bandwidth of \citet{Calonicoetal2020a} and including all feasible observations, without controls. Columns 5 and 6 replicate the optimal calculations of columns 3 and 4, focusing only on cohorts in which there are individuals who go on and have children in the intergenerational sample (birth years 1992--2001). * p$<$0.10; ** p$<$0.05; *** p$<$0.01.}
     \end{tabular}}
   \end{table}
   
@@ -230,6 +256,206 @@
 
 
 
+
+  \clearpage
+  \section{Appendix Figures and Tables}
+
+  \begin{figure}[htpb!]
+    \caption{Birth weight Frequency (Generation 1)}
+    \label{fig:BWdesc}
+    \begin{subfigure}{.49\textwidth}
+      \centering
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/histFull2007.eps}
+      \caption{Full Sample}
+      \label{fig:BWdescfull}
+    \end{subfigure}
+    \begin{subfigure}{.49\textwidth}
+      \centering
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/histShort2007.eps}
+      \caption{1300-1700 grams}
+      \label{fig:BWdescshort}
+    \end{subfigure}
+  \end{figure}
+  
+
+  \begin{figure}[htpb!]
+    \caption{Birthweight Assignment Thresholds and Infant Mortality (20 Bins)}
+    \label{fig:IMRBin20}
+    %\begin{subfigure}{.49\textwidth}
+    %  \centering
+    %  \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_o32_BLN_1992_2007.eps}
+    %  \caption{Infant Mortality $\geq$ 32 Weeks (BLN Method)}
+    %  \label{fig:IMRBLN32}
+    %\end{subfigure}
+    %\begin{subfigure}{.49\textwidth}
+    %  \centering
+    %  \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_u32_BLN_1992_2007.eps}
+    %  \caption{Infant Mortality $\leq$ 31 Weeks (BLN Method)}
+    %  \label{fig:IMRBLN31}
+    %\end{subfigure}
+
+    \begin{subfigure}{.49\textwidth}
+      \centering
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_o32_optimal_19922007_20.eps}
+      \caption{Infant Mortality $\geq$ 32 Weeks (Optimal)}
+      \label{fig:IMROPT32}
+    \end{subfigure}
+    \begin{subfigure}{.49\textwidth}
+      \centering
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_u32_optimal_19922007_20.eps}
+      \caption{Infant Mortality $\leq$ 31 Weeks (Optimal)}
+      \label{fig:IMROPT31}
+    \end{subfigure}
+
+    \begin{subfigure}{.49\textwidth}
+      \centering
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_o32_optimal_19922001_20.eps}
+      \caption{Infant Mortality $\geq$ 32 Weeks (Early Cohorts)}
+      \label{fig:IMROPT32}
+    \end{subfigure}
+    \begin{subfigure}{.49\textwidth}
+      \centering
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_u32_optimal_19922001_20.eps}
+      \caption{Infant Mortality $\leq$ 31 Weeks (Early Cohorts)}
+      \label{fig:IMROPT31}
+    \end{subfigure}
+    \floatfoot{Note: Each sub-plot estimates the impact of crossing the
+      VLBW threshold on infant mortality.  Left-hand panels present estimates
+      for gestational weeks 32 and above (where assignment rules apply), while
+      right hand panels present estimates for gestational weeks 31 and below
+      where assignment rules suggest no differential assignment.  Panels
+      (a) and (b) replicate \citet{Bharadwajetal2013}'s methods using overlapping
+      (30 g) bins and a 100 gram bandwidth.  Panels (c) and (d) use optimal
+      bandwidth selection [xxxxCITExxxx], and a quadratic fit.  Panels (e) and (f) replicate optimal
+      plots from panels (c) and (d) focusing only on earlier birth cohorts,
+      who are represented as mothers in the intergenerational sample.}
+  \end{figure}
+
+
+    \begin{figure}[htpb!]
+    \caption{Birthweight Assignment Thresholds and Infant Mortality (\citet{Calonicoetal2015} Bin Selection)}
+    \label{fig:IMRBinOpt}
+    %\begin{subfigure}{.49\textwidth}
+    %  \centering
+    %  \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_o32_BLN_1992_2007.eps}
+    %  \caption{Infant Mortality $\geq$ 32 Weeks (BLN Method)}
+    %  \label{fig:IMRBLN32}
+    %\end{subfigure}
+    %\begin{subfigure}{.49\textwidth}
+    %  \centering
+    %  \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_u32_BLN_1992_2007.eps}
+    %  \caption{Infant Mortality $\leq$ 31 Weeks (BLN Method)}
+    %  \label{fig:IMRBLN31}
+    %\end{subfigure}
+
+    \begin{subfigure}{.49\textwidth}
+      \centering
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_o32_optimal_19922007_optBin.eps}
+      \caption{Infant Mortality $\geq$ 32 Weeks (Optimal)}
+      \label{fig:IMROPT32}
+    \end{subfigure}
+    \begin{subfigure}{.49\textwidth}
+      \centering
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_u32_optimal_19922007_optBin.eps}
+      \caption{Infant Mortality $\leq$ 31 Weeks (Optimal)}
+      \label{fig:IMROPT31}
+    \end{subfigure}
+
+    \begin{subfigure}{.49\textwidth}
+      \centering
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_o32_optimal_19922001_optBin.eps}
+      \caption{Infant Mortality $\geq$ 32 Weeks (Early Cohorts)}
+      \label{fig:IMROPT32}
+    \end{subfigure}
+    \begin{subfigure}{.49\textwidth}
+      \centering
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_u32_optimal_19922001_optBin.eps}
+      \caption{Infant Mortality $\leq$ 31 Weeks (Early Cohorts)}
+      \label{fig:IMROPT31}
+    \end{subfigure}
+    \floatfoot{Note: Each sub-plot estimates the impact of crossing the
+      VLBW threshold on infant mortality.  Left-hand panels present estimates
+      for gestational weeks 32 and above (where assignment rules apply), while
+      right hand panels present estimates for gestational weeks 31 and below
+      where assignment rules suggest no differential assignment.  Panels
+      (a) and (b) replicate \citet{Bharadwajetal2013}'s methods using overlapping
+      (30 g) bins and a 100 gram bandwidth.  Panels (c) and (d) use optimal
+      bandwidth selection [xxxxCITExxxx], and a quadratic fit.  Panels (e) and (f) replicate optimal
+      plots from panels (c) and (d) focusing only on earlier birth cohorts,
+      who are represented as mothers in the intergenerational sample.}
+  \end{figure}
+
+
+  \begin{figure}[htpb!]
+    \caption{Birthweight Assignment Thresholds and Infant Mortality (Extending to 2018)}
+    \label{fig:IMR2018}
+    \begin{subfigure}{.49\textwidth}
+      \centering
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_o32_BLN_1992_2018.eps}
+      \caption{Infant Mortality $\geq$ 32 Weeks (BLN Method)}
+      \label{fig:IMRBLN32}
+    \end{subfigure}
+    \begin{subfigure}{.49\textwidth}
+      \centering
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_u32_BLN_1992_2018.eps}
+      \caption{Infant Mortality $\leq$ 31 Weeks (BLN Method)}
+      \label{fig:IMRBLN31}
+    \end{subfigure}
+
+    \begin{subfigure}{.49\textwidth}
+      \centering
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_o32_optimal_19922018.eps}
+      \caption{Infant Mortality $\geq$ 32 Weeks (Optimal)}
+      \label{fig:IMROPT32}
+    \end{subfigure}
+    \begin{subfigure}{.49\textwidth}
+      \centering
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_u32_optimal_19922018.eps}
+      \caption{Infant Mortality $\leq$ 31 Weeks (Optimal)}
+      \label{fig:IMROPT31}
+    \end{subfigure}
+
+    \begin{subfigure}{.49\textwidth}
+      \centering
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_o32_optimal_19922001.eps}
+      \caption{Infant Mortality $\geq$ 32 Weeks (Early Cohorts)}
+      \label{fig:IMROPT32}
+    \end{subfigure}
+    \begin{subfigure}{.49\textwidth}
+      \centering
+      \includegraphics[width=1\linewidth]{./results/gen1IMR/imrt_u32_optimal_19922001.eps}
+      \caption{Infant Mortality $\leq$ 31 Weeks (Early Cohorts)}
+      \label{fig:IMROPT31}
+    \end{subfigure}
+    \floatfoot{Note: Each sub-plot estimates the impact of crossing the
+      VLBW threshold on infant mortality.  Left-hand panels present estimates
+      for gestational weeks 32 and above (where assignment rules apply), while
+      right hand panels present estimates for gestational weeks 31 and below
+      where assignment rules suggest no differential assignment.  Panels
+      (a) and (b) replicate \citet{Bharadwajetal2013}'s methods using overlapping
+      (30 g) bins and a 100 gram bandwidth.  Panels (c) and (d) use optimal
+      bandwidth selection [xxxxCITExxxx], and a quadratic fit.  Panels (e) and (f) replicate optimal
+      plots from panels (c) and (d) focusing only on earlier birth cohorts,
+      who are represented as mothers in the intergenerational sample.}
+  \end{figure}
+
+
+  \begin{table}[htpb!]
+    \caption{Impacts of Assignment Threshold on Infant Mortality (Generation 1, Extending to 2018)}
+    \scalebox{0.94}{
+    \begin{tabular}{lcccccc} \toprule
+      %& (1) & (2) & (3) & (4) & (5) & (6) \\ 
+      & \multicolumn{2}{c}{BLN Sample \& Methods} & \multicolumn{2}{c}{BLN Sample, Optimal} & \multicolumn{2}{c}{Intergen Sample, Optimal} \\ \cmidrule(r){2-3}\cmidrule(r){4-5}\cmidrule(r){6-7} 
+      & $\geq 32$ weeks & $< 32$ weeks       & $\geq 32$ weeks & $< 32$ weeks       & $\geq 32$ weeks & $< 32$ weeks \\ \midrule
+      \multicolumn{7}{l}{\textit{Infant mortality (death within one year of birth)}} \\
+      \input{./results/gen1IMR/IMRgen1_2018.tex}
+      \bottomrule
+      \multicolumn{7}{p{\dimexpr\linewidth+5mm}}{\footnotesize Each column displays estimates of the change in mortality rates moving from below to above the 1,500 gram assignment threshold.  In each case, local linear regression is used with a triangular kernel.  The first two columns conduct a replication of the procedure in \citet{Bharadwajetal2013} using a bandwidth of 100 grams on either side of the cutoff, and including their controls and sample restrictions.  Columns 3-4 use the same time period as \citet{Bharadwajetal2013}, calculating the MSE optimal bandwidth of [CITE] and including all feasible observations, without controls. Columns 5 and 6 replicate the optimal calculations of columns 3 and 4, focusing only on cohorts in which there are individuals who go on and have children in the intergenerational sample (birth years 1992--2001). * p$<$0.10; ** p$<$0.05; *** p$<$0.01.}
+    \end{tabular}}
+  \end{table}
+  
+
+  \clearpage
   \section{Data Consistency and Descriptions}
   \label{app:data}
   In progress...
@@ -318,7 +544,11 @@
 
 
   \clearpage
-  \section{Appendix Figures and Tables}
-    
+  \section{Comparison of Data and Definitions with \citet{Bharadwajetal2013}}
+  \label{app:BLNcomp}
+
+  
+  
+  
   \end{appendices}
 \end{document}
