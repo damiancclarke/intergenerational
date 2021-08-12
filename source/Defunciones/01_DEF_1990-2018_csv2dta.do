@@ -1,3 +1,13 @@
+* Create date tag:
+local today = date("$S_DATE", "DMY")
+local datetag = string(year(`today'), "%02.0f") ///
+			  + string(month(`today'), "%02.0f") ///
+			  + string(day(`today'), "%02.0f")
+
+* Start log:
+capture log close _all
+log using "$logdir/DEF_csv2dta_`datetag'", text replace name(DEF_csv2dta)
+
 * Preamble:
 cls
 clear all
@@ -7,22 +17,8 @@ set more off
 local sourcedir "$rawdata/DEIS/DEF_1990-2018"
 local destindir "$dtadir/DEIS"
 
-* Check destination directory exists:
-capture cd "`destindir'"
-if _rc != 0 {
-	mkdir "`destindir'"
-	display "Destination directory created"
-}
-else {
-	display "Destination directory already exists."
-}
-
 * Switch to destination directory:
 cd "`destindir'"
-
-* Start log:
-capture log close _all
-log using "$logdir/NAC_1992_2018_csv2dta", text replace name(NAC_1992_2018_csv2dta)
 
 * Import data (original .csv is 1.3gb, so this step may take a while depending
 * on your system)
