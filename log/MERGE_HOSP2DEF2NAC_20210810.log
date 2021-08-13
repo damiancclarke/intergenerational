@@ -1,0 +1,113 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  MERGE_HOSP2DEF2NAC
+       log:  C:\Users\nicol\Dropbox\Research Projects\Intergenerational/statalogs/MERGE_HOSP2DEF2NAC_20210810.log
+  log type:  text
+ opened on:  10 Aug 2021, 15:09:11
+
+. 
+. * Preamble:
+. cls
+
+. clear all
+
+. set more off
+
+. 
+. * Switch to destination directory:
+. cd "$dtadir/DEIS"
+C:\Users\nicol\Dropbox\Research Projects\Intergenerational\data\dta\DEIS
+
+. 
+. * Load merged Deaths 2 Births data:
+. use MERGED_DEF2NAC.dta, clear
+(1990-2018 deaths data merged to 1992-2018 births data (DEIS/MINSAL))
+
+. 
+. * Drop unmatched deaths:
+. drop if mrg_DEF2NAC == 2
+(1,490 observations deleted)
+
+. 
+. * Copy ID variable:
+. gen ID_PACIENTE = ID_RECIEN_NACIDO
+
+. 
+. * Perform merge (keeping only master and matched):
+. merge 1:1 ID_PACIENTE using hospdays_conswide.dta, ///
+>         keep(match master) gen(mrg_hosp2DEF2NAC)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                     3,709,509
+        from master                 3,709,509  (mrg_hosp2DEF2NAC==1)
+        from using                          0  (mrg_hosp2DEF2NAC==2)
+
+    matched                         2,908,129  (mrg_hosp2DEF2NAC==3)
+    -----------------------------------------
+
+. 
+. label var mrg_hosp2DEF2NAC "Merge 1:1 ID_PACIENTE using hospdays_conswide"
+
+. 
+. * Rename hospital days variables:
+. ds NAC_* DEF_* mrg_* ID_*, not
+days_y01      days_m04      nvsts_y15     nvsts_s25     days_y26_p~v  nvsts_y10_~v  nvsts_s00_~v  days_y23_p~l  nvsts_y07_~l  nvsts_m10_~l  birthday19
+days_y02      days_m05      nvsts_y16     nvsts_s30     days_y27_p~v  nvsts_y11_~v  nvsts_s05_~v  days_y24_p~l  nvsts_y08_~l  nvsts_m11_~l  birthday20
+days_y03      days_m06      nvsts_y17     olap          days_m01_p~v  nvsts_y12_~v  nvsts_s10_~v  days_y25_p~l  nvsts_y09_~l  nvsts_m12_~l  birthday21
+days_y04      days_m07      nvsts_y18     any_public    days_m02_p~v  nvsts_y13_~v  nvsts_s15_~v  days_y26_p~l  nvsts_y10_~l  nvsts_s00_~l  birthday22
+days_y05      days_m08      nvsts_y19     any_private   days_m03_p~v  nvsts_y14_~v  nvsts_s20_~v  days_y27_p~l  nvsts_y11_~l  nvsts_s05_~l  birthday23
+days_y06      days_m09      nvsts_y20     days_y01_p~v  days_m04_p~v  nvsts_y15_~v  nvsts_s25_~v  days_m01_p~l  nvsts_y12_~l  nvsts_s10_~l  birthday24
+days_y07      days_m10      nvsts_y21     days_y02_p~v  days_m05_p~v  nvsts_y16_~v  nvsts_s30_~v  days_m02_p~l  nvsts_y13_~l  nvsts_s15_~l  birthday25
+days_y08      days_m11      nvsts_y22     days_y03_p~v  days_m06_p~v  nvsts_y17_~v  olap_priv     days_m03_p~l  nvsts_y14_~l  nvsts_s20_~l  birthday26
+days_y09      days_m12      nvsts_y23     days_y04_p~v  days_m07_p~v  nvsts_y18_~v  days_y01_p~l  days_m04_p~l  nvsts_y15_~l  nvsts_s25_~l  birthday27
+days_y10      days_s00      nvsts_y24     days_y05_p~v  days_m08_p~v  nvsts_y19_~v  days_y02_p~l  days_m05_p~l  nvsts_y16_~l  nvsts_s30_~l  fecha_mon~01
+days_y11      days_s05      nvsts_y25     days_y06_p~v  days_m09_p~v  nvsts_y20_~v  days_y03_p~l  days_m06_p~l  nvsts_y17_~l  olap_publ     fecha_mon~02
+days_y12      days_s10      nvsts_y26     days_y07_p~v  days_m10_p~v  nvsts_y21_~v  days_y04_p~l  days_m07_p~l  nvsts_y18_~l  fecha_nac_~s  fecha_mon~03
+days_y13      days_s15      nvsts_y27     days_y08_p~v  days_m11_p~v  nvsts_y22_~v  days_y05_p~l  days_m08_p~l  nvsts_y19_~l  birthday01    fecha_mon~04
+days_y14      days_s20      nvsts_m01     days_y09_p~v  days_m12_p~v  nvsts_y23_~v  days_y06_p~l  days_m09_p~l  nvsts_y20_~l  birthday02    fecha_mon~05
+days_y15      days_s25      nvsts_m02     days_y10_p~v  days_s00_p~v  nvsts_y24_~v  days_y07_p~l  days_m10_p~l  nvsts_y21_~l  birthday03    fecha_mon~06
+days_y16      days_s30      nvsts_m03     days_y11_p~v  days_s05_p~v  nvsts_y25_~v  days_y08_p~l  days_m11_p~l  nvsts_y22_~l  birthday04    fecha_mon~07
+days_y17      nvsts_y01     nvsts_m04     days_y12_p~v  days_s10_p~v  nvsts_y26_~v  days_y09_p~l  days_m12_p~l  nvsts_y23_~l  birthday05    fecha_mon~08
+days_y18      nvsts_y02     nvsts_m05     days_y13_p~v  days_s15_p~v  nvsts_y27_~v  days_y10_p~l  days_s00_p~l  nvsts_y24_~l  birthday06    fecha_mon~09
+days_y19      nvsts_y03     nvsts_m06     days_y14_p~v  days_s20_p~v  nvsts_m01_~v  days_y11_p~l  days_s05_p~l  nvsts_y25_~l  birthday07    fecha_mon~10
+days_y20      nvsts_y04     nvsts_m07     days_y15_p~v  days_s25_p~v  nvsts_m02_~v  days_y12_p~l  days_s10_p~l  nvsts_y26_~l  birthday08    fecha_mon~11
+days_y21      nvsts_y05     nvsts_m08     days_y16_p~v  days_s30_p~v  nvsts_m03_~v  days_y13_p~l  days_s15_p~l  nvsts_y27_~l  birthday09    fecha_mon~12
+days_y22      nvsts_y06     nvsts_m09     days_y17_p~v  nvsts_y01_~v  nvsts_m04_~v  days_y14_p~l  days_s20_p~l  nvsts_m01_~l  birthday10
+days_y23      nvsts_y07     nvsts_m10     days_y18_p~v  nvsts_y02_~v  nvsts_m05_~v  days_y15_p~l  days_s25_p~l  nvsts_m02_~l  birthday11
+days_y24      nvsts_y08     nvsts_m11     days_y19_p~v  nvsts_y03_~v  nvsts_m06_~v  days_y16_p~l  days_s30_p~l  nvsts_m03_~l  birthday12
+days_y25      nvsts_y09     nvsts_m12     days_y20_p~v  nvsts_y04_~v  nvsts_m07_~v  days_y17_p~l  nvsts_y01_~l  nvsts_m04_~l  birthday13
+days_y26      nvsts_y10     nvsts_s00     days_y21_p~v  nvsts_y05_~v  nvsts_m08_~v  days_y18_p~l  nvsts_y02_~l  nvsts_m05_~l  birthday14
+days_y27      nvsts_y11     nvsts_s05     days_y22_p~v  nvsts_y06_~v  nvsts_m09_~v  days_y19_p~l  nvsts_y03_~l  nvsts_m06_~l  birthday15
+days_m01      nvsts_y12     nvsts_s10     days_y23_p~v  nvsts_y07_~v  nvsts_m10_~v  days_y20_p~l  nvsts_y04_~l  nvsts_m07_~l  birthday16
+days_m02      nvsts_y13     nvsts_s15     days_y24_p~v  nvsts_y08_~v  nvsts_m11_~v  days_y21_p~l  nvsts_y05_~l  nvsts_m08_~l  birthday17
+days_m03      nvsts_y14     nvsts_s20     days_y25_p~v  nvsts_y09_~v  nvsts_m12_~v  days_y22_p~l  nvsts_y06_~l  nvsts_m09_~l  birthday18
+
+. foreach var of varlist `r(varlist)' {
+  2.         rename `var' EEHH_`var'
+  3. }
+
+. 
+. * Save merged dataset:
+. compress
+  (0 bytes saved)
+
+. label data "01-19 hosp. days merged to 90-18 deaths merged to 92-18 births"
+
+. notes drop _dta
+  (3 notes dropped)
+
+. note: Last modified by: $id_user_full ($id_user_email)
+
+. note: Last modification timestamp: $S_DATE at $S_TIME
+
+. save MERGED_HOSPDATS2DEF2NAC.dta, replace
+file MERGED_HOSPDATS2DEF2NAC.dta saved
+
+. 
+. * Close log:
+. log close _all
+      name:  MERGE_HOSP2DEF2NAC
+       log:  C:\Users\nicol\Dropbox\Research Projects\Intergenerational/statalogs/MERGE_HOSP2DEF2NAC_20210810.log
+  log type:  text
+ closed on:  10 Aug 2021, 15:11:00
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------

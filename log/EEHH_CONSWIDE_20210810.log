@@ -1,0 +1,718 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  EEHH_CONSWIDE
+       log:  C:\Users\nicol\Dropbox\Research Projects\Intergenerational/statalogs/EEHH_CONSWIDE_20210810.log
+  log type:  text
+ opened on:  10 Aug 2021, 14:58:02
+
+. 
+. * Preamble:
+. cls
+
+. clear all
+
+. set more off
+
+. 
+. * Switch to destination directory:
+. cd "$dtadir/DEIS"
+C:\Users\nicol\Dropbox\Research Projects\Intergenerational\data\dta\DEIS
+
+. 
+. ********************************************************************************
+. * Load fully collapsed data:
+. use hospdays_by_patient.dta, clear
+(Days hospitalized 2001-2019 by patient (from EEHH database))
+
+. 
+. * Merge in data by public/private (should be a perfect merge):
+. merge 1:1 ID_PACIENTE using hospdays_by_public_wide.dta, nogen
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                         2,908,129  
+    -----------------------------------------
+
+. 
+. * Merge in data by diagnosis (original dataset is huge, >15gb, so use the option
+. * keepusing to get specific variables...)
+. * merge 1:1 ID_PACIENTE using hospdays_by_diagnosis1_wide.dta, nogen keepusing()
+. 
+. ********************************************************************************
+. * Need to separate ambulatory visits in y and m variables:
+. /* ambulatory visits are counted originally as a 1 day visit, but when spreading
+>  over years or months, they show up as 0s.
+> 
+> On the other hand, collapse assigns 0s to the sum of missings.
+> 
+> nvsts is going to be 0 if the days var is spilling over from the previous period
+> because the visit is recorded only once (when it began).
+> 
+> so we need to assign the days variable to missing if the visits are 0 and the 
+> days are 0, because this would identify a 0 day visit produced by the collapse 
+> command.
+> 
+> if days are not 0 but visits are 0, it means that some days have spilled over 
+> from the previous period, so the days variable shouldn't be assigned as missing.
+> */
+. 
+. * Display statistics of example variables before:
+. sum *_y01
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    days_y01 |  2,908,129    2.587183    12.96598          0        730
+   nvsts_y01 |  2,908,129    .4044913    .8401788          0         73
+
+. 
+. foreach nvsts_var of varlist nvsts_y* nvsts_m* {
+  2.         * Show which var we're processing:
+.         display "Now processing `nvsts_var'"
+  3.         
+.         * Get name of days variable:
+.         local days_var = subinstr("`nvsts_var'", "nvsts", "days", 1)
+  4.         
+.         * Replace with missing non ambulatory 0 day non-visits:
+.         replace `days_var' = . if `nvsts_var' == 0 & `days_var' == 0
+  5. }
+Now processing nvsts_y01
+(2,062,407 real changes made, 2,062,407 to missing)
+Now processing nvsts_y02
+(2,546,574 real changes made, 2,546,574 to missing)
+Now processing nvsts_y03
+(2,667,249 real changes made, 2,667,249 to missing)
+Now processing nvsts_y04
+(2,691,652 real changes made, 2,691,652 to missing)
+Now processing nvsts_y05
+(2,701,907 real changes made, 2,701,907 to missing)
+Now processing nvsts_y06
+(2,719,454 real changes made, 2,719,454 to missing)
+Now processing nvsts_y07
+(2,738,380 real changes made, 2,738,380 to missing)
+Now processing nvsts_y08
+(2,756,073 real changes made, 2,756,073 to missing)
+Now processing nvsts_y09
+(2,768,128 real changes made, 2,768,128 to missing)
+Now processing nvsts_y10
+(2,777,431 real changes made, 2,777,431 to missing)
+Now processing nvsts_y11
+(2,786,277 real changes made, 2,786,277 to missing)
+Now processing nvsts_y12
+(2,794,128 real changes made, 2,794,128 to missing)
+Now processing nvsts_y13
+(2,801,519 real changes made, 2,801,519 to missing)
+Now processing nvsts_y14
+(2,803,032 real changes made, 2,803,032 to missing)
+Now processing nvsts_y15
+(2,795,416 real changes made, 2,795,416 to missing)
+Now processing nvsts_y16
+(2,797,161 real changes made, 2,797,161 to missing)
+Now processing nvsts_y17
+(2,782,660 real changes made, 2,782,660 to missing)
+Now processing nvsts_y18
+(2,773,603 real changes made, 2,773,603 to missing)
+Now processing nvsts_y19
+(2,775,323 real changes made, 2,775,323 to missing)
+Now processing nvsts_y20
+(2,778,917 real changes made, 2,778,917 to missing)
+Now processing nvsts_y21
+(2,787,997 real changes made, 2,787,997 to missing)
+Now processing nvsts_y22
+(2,802,104 real changes made, 2,802,104 to missing)
+Now processing nvsts_y23
+(2,817,982 real changes made, 2,817,982 to missing)
+Now processing nvsts_y24
+(2,833,661 real changes made, 2,833,661 to missing)
+Now processing nvsts_y25
+(2,849,654 real changes made, 2,849,654 to missing)
+Now processing nvsts_y26
+(2,865,524 real changes made, 2,865,524 to missing)
+Now processing nvsts_y27
+(2,881,904 real changes made, 2,881,904 to missing)
+Now processing nvsts_y01_priv
+(730,310 real changes made, 730,310 to missing)
+Now processing nvsts_y02_priv
+(809,057 real changes made, 809,057 to missing)
+Now processing nvsts_y03_priv
+(821,074 real changes made, 821,074 to missing)
+Now processing nvsts_y04_priv
+(815,512 real changes made, 815,512 to missing)
+Now processing nvsts_y05_priv
+(818,208 real changes made, 818,208 to missing)
+Now processing nvsts_y06_priv
+(828,160 real changes made, 828,160 to missing)
+Now processing nvsts_y07_priv
+(839,724 real changes made, 839,724 to missing)
+Now processing nvsts_y08_priv
+(848,382 real changes made, 848,382 to missing)
+Now processing nvsts_y09_priv
+(854,015 real changes made, 854,015 to missing)
+Now processing nvsts_y10_priv
+(857,305 real changes made, 857,305 to missing)
+Now processing nvsts_y11_priv
+(859,969 real changes made, 859,969 to missing)
+Now processing nvsts_y12_priv
+(862,019 real changes made, 862,019 to missing)
+Now processing nvsts_y13_priv
+(863,422 real changes made, 863,422 to missing)
+Now processing nvsts_y14_priv
+(864,019 real changes made, 864,019 to missing)
+Now processing nvsts_y15_priv
+(862,028 real changes made, 862,028 to missing)
+Now processing nvsts_y16_priv
+(857,460 real changes made, 857,460 to missing)
+Now processing nvsts_y17_priv
+(853,409 real changes made, 853,409 to missing)
+Now processing nvsts_y18_priv
+(850,184 real changes made, 850,184 to missing)
+Now processing nvsts_y19_priv
+(850,916 real changes made, 850,916 to missing)
+Now processing nvsts_y20_priv
+(851,332 real changes made, 851,332 to missing)
+Now processing nvsts_y21_priv
+(851,434 real changes made, 851,434 to missing)
+Now processing nvsts_y22_priv
+(854,480 real changes made, 854,480 to missing)
+Now processing nvsts_y23_priv
+(858,153 real changes made, 858,153 to missing)
+Now processing nvsts_y24_priv
+(862,351 real changes made, 862,351 to missing)
+Now processing nvsts_y25_priv
+(867,626 real changes made, 867,626 to missing)
+Now processing nvsts_y26_priv
+(873,396 real changes made, 873,396 to missing)
+Now processing nvsts_y27_priv
+(879,361 real changes made, 879,361 to missing)
+Now processing nvsts_y01_publ
+(1,506,415 real changes made, 1,506,415 to missing)
+Now processing nvsts_y02_publ
+(1,921,898 real changes made, 1,921,898 to missing)
+Now processing nvsts_y03_publ
+(2,032,515 real changes made, 2,032,515 to missing)
+Now processing nvsts_y04_publ
+(2,063,077 real changes made, 2,063,077 to missing)
+Now processing nvsts_y05_publ
+(2,070,991 real changes made, 2,070,991 to missing)
+Now processing nvsts_y06_publ
+(2,078,828 real changes made, 2,078,828 to missing)
+Now processing nvsts_y07_publ
+(2,086,378 real changes made, 2,086,378 to missing)
+Now processing nvsts_y08_publ
+(2,095,636 real changes made, 2,095,636 to missing)
+Now processing nvsts_y09_publ
+(2,102,242 real changes made, 2,102,242 to missing)
+Now processing nvsts_y10_publ
+(2,108,355 real changes made, 2,108,355 to missing)
+Now processing nvsts_y11_publ
+(2,114,621 real changes made, 2,114,621 to missing)
+Now processing nvsts_y12_publ
+(2,120,382 real changes made, 2,120,382 to missing)
+Now processing nvsts_y13_publ
+(2,126,364 real changes made, 2,126,364 to missing)
+Now processing nvsts_y14_publ
+(2,127,261 real changes made, 2,127,261 to missing)
+Now processing nvsts_y15_publ
+(2,121,374 real changes made, 2,121,374 to missing)
+Now processing nvsts_y16_publ
+(2,127,608 real changes made, 2,127,608 to missing)
+Now processing nvsts_y17_publ
+(2,116,980 real changes made, 2,116,980 to missing)
+Now processing nvsts_y18_publ
+(2,110,918 real changes made, 2,110,918 to missing)
+Now processing nvsts_y19_publ
+(2,111,840 real changes made, 2,111,840 to missing)
+Now processing nvsts_y20_publ
+(2,114,803 real changes made, 2,114,803 to missing)
+Now processing nvsts_y21_publ
+(2,123,732 real changes made, 2,123,732 to missing)
+Now processing nvsts_y22_publ
+(2,135,020 real changes made, 2,135,020 to missing)
+Now processing nvsts_y23_publ
+(2,147,387 real changes made, 2,147,387 to missing)
+Now processing nvsts_y24_publ
+(2,159,103 real changes made, 2,159,103 to missing)
+Now processing nvsts_y25_publ
+(2,170,134 real changes made, 2,170,134 to missing)
+Now processing nvsts_y26_publ
+(2,180,458 real changes made, 2,180,458 to missing)
+Now processing nvsts_y27_publ
+(2,191,199 real changes made, 2,191,199 to missing)
+Now processing nvsts_m01
+(2,516,391 real changes made, 2,516,391 to missing)
+Now processing nvsts_m02
+(2,747,125 real changes made, 2,747,125 to missing)
+Now processing nvsts_m03
+(2,803,793 real changes made, 2,803,793 to missing)
+Now processing nvsts_m04
+(2,829,150 real changes made, 2,829,150 to missing)
+Now processing nvsts_m05
+(2,843,259 real changes made, 2,843,259 to missing)
+Now processing nvsts_m06
+(2,845,314 real changes made, 2,845,314 to missing)
+Now processing nvsts_m07
+(2,846,536 real changes made, 2,846,536 to missing)
+Now processing nvsts_m08
+(2,848,535 real changes made, 2,848,535 to missing)
+Now processing nvsts_m09
+(2,848,871 real changes made, 2,848,871 to missing)
+Now processing nvsts_m10
+(2,852,601 real changes made, 2,852,601 to missing)
+Now processing nvsts_m11
+(2,852,507 real changes made, 2,852,507 to missing)
+Now processing nvsts_m12
+(2,856,358 real changes made, 2,856,358 to missing)
+Now processing nvsts_m01_priv
+(820,716 real changes made, 820,716 to missing)
+Now processing nvsts_m02_priv
+(864,913 real changes made, 864,913 to missing)
+Now processing nvsts_m03_priv
+(873,309 real changes made, 873,309 to missing)
+Now processing nvsts_m04_priv
+(877,658 real changes made, 877,658 to missing)
+Now processing nvsts_m05_priv
+(879,718 real changes made, 879,718 to missing)
+Now processing nvsts_m06_priv
+(879,771 real changes made, 879,771 to missing)
+Now processing nvsts_m07_priv
+(879,064 real changes made, 879,064 to missing)
+Now processing nvsts_m08_priv
+(878,987 real changes made, 878,987 to missing)
+Now processing nvsts_m09_priv
+(878,779 real changes made, 878,779 to missing)
+Now processing nvsts_m10_priv
+(879,468 real changes made, 879,468 to missing)
+Now processing nvsts_m11_priv
+(879,110 real changes made, 879,110 to missing)
+Now processing nvsts_m12_priv
+(879,707 real changes made, 879,707 to missing)
+Now processing nvsts_m01_publ
+(1,881,780 real changes made, 1,881,780 to missing)
+Now processing nvsts_m02_publ
+(2,070,018 real changes made, 2,070,018 to missing)
+Now processing nvsts_m03_publ
+(2,118,664 real changes made, 2,118,664 to missing)
+Now processing nvsts_m04_publ
+(2,139,885 real changes made, 2,139,885 to missing)
+Now processing nvsts_m05_publ
+(2,152,057 real changes made, 2,152,057 to missing)
+Now processing nvsts_m06_publ
+(2,154,073 real changes made, 2,154,073 to missing)
+Now processing nvsts_m07_publ
+(2,156,037 real changes made, 2,156,037 to missing)
+Now processing nvsts_m08_publ
+(2,158,172 real changes made, 2,158,172 to missing)
+Now processing nvsts_m09_publ
+(2,158,669 real changes made, 2,158,669 to missing)
+Now processing nvsts_m10_publ
+(2,161,800 real changes made, 2,161,800 to missing)
+Now processing nvsts_m11_publ
+(2,162,028 real changes made, 2,162,028 to missing)
+Now processing nvsts_m12_publ
+(2,165,328 real changes made, 2,165,328 to missing)
+
+. 
+. * Display statistics of example variables after:
+. sum *_y01
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    days_y01 |    845,722    8.896378    22.84651          0        730
+   nvsts_y01 |  2,908,129    .4044913    .8401788          0         73
+
+. 
+. ********************************************************************************
+. * Assign MISSING to public and private visits if total visits is 0:
+. /*
+> When using the collapse command, if a person visited a public hospital some
+> time in their life, she's going to get assigned a 0 in other years of her life.
+> 
+> Given that we wouldn't know the split between public/public in a given year if
+> she visited neither, then the variable nvsts should be missing if her total
+> visits to hospital are 0.
+> */
+. 
+. foreach nvsts_var of varlist nvsts_y?? nvsts_m?? {
+  2.         * Show which variable we're processing:
+.         display "Now processing `nvsts_var':"
+  3.         
+.         * Get name of days variable:
+.         local days_var = subinstr("`nvsts_var'", "nvsts", "days", 1)
+  4.         
+.         * Get name of public variable:
+.         local nvsts_var_publ = "`nvsts_var'_publ"
+  5.         
+.         * Get name of private variable:
+.         local nvsts_var_priv = "`nvsts_var'_priv"
+  6.         
+.         * Replace public variable with ZERO if individual visited only private:
+.         replace `nvsts_var_publ' = . if `nvsts_var' == 0
+  7.         
+.         * Replace private variable with ZERO if individual visited only public:
+.         replace `nvsts_var_priv' = . if `nvsts_var' == 0
+  8. }
+Now processing nvsts_y01:
+(1,498,070 real changes made, 1,498,070 to missing)
+(698,161 real changes made, 698,161 to missing)
+Now processing nvsts_y02:
+(1,916,366 real changes made, 1,916,366 to missing)
+(792,439 real changes made, 792,439 to missing)
+Now processing nvsts_y03:
+(2,025,121 real changes made, 2,025,121 to missing)
+(809,223 real changes made, 809,223 to missing)
+Now processing nvsts_y04:
+(2,053,005 real changes made, 2,053,005 to missing)
+(805,412 real changes made, 805,412 to missing)
+Now processing nvsts_y05:
+(2,059,973 real changes made, 2,059,973 to missing)
+(808,567 real changes made, 808,567 to missing)
+Now processing nvsts_y06:
+(2,068,808 real changes made, 2,068,808 to missing)
+(818,579 real changes made, 818,579 to missing)
+Now processing nvsts_y07:
+(2,077,956 real changes made, 2,077,956 to missing)
+(830,387 real changes made, 830,387 to missing)
+Now processing nvsts_y08:
+(2,088,678 real changes made, 2,088,678 to missing)
+(839,605 real changes made, 839,605 to missing)
+Now processing nvsts_y09:
+(2,096,217 real changes made, 2,096,217 to missing)
+(845,156 real changes made, 845,156 to missing)
+Now processing nvsts_y10:
+(2,102,990 real changes made, 2,102,990 to missing)
+(848,686 real changes made, 848,686 to missing)
+Now processing nvsts_y11:
+(2,109,747 real changes made, 2,109,747 to missing)
+(851,363 real changes made, 851,363 to missing)
+Now processing nvsts_y12:
+(2,115,963 real changes made, 2,115,963 to missing)
+(853,798 real changes made, 853,798 to missing)
+Now processing nvsts_y13:
+(2,122,293 real changes made, 2,122,293 to missing)
+(855,685 real changes made, 855,685 to missing)
+Now processing nvsts_y14:
+(2,123,313 real changes made, 2,123,313 to missing)
+(856,290 real changes made, 856,290 to missing)
+Now processing nvsts_y15:
+(2,117,167 real changes made, 2,117,167 to missing)
+(853,824 real changes made, 853,824 to missing)
+Now processing nvsts_y16:
+(2,122,316 real changes made, 2,122,316 to missing)
+(850,698 real changes made, 850,698 to missing)
+Now processing nvsts_y17:
+(2,110,810 real changes made, 2,110,810 to missing)
+(846,060 real changes made, 846,060 to missing)
+Now processing nvsts_y18:
+(2,104,013 real changes made, 2,104,013 to missing)
+(842,593 real changes made, 842,593 to missing)
+Now processing nvsts_y19:
+(2,104,707 real changes made, 2,104,707 to missing)
+(843,557 real changes made, 843,557 to missing)
+Now processing nvsts_y20:
+(2,107,177 real changes made, 2,107,177 to missing)
+(844,273 real changes made, 844,273 to missing)
+Now processing nvsts_y21:
+(2,115,820 real changes made, 2,115,820 to missing)
+(844,850 real changes made, 844,850 to missing)
+Now processing nvsts_y22:
+(2,127,251 real changes made, 2,127,251 to missing)
+(848,786 real changes made, 848,786 to missing)
+Now processing nvsts_y23:
+(2,140,042 real changes made, 2,140,042 to missing)
+(853,216 real changes made, 853,216 to missing)
+Now processing nvsts_y24:
+(2,152,568 real changes made, 2,152,568 to missing)
+(858,162 real changes made, 858,162 to missing)
+Now processing nvsts_y25:
+(2,164,562 real changes made, 2,164,562 to missing)
+(864,189 real changes made, 864,189 to missing)
+Now processing nvsts_y26:
+(2,176,046 real changes made, 2,176,046 to missing)
+(870,649 real changes made, 870,649 to missing)
+Now processing nvsts_y27:
+(2,188,289 real changes made, 2,188,289 to missing)
+(877,689 real changes made, 877,689 to missing)
+Now processing nvsts_m01:
+(1,876,311 real changes made, 1,876,311 to missing)
+(802,147 real changes made, 802,147 to missing)
+Now processing nvsts_m02:
+(2,104,523 real changes made, 2,104,523 to missing)
+(864,692 real changes made, 864,692 to missing)
+Now processing nvsts_m03:
+(2,136,430 real changes made, 2,136,430 to missing)
+(871,985 real changes made, 871,985 to missing)
+Now processing nvsts_m04:
+(2,149,891 real changes made, 2,149,891 to missing)
+(875,895 real changes made, 875,895 to missing)
+Now processing nvsts_m05:
+(2,159,231 real changes made, 2,159,231 to missing)
+(877,979 real changes made, 877,979 to missing)
+Now processing nvsts_m06:
+(2,159,929 real changes made, 2,159,929 to missing)
+(878,025 real changes made, 878,025 to missing)
+Now processing nvsts_m07:
+(2,161,264 real changes made, 2,161,264 to missing)
+(877,350 real changes made, 877,350 to missing)
+Now processing nvsts_m08:
+(2,162,984 real changes made, 2,162,984 to missing)
+(877,394 real changes made, 877,394 to missing)
+Now processing nvsts_m09:
+(2,162,936 real changes made, 2,162,936 to missing)
+(877,223 real changes made, 877,223 to missing)
+Now processing nvsts_m10:
+(2,165,836 real changes made, 2,165,836 to missing)
+(878,068 real changes made, 878,068 to missing)
+Now processing nvsts_m11:
+(2,165,661 real changes made, 2,165,661 to missing)
+(877,619 real changes made, 877,619 to missing)
+Now processing nvsts_m12:
+(2,168,595 real changes made, 2,168,595 to missing)
+(878,312 real changes made, 878,312 to missing)
+
+. 
+. ********************************************************************************
+. 
+. * Assign ZERO to public when individual visited only private and vice-versa:
+. foreach nvsts_var of varlist nvsts_y?? nvsts_m?? {
+  2.         * Show which variable we're processing:
+.         display "Now processing `nvsts_var':"
+  3.         
+.         * Get name of public number of visits variable:
+.         local nvsts_var_publ = "`nvsts_var'_publ"
+  4.         
+.         * Get name of public days variable:
+.         local days_var_publ = subinstr("`nvsts_var_publ'", "nvsts", "days", 1)
+  5.         
+.         * Get name of private number of visits variable:
+.         local nvsts_var_priv = "`nvsts_var'_priv"
+  6.         
+.         * Get name of public days variable:
+.         local days_var_priv = subinstr("`nvsts_var_priv'", "nvsts", "days", 1)
+  7.         
+.         * Replace public variables with ZERO if individual visited only private:
+.         replace `nvsts_var_publ' = 0 if `nvsts_var_publ' == . &  `nvsts_var_priv' != . & `nvsts_var_priv' == `nvsts_var'
+  8.         replace `days_var_publ' = 0 if `days_var_publ' == . &  `days_var_priv' != . & `nvsts_var_publ' == 0
+  9.         
+.         * Replace private variable with ZERO if individual visited only public:
+.         replace `nvsts_var_priv' = 0 if `nvsts_var_priv' == . &  `nvsts_var_publ' != . & `nvsts_var_publ' == `nvsts_var'
+ 10.         replace `days_var_priv' = 0 if `days_var_priv' == . &  `days_var_publ' != . & `nvsts_var_priv' == 0
+ 11. }
+Now processing nvsts_y01:
+(136,840 real changes made)
+(145,185 real changes made)
+(653,647 real changes made)
+(685,796 real changes made)
+Now processing nvsts_y02:
+(67,633 real changes made)
+(75,752 real changes made)
+(260,422 real changes made)
+(277,792 real changes made)
+Now processing nvsts_y03:
+(57,472 real changes made)
+(66,026 real changes made)
+(158,290 real changes made)
+(170,558 real changes made)
+Now processing nvsts_y04:
+(61,507 real changes made)
+(72,358 real changes made)
+(130,630 real changes made)
+(140,974 real changes made)
+Now processing nvsts_y05:
+(58,471 real changes made)
+(70,107 real changes made)
+(123,781 real changes made)
+(133,576 real changes made)
+Now processing nvsts_y06:
+(49,911 real changes made)
+(60,454 real changes made)
+(116,398 real changes made)
+(126,076 real changes made)
+Now processing nvsts_y07:
+(40,234 real changes made)
+(49,103 real changes made)
+(109,381 real changes made)
+(118,790 real changes made)
+Now processing nvsts_y08:
+(33,278 real changes made)
+(40,673 real changes made)
+(100,921 real changes made)
+(109,765 real changes made)
+Now processing nvsts_y09:
+(28,764 real changes made)
+(35,234 real changes made)
+(94,419 real changes made)
+(103,335 real changes made)
+Now processing nvsts_y10:
+(26,218 real changes made)
+(32,045 real changes made)
+(88,630 real changes made)
+(97,305 real changes made)
+Now processing nvsts_y11:
+(24,197 real changes made)
+(29,479 real changes made)
+(82,529 real changes made)
+(91,177 real changes made)
+Now processing nvsts_y12:
+(22,560 real changes made)
+(27,374 real changes made)
+(77,111 real changes made)
+(85,389 real changes made)
+Now processing nvsts_y13:
+(21,508 real changes made)
+(25,975 real changes made)
+(71,616 real changes made)
+(79,400 real changes made)
+Now processing nvsts_y14:
+(20,980 real changes made)
+(25,336 real changes made)
+(70,673 real changes made)
+(78,472 real changes made)
+Now processing nvsts_y15:
+(22,419 real changes made)
+(27,076 real changes made)
+(75,792 real changes made)
+(84,055 real changes made)
+Now processing nvsts_y16:
+(25,717 real changes made)
+(31,536 real changes made)
+(70,815 real changes made)
+(77,665 real changes made)
+Now processing nvsts_y17:
+(28,741 real changes made)
+(35,402 real changes made)
+(80,707 real changes made)
+(88,151 real changes made)
+Now processing nvsts_y18:
+(30,954 real changes made)
+(38,391 real changes made)
+(86,250 real changes made)
+(93,942 real changes made)
+Now processing nvsts_y19:
+(29,952 real changes made)
+(37,606 real changes made)
+(85,518 real changes made)
+(92,965 real changes made)
+Now processing nvsts_y20:
+(28,885 real changes made)
+(36,977 real changes made)
+(82,697 real changes made)
+(89,842 real changes made)
+Now processing nvsts_y21:
+(28,464 real changes made)
+(36,815 real changes made)
+(74,210 real changes made)
+(80,891 real changes made)
+Now processing nvsts_y22:
+(25,827 real changes made)
+(34,001 real changes made)
+(64,078 real changes made)
+(69,864 real changes made)
+Now processing nvsts_y23:
+(22,805 real changes made)
+(30,491 real changes made)
+(52,695 real changes made)
+(57,723 real changes made)
+Now processing nvsts_y24:
+(19,713 real changes made)
+(26,542 real changes made)
+(42,023 real changes made)
+(46,289 real changes made)
+Now processing nvsts_y25:
+(15,793 real changes made)
+(21,600 real changes made)
+(32,136 real changes made)
+(35,630 real changes made)
+Now processing nvsts_y26:
+(11,487 real changes made)
+(16,069 real changes made)
+(22,806 real changes made)
+(25,595 real changes made)
+Now processing nvsts_y27:
+(7,410 real changes made)
+(10,437 real changes made)
+(13,526 real changes made)
+(15,233 real changes made)
+Now processing nvsts_m01:
+(61,097 real changes made)
+(66,566 real changes made)
+(303,649 real changes made)
+(322,218 real changes made)
+Now processing nvsts_m02:
+(16,373 real changes made)
+(18,039 real changes made)
+(93,258 real changes made)
+(99,513 real changes made)
+Now processing nvsts_m03:
+(11,383 real changes made)
+(12,866 real changes made)
+(63,654 real changes made)
+(68,167 real changes made)
+Now processing nvsts_m04:
+(8,673 real changes made)
+(9,959 real changes made)
+(51,393 real changes made)
+(55,121 real changes made)
+Now processing nvsts_m05:
+(7,195 real changes made)
+(8,420 real changes made)
+(42,659 real changes made)
+(45,967 real changes made)
+Now processing nvsts_m06:
+(7,290 real changes made)
+(8,509 real changes made)
+(42,102 real changes made)
+(45,289 real changes made)
+Now processing nvsts_m07:
+(8,073 real changes made)
+(9,252 real changes made)
+(40,875 real changes made)
+(44,019 real changes made)
+Now processing nvsts_m08:
+(8,190 real changes made)
+(9,410 real changes made)
+(39,316 real changes made)
+(42,323 real changes made)
+Now processing nvsts_m09:
+(8,369 real changes made)
+(9,581 real changes made)
+(39,372 real changes made)
+(42,329 real changes made)
+Now processing nvsts_m10:
+(7,882 real changes made)
+(8,996 real changes made)
+(36,830 real changes made)
+(39,619 real changes made)
+Now processing nvsts_m11:
+(8,195 real changes made)
+(9,330 real changes made)
+(36,869 real changes made)
+(39,734 real changes made)
+Now processing nvsts_m12:
+(7,698 real changes made)
+(8,832 real changes made)
+(34,131 real changes made)
+(36,849 real changes made)
+
+. 
+. ********************************************************************************
+. * Compress, label, sign, and save:
+. compress
+  (0 bytes saved)
+
+. label data "Days hospitalized, consolidate wide by ID_PACIENTE"
+
+. notes drop _dta
+  (2 notes dropped)
+
+. notes: Last modified on $S_DATE at $S_TIME
+
+. save hospdays_conswide.dta, replace
+file hospdays_conswide.dta saved
+
+. 
+. * Close log:
+. log close _all
+      name:  EEHH_CONSWIDE
+       log:  C:\Users\nicol\Dropbox\Research Projects\Intergenerational/statalogs/EEHH_CONSWIDE_20210810.log
+  log type:  text
+ closed on:  10 Aug 2021, 15:00:55
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
