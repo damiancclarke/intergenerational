@@ -1,0 +1,334 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  MOTHER_OUTSTATS
+       log:  C:\Users\nicol\Dropbox\Research Projects\Intergenerational/statalogs/MOTHER_OUTSTATS_20210810.log
+  log type:  text
+ opened on:  10 Aug 2021, 16:58:29
+
+. 
+. * Preamble:
+. clear all
+
+. set more off
+
+. 
+. * Switch to destination directory:
+. cd "$dtadir/DEIS"
+C:\Users\nicol\Dropbox\Research Projects\Intergenerational\data\dta\DEIS
+
+. 
+. * Load data:
+. use NAC_1992_2018_NOGLOSAS_NODUPS_NONAS_WITH_MBDATA.dta, clear
+(Nacimientos 1992-2018 en Chile (DEIS) / Sin Glosas / Con data madre)
+
+. 
+. ********************************************************************************
+. * Calculate important scalars:
+. sum ANO_NAC
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+     ANO_NAC |  6,617,638    2004.668    7.873035       1992       2018
+
+. scalar max_mother_age = r(max) - r(min)
+
+. 
+. ********************************************************************************
+. 
+. * Sort:
+. sort ID_MADRE FECHA_NACIMIENTO_SIF
+
+. 
+. * Tag one observation per mother:
+. egen tag_id_madre = tag(ID_MADRE) if ID_MADRE != "NA"
+
+. 
+. * Get birth order:
+. by ID_MADRE: egen birth_order_by_mother_u = rank(FECHA_NACIMIENTO_SIF) if ID_MADRE != "NA", unique
+(2410011 missing values generated)
+
+. by ID_MADRE: egen birth_order_by_mother_t = rank(FECHA_NACIMIENTO_SIF) if ID_MADRE != "NA", track
+(2410011 missing values generated)
+
+. 
+. * Calculate some stats:
+. by ID_MADRE: egen nbirths_by_mother = count(ID_RECIEN_NACIDO) if ID_MADRE != "NA"
+(2410011 missing values generated)
+
+. by ID_MADRE: egen age_at_first_child = min(EDAD_MADRE) if ID_MADRE != "NA"
+(2410033 missing values generated)
+
+. 
+. * Calculate fertility variables by age for analysis:
+. forval y = 15/`=max_mother_age' {
+  2.         by ID_MADRE: egen mother_had_child_at_`y' = max(cond(EDAD_MADRE == `y', 1, 0, .)) if ID_MADRE != "NA"
+  3.         by ID_MADRE: egen mother_nchilds_by_`y' = max(cond(EDAD_MADRE <= `y', birth_order_by_mother_u, ., .)) if ID_MADRE != "NA"
+  4.         by ID_MADRE: egen mother_nbirths_by_`y' = max(cond(EDAD_MADRE <= `y', birth_order_by_mother_t, ., .)) if ID_MADRE != "NA"
+  5. }
+(2410011 missing values generated)
+(6512460 missing values generated)
+(6512460 missing values generated)
+(2410011 missing values generated)
+(6364318 missing values generated)
+(6364318 missing values generated)
+(2410011 missing values generated)
+(6157663 missing values generated)
+(6157663 missing values generated)
+(2410011 missing values generated)
+(5907342 missing values generated)
+(5907342 missing values generated)
+(2410011 missing values generated)
+(5629347 missing values generated)
+(5629347 missing values generated)
+(2410011 missing values generated)
+(5360179 missing values generated)
+(5360179 missing values generated)
+(2410011 missing values generated)
+(5114143 missing values generated)
+(5114143 missing values generated)
+(2410011 missing values generated)
+(4891041 missing values generated)
+(4891041 missing values generated)
+(2410011 missing values generated)
+(4685719 missing values generated)
+(4685719 missing values generated)
+(2410011 missing values generated)
+(4491354 missing values generated)
+(4491354 missing values generated)
+(2410011 missing values generated)
+(4301072 missing values generated)
+(4301072 missing values generated)
+(2410011 missing values generated)
+(4111952 missing values generated)
+(4111952 missing values generated)
+
+. 
+. * Recode missing values for some of BLN(2013)'s control variables:
+. recode TIPO_ATEN NIVEL_MADRE EST_CIV_MADRE (9 = .), ///
+>         gen(tipo_aten_recode nivel_madre_recode est_civ_madre_recode)
+(5573 differences between TIPO_ATEN and tipo_aten_recode)
+(14329 differences between NIVEL_MADRE and nivel_madre_recode)
+(78 differences between EST_CIV_MADRE and est_civ_madre_recode)
+
+. 
+. * Mother's education:
+. gen edmom = CURSO_MADRE if CURSO_MADRE <= 8 & (nivel_madre_recode == 4 | nivel_madre_recode == 5) 
+(5,290,130 missing values generated)
+
+. replace edmom = 8 if CURSO_MADRE == 9 & (nivel_madre_recode == 4 | nivel_madre_recode == 5)
+(56 real changes made)
+
+. replace edmom = 8 + CURSO_MADRE if CURSO_MADRE <= 4 & nivel_madre_recode == 2
+(3,555,242 real changes made)
+
+. replace edmom = 12 if CURSO_MADRE >= 5 & CURSO_MADRE <= 9 & nivel_madre_recode == 2
+(190,436 real changes made)
+
+. replace edmom = 8 + CURSO_MADRE if CURSO_MADRE <= 4 & nivel_madre_recode == 3
+(1,046 real changes made)
+
+. replace edmom = 12 if CURSO_MADRE >= 5 & CURSO_MADRE <= 9 & nivel_madre_recode == 3
+(727 real changes made)
+
+. replace edmom = 12 + CURSO_MADRE if nivel_madre_recode == 1
+(1,528,131 real changes made)
+
+. label var edmom "Mother's years of education"
+
+. note edmom: Basado en CURSO_MADRE y nivel_madre_recode ($id_user_short on $S_DATE)
+
+. sum edmom, d
+
+                 Mother's years of education
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            3              0
+ 5%            6              0
+10%            7              0       Obs           6,603,146
+25%            9              0       Sum of Wgt.   6,603,146
+
+50%           12                      Mean           11.40959
+                        Largest       Std. Dev.      3.252577
+75%           12             21
+90%           16             21       Variance       10.57926
+95%           17             21       Skewness      -.2601746
+99%           18             21       Kurtosis       3.319091
+
+. count if edmom == .
+  14,492
+
+. 
+. * Calculate education variables by birth, for analysis:
+. forval b = 1(1)5 {
+  2.         by ID_MADRE: egen mother_educ_bychild_`b' = max(cond(birth_order_by_mother_t == `b', edmom, .)) if ID_MADRE != "NA" & nbirths_by_mother >= `b'
+  3. }
+(2414070 missing values generated)
+(4007356 missing values generated)
+(5692026 missing values generated)
+(6397168 missing values generated)
+(6567027 missing values generated)
+
+. 
+. * Keep one observation per mother:
+. drop if ID_MADRE == "NA"
+(2,410,011 observations deleted)
+
+. keep if tag_id_madre == 1
+(1,520,131 observations deleted)
+
+. 
+. * Keep relevant variables:
+. keep ID_MADRE nbirths_by_mother age_at_first_child mother_had_child_at_* mother_nchilds_by_* mother_nbirths_by_* mother_educ_bychild_*
+
+. 
+. * Rename variables:
+. rename ID_MADRE ID_RECIEN_NACIDO
+
+. label var ID_RECIEN_NACIDO ""
+
+. rename nbirths_by_mother nbirths
+
+. foreach var of varlist mother_* {
+  2.         rename `var' `=subinstr("`var'", "mother_", "", .)'
+  3. }
+
+. 
+. * Label variables:
+. label var nbirths "Total number of births 2001-2018 (women only)"
+
+. label var age_at_first_child "Age at first child (women only)"
+
+. 
+. foreach var of varlist had_child_at_* {
+  2.         local y = word(subinstr("`var'", "_", " ", .), -1)
+  3.         label var `var' "=1 if person had a child at age `y'"
+  4. }
+
+. 
+. foreach var of varlist nchilds_by_* {
+  2.         local y = word(subinstr("`var'", "_", " ", .), -1)
+  3.         label var `var' "Number of children by age `y'"
+  4. }
+
+. 
+. foreach var of varlist nbirths_by_* {
+  2.         local y = word(subinstr("`var'", "_", " ", .), -1)
+  3.         label var `var' "Number of births by age `y'"
+  4. }
+
+. 
+. foreach var of varlist educ_bychild_* {
+  2.         local b = word(subinstr("`var'", "_", " ", .), -1)
+  3.         label var `var' "Years of schooling by birth of child `b'"
+  4. }
+
+. 
+. * Compress, label, sign, and save:
+. compress
+  variable nbirths was float now byte
+  variable age_at_first_child was float now byte
+  variable had_child_at_15 was float now byte
+  variable nchilds_by_15 was float now byte
+  variable nbirths_by_15 was float now byte
+  variable had_child_at_16 was float now byte
+  variable nchilds_by_16 was float now byte
+  variable nbirths_by_16 was float now byte
+  variable had_child_at_17 was float now byte
+  variable nchilds_by_17 was float now byte
+  variable nbirths_by_17 was float now byte
+  variable had_child_at_18 was float now byte
+  variable nchilds_by_18 was float now byte
+  variable nbirths_by_18 was float now byte
+  variable had_child_at_19 was float now byte
+  variable nchilds_by_19 was float now byte
+  variable nbirths_by_19 was float now byte
+  variable had_child_at_20 was float now byte
+  variable nchilds_by_20 was float now byte
+  variable nbirths_by_20 was float now byte
+  variable had_child_at_21 was float now byte
+  variable nchilds_by_21 was float now byte
+  variable nbirths_by_21 was float now byte
+  variable had_child_at_22 was float now byte
+  variable nchilds_by_22 was float now byte
+  variable nbirths_by_22 was float now byte
+  variable had_child_at_23 was float now byte
+  variable nchilds_by_23 was float now byte
+  variable nbirths_by_23 was float now byte
+  variable had_child_at_24 was float now byte
+  variable nchilds_by_24 was float now byte
+  variable nbirths_by_24 was float now byte
+  variable had_child_at_25 was float now byte
+  variable nchilds_by_25 was float now byte
+  variable nbirths_by_25 was float now byte
+  variable had_child_at_26 was float now byte
+  variable nchilds_by_26 was float now byte
+  variable nbirths_by_26 was float now byte
+  variable educ_bychild_1 was float now byte
+  variable educ_bychild_2 was float now byte
+  variable educ_bychild_3 was float now byte
+  variable educ_bychild_4 was float now byte
+  variable educ_bychild_5 was float now byte
+  (346,686,984 bytes saved)
+
+. label data "Motherhood outcomes"
+
+. notes drop _dta
+  (2 notes dropped)
+
+. note: Last modified by: $id_user_full ($id_user_email)
+
+. note: Last modification timestamp: $S_DATE at $S_TIME
+
+. save "MOTHER_OUTSTATS.dta", replace
+file MOTHER_OUTSTATS.dta saved
+
+. 
+. ********************************************************************************
+. //// Merge mother's outcome data back to main dataset ////
+> 
+. * Load full birth data (not including duplicates and NAs):
+. use NAC_1992_2018_NOGLOSAS_NODUPS_NONAS_WITH_MBDATA.dta, clear
+(Nacimientos 1992-2018 en Chile (DEIS) / Sin Glosas / Con data madre)
+
+. 
+. * Perform merge:
+. merge 1:1 ID_RECIEN_NACIDO using "MOTHER_OUTSTATS.dta", ///
+>         gen(mrg_mostats2main) keep(match master)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                     6,277,297
+        from master                 6,277,297  (mrg_mostats2main==1)
+        from using                          0  (mrg_mostats2main==2)
+
+    matched                           340,341  (mrg_mostats2main==3)
+    -----------------------------------------
+
+. 
+. * label merge variable:
+. label var mrg_mostats2main "Merge 1:1 ID_RECIEN_NACIDO using MOTHER_OUTSTATS.dta"
+
+. 
+. * Compress, label, sign, and save:
+. compress
+  (0 bytes saved)
+
+. label data "Nacimientos 92-18 Chile (DEIS) -Glosas +bdata madre +outcomes maternidad"
+
+. notes drop _dta
+  (3 notes dropped)
+
+. note: Last modified by: $id_user_full ($id_user_email)
+
+. note: Last modification timestamp: $S_DATE at $S_TIME
+
+. save "NAC_1992_2018_NOGLOSAS_NODUPS_NONAS_WITH_MBDATA_MOSTATS.dta", replace
+file NAC_1992_2018_NOGLOSAS_NODUPS_NONAS_WITH_MBDATA_MOSTATS.dta saved
+
+. 
+. * Close log
+. log close _all
+      name:  MOTHER_OUTSTATS
+       log:  C:\Users\nicol\Dropbox\Research Projects\Intergenerational/statalogs/MOTHER_OUTSTATS_20210810.log
+  log type:  text
+ closed on:  10 Aug 2021, 17:14:03
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
