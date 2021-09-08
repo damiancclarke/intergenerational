@@ -1,30 +1,21 @@
+* Create date tag:
+local today = date("$S_DATE", "DMY")
+local datetag = string(year(`today'), "%02.0f") ///
+			  + string(month(`today'), "%02.0f") ///
+			  + string(day(`today'), "%02.0f")
+
+* Start log:
+log using "$logdir/DEF_CLEAN_`datetag'", replace text name(DEF_CLEAN)			  
+			  
 * Preamble:
-cls
 clear all
 set more off
 
-* Start log:
-log using "$logdir/DEF_REMGLOSAS", replace text name(DEF_REMGLOSAS)
-
-* Define source and destination directories:
-local sourcedir "$dtadir/DEIS"
-local destindir "$dtadir/DEIS"
-
-* Check destination directory exists:
-capture cd "`destindir'"
-if _rc != 0 {
-	mkdir "`destindir'"
-	display "Destination directory created"
-}
-else {
-	display "Destination directory already exists."
-}
-
 * Switch to destination directory:
-cd "`destindir'"
+cd "$dtadir/DEIS"
 
 * Load data:
-use "`sourcedir'/DEF_1990-2018.dta", clear
+use "${def_original}.dta", clear
 
 ////////////////////////////////////////////////////////////////////////////////
 * Destring numeric variables without value labels:
@@ -40,6 +31,10 @@ format %ty ANO_*
 destring HIJ_*, replace
 destring PESO, replace
 destring GESTACION, replace
+
+sum $dyear_var
+scalar min_ano_def = r(min)
+scalar max_ano_def = r(max)
 
 * String dates to numeric:
 gen FECHA_NACIMIENTO_SIF = date(FECHA_NACIMIENTO, "YMD")
@@ -758,17 +753,17 @@ drop GLOSA_NIVEL_PADRE
 /* FINAL THINGS */
 * Compress, label, and metadata:
 compress
-label data "Defunciones 1990-2018 en Chile (DEIS/MINSAL) (sin glosas)"
+label data "Defunciones `=min_ano_def'-`=max_ano_def' en Chile (DEIS/MINSAL) (sin glosas)"
 notes drop _dta
 note: Last modified by: $id_user_full ($id_user_email)
 note: Last modification timestamp: $S_DATE at $S_TIME
 note: Fuente: https://deis.minsal.cl/#datosabiertos
 
 * Save file:
-save "`destindir'/DEF_1990-2018_NOGLOSAS.dta", replace
+save "${def_original}_NOGLOSAS.dta", replace
 
 * Save labels to do file:
-label save using "$dodir/(auto)labels_DEF_1990-2018.do", replace
+label save using "$dodir/(auto)labels_${def_original}.do", replace
 
 * Final report:
 cls
