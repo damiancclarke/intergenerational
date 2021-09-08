@@ -6,25 +6,27 @@ local datetag = string(year(`today'), "%02.0f") ///
 
 * Start log:
 capture log close _all
-log using "$logdir/DEF_csv2dta_`datetag'", text replace name(DEF_csv2dta)
+log using "$logdir/DEF_CSV2DTA_`datetag'", text replace name(DEF_CSV2DTA)
 
 * Preamble:
 cls
 clear all
 set more off
 
-* Define source and destination directories:
-local sourcedir "$rawdata/DEIS/DEF_1990-2018"
-local destindir "$dtadir/DEIS"
-
 * Switch to destination directory:
-cd "`destindir'"
+cd "$dtadir/DEIS"
 
 * Import data (original .csv is 1.3gb, so this step may take a while depending
 * on your system)
-import delimited "`sourcedir'/DEF_1990-2018.csv", ///
+import delimited "$rawdefcsv", ///
 	delimiter(";") case(preserve)  bindquote(strict) ///
 	encoding(windows-1252) stringcols(_all)
+	
+destring $dyear_var, gen(temp_dyear)
+sum temp_dyear
+scalar min_ano_def = r(min)
+scalar max_ano_def = r(max)
+drop temp_dyear
 
 * Label variables:
 label var ID_FALLECIDO	"Identificador único y anónimo de la persona fallecida"
@@ -151,16 +153,16 @@ note GLOSA_NIVEL_PADRE: Etiqueta completa: Glosa del Código del nivel de instru
 /* FINAL THINGS */
 * Compress, label, and metadata:
 compress
-label data "Defunciones 1990-2018 en Chile (DEIS/MINSAL)"
+label data "Defunciones `=min_ano_def'-`=max_ano_def' en Chile (DEIS/MINSAL)"
 note: Last modified by: $id_user_full ($id_user_email)
 note: Last modification timestamp: $S_DATE at $S_TIME
 note: Fuente: https://deis.minsal.cl/#datosabiertos
 
 * Save file:
-save "`destindir'/DEF_1990-2018.dta", replace
+save "${def_original}.dta", replace
 
 * Save labels to do file:
-label save using "$labeldos/(auto)labels_DEF_1990-2018.do", replace
+label save using "$labeldos/(auto)labels_${def_original}.do", replace
 
 * Final report:
 cls

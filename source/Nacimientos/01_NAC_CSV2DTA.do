@@ -1,3 +1,13 @@
+* Create date tag:
+local today = date("$S_DATE", "DMY")
+local datetag = string(year(`today'), "%02.0f") ///
+			  + string(month(`today'), "%02.0f") ///
+			  + string(day(`today'), "%02.0f")
+
+* Start log:
+capture log close _all
+log using "$logdir/NAC_01_CSV2DTA_`datetag'", text replace name(NAC_01_CSV2DTA)			  
+			  
 * Preamble:
 cls
 clear all
@@ -6,30 +16,12 @@ set more off
 * Start timer:
 timer on 1
 
-* Define source and destination directories:
-local sourcedir "$rawdata/DEIS/Nacimientos_1992_2018"
-local destindir "$dtadir/DEIS"
-
-* Check destination directory exists:
-capture cd "`destindir'"
-if _rc != 0 {
-	mkdir "`destindir'"
-	display "Destination directory created"
-}
-else {
-	display "Destination directory already exists."
-}
-
 * Switch to destination directory:
-cd "`destindir'"
-
-* Start log:
-capture log close _all
-log using "$logdir/NAC_1992_2018_csv2dta", text replace name(NAC_1992_2018_csv2dta)
+cd "$dtadir/DEIS"
 
 * Import data (original .csv is 1.3gb, so this step may take a while depending
 * on your system)
-import delimited "`sourcedir'/NAC_1992_2018.csv", ///
+import delimited "$rawnaccsv", ///
 	delimiter(";") varnames(2) case(preserve) ///
 	encoding(windows-1252) stringcols(_all)
 
@@ -46,6 +38,11 @@ label var DIA_NAC "Día de la fecha de nacimiento"
 label var MES_NAC "Mes de la fecha de nacimiento"
 label var ANO_NAC "Año de la fecha de nacimiento"
 format ANO_NAC %ty
+
+* Save database minimum and maximum year:
+sum $byear_var
+scalar min_ano_nac = r(min)
+scalar max_ano_nac = r(max)
 
 gen FECHA_NACIMIENTO_SIF = date(FECHA_NACIMIENTO, "DMY")
 order FECHA_NACIMIENTO_SIF, after(FECHA_NACIMIENTO)
@@ -151,11 +148,11 @@ label var URBANO_RURAL "Código para identificar el área Urbano Rural"
 /* SAVE FILE WITH GLOSAS */
 * Compress, label, annotate, and save:
 compress
-label data "Nacimientos 1992-2018 en Chile (DEIS)"
+label data "Nacimientos `=min_ano_nac'-`=max_ano_nac' en Chile (DEIS)"
 note: Last modified by: $id_user_full ($id_user_email)
 note: Last modification timestamp: $S_DATE at $S_TIME
 note: Fuente: https://deis.minsal.cl/#datosabiertos
-save "`destindir'/NAC_1992_2018.dta", replace
+save "${nac_original}.dta", replace
 
 /* SAVE FILE WITHOUT GLOSAS */
 * Remove glosa variables and label corresponding variables:
@@ -173,15 +170,15 @@ drop GLOSA_SERV_RES
 
 * Compress, label, annotate, and save:
 compress
-label data "Nacimientos 1992-2018 en Chile (DEIS) / Sin Glosas"
+label data "Nacimientos `=min_ano_nac'-`=max_ano_nac' en Chile (DEIS) / Sin Glosas"
 notes drop _dta
 note: Last modified by: $id_user_full ($id_user_email)
 note: Last modification timestamp: $S_DATE at $S_TIME
 note: Fuente: https://deis.minsal.cl/#datosabiertos
-save "`destindir'/NAC_1992_2018_NOGLOSAS.dta", replace
+save "${nac_original}_NOGLOSAS.dta", replace
 
 * Save labels to do file:
-label save using "$labeldos/(auto)labels_NAC_1992_2018.do", replace
+label save using "${labeldos}/(auto)labels_${nac_original}.do", replace
 
 * Final report:
 cls

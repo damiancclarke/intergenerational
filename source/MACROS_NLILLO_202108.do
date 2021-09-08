@@ -17,6 +17,16 @@ global dtadir "$datamain/dta"
 global logdir "$maindir/statalogs"
 global tbldir "$maindir/textables"
 
+* FILES:
+* Raw csvs:
+global rawnaccsv "$rawdata/DEIS/Nacimientos_1992_2018/NAC_1992_2018.csv"
+global rawdefcsv "$rawdata/DEIS/DEF_1990-2018/DEF_1990-2018.csv"
+global nac_original NAC_1992_2018
+global def_original DEF_1990_2018
+
+* VARIABLES:
+global byear_var ANO_NAC
+global dyear_var ANO_DEF
 
 * OTHER:
 global id_user_full "Nicolás A. Lillo Bustos"

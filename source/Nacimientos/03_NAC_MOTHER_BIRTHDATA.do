@@ -1,6 +1,12 @@
+* Create date tag:
+local today = date("$S_DATE", "DMY")
+local datetag = string(year(`today'), "%02.0f") ///
+			  + string(month(`today'), "%02.0f") ///
+			  + string(day(`today'), "%02.0f")
+
 * Start log:
 capture log close _all
-log using "$logdir/MOTHER_BIRTHDATA", replace text name(MOTHER_BIRTHDATA)
+log using "$logdir/MOTHER_BIRTHDATA_`datetag'", replace text name(MOTHER_BIRTHDATA)
 
 clear all
 set more off
@@ -10,25 +16,16 @@ cls
 clear all
 set more off
 
-* Define source and destination directories:
-local sourcedir "$dtadir/DEIS"
-local destindir "$dtadir/DEIS"
-
-* Check destination directory exists:
-capture cd "`destindir'"
-if _rc != 0 {
-	mkdir "`destindir'"
-	display "Destination directory created"
-}
-else {
-	display "Destination directory already exists."
-}
-
 * Switch to destination directory:
-cd "`sourcedir'"
+cd "$dtadir/DEIS"
 
 * Load full birth data (including duplicates and NAs):
-use NAC_1992_2018_NOGLOSAS.dta, clear
+use "${nac_original}_NOGLOSAS.dta", clear
+
+* Save database minimum and maximum year:
+sum $byear_var
+scalar min_ano_nac = r(min)
+scalar max_ano_nac = r(max)
 
 * Get list of unique mother IDs, and save them as ID_RECIEN_NACIDO:
 keep ID_MADRE
@@ -36,13 +33,13 @@ drop if ID_MADRE == "NA" | ID_MADRE == ""
 duplicates drop ID_MADRE, force
 rename ID_MADRE ID_RECIEN_NACIDO
 label var ID_RECIEN_NACIDO "" // remove variable label
-save "`destindir'/ID_RECIEN_NACIDO_of_unique_ID_MADRE.dta", replace
+save "ID_RECIEN_NACIDO_of_unique_ID_MADRE.dta", replace
 
 * Load full birth data, excluding ID duplicates and NAs:
-use NAC_1992_2018_NOGLOSAS_NODUPS_NONAS, clear
+use "${nac_original}_NOGLOSAS_NODUPS_NONAS.dta", clear
 
 * Merge in list of unique mother ID's:
-merge 1:1 ID_RECIEN_NACIDO using "`destindir'/ID_RECIEN_NACIDO_of_unique_ID_MADRE.dta", keep(match) nogen
+merge 1:1 ID_RECIEN_NACIDO using "ID_RECIEN_NACIDO_of_unique_ID_MADRE.dta", keep(match) nogen
 
 * Rename father variables to grandfather:
 foreach var of varlist *_PADRE {
@@ -73,20 +70,20 @@ label var ID_MADRE "Identificador único y anónimo de la madre del recién naci
 
 * Compress, label, sign, and save mother birth data:
 compress
-label data "Mother birth data (based on DEIS's Nacimientos 1992-2018)"
+label data "Mother birth data (based on DEIS's Nacimientos `=min_ano_nac'-`=max_ano_nac')"
 notes drop _dta
 note: Last modified by: $id_user_full ($id_user_email)
 note: Last modification timestamp: $S_DATE at $S_TIME
-save "`destindir'/MOTHER_BIRTHDATA.dta", replace
+save "MOTHER_BIRTHDATA.dta", replace
 
 ********************************************************************************
 //// Merge mother's birth data back to main dataset ////
 
 * Load full birth data (not including duplicates and NAs):
-use NAC_1992_2018_NOGLOSAS_NODUPS_NONAS.dta, clear
+use "${nac_original}_NOGLOSAS_NODUPS_NONAS.dta", clear
 
 * Perform merge:
-merge m:1 ID_MADRE using "`destindir'/MOTHER_BIRTHDATA.dta", gen(mrg_mbdata2main)
+merge m:1 ID_MADRE using "MOTHER_BIRTHDATA.dta", gen(mrg_mbdata2main)
 
 * Drop mothers of duplicates:
 drop if mrg_mbdata2main == 2
@@ -96,11 +93,11 @@ label var mrg_mbdata2main "Merge m:1 ID_MADRE using MOTHER_BIRTHDATA.dta"
 
 * Compress, label, sign, and save:
 compress
-label data "Nacimientos 1992-2018 en Chile (DEIS) / Sin Glosas / Con data madre"
+label data "Nacimientos `=min_ano_nac'-`=max_ano_nac' en Chile (DEIS) / Sin Glosas / Con data madre"
 notes drop _dta
 note: Last modified by: $id_user_full ($id_user_email)
 note: Last modification timestamp: $S_DATE at $S_TIME
-save "`destindir'/NAC_1992_2018_NOGLOSAS_NODUPS_NONAS_WITH_MBDATA.dta", replace
+save "${nac_original}_NOGLOSAS_NODUPS_NONAS_WITH_MBDATA.dta", replace
 
 * Close log
 log close _all

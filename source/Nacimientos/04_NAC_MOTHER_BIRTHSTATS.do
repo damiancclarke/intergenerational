@@ -16,12 +16,14 @@ set more off
 cd "$dtadir/DEIS"
 
 * Load data:
-use NAC_1992_2018_NOGLOSAS_NODUPS_NONAS_WITH_MBDATA.dta, clear
+use "${nac_original}_NOGLOSAS_NODUPS_NONAS_WITH_MBDATA.dta", clear
 
 ********************************************************************************
 * Calculate important scalars:
-sum ANO_NAC
-scalar max_mother_age = r(max) - r(min)
+sum $byear_var
+scalar min_ano_nac = r(min)
+scalar max_ano_nac = r(max)
+scalar max_mother_age = max_ano_nac - min_ano_nac
 
 ********************************************************************************
 
@@ -119,7 +121,7 @@ save "MOTHER_OUTSTATS.dta", replace
 //// Merge mother's outcome data back to main dataset ////
 
 * Load full birth data (not including duplicates and NAs):
-use NAC_1992_2018_NOGLOSAS_NODUPS_NONAS_WITH_MBDATA.dta, clear
+use "${nac_original}_NOGLOSAS_NODUPS_NONAS_WITH_MBDATA.dta", clear
 
 * Perform merge:
 merge 1:1 ID_RECIEN_NACIDO using "MOTHER_OUTSTATS.dta", ///
@@ -130,11 +132,11 @@ label var mrg_mostats2main "Merge 1:1 ID_RECIEN_NACIDO using MOTHER_OUTSTATS.dta
 
 * Compress, label, sign, and save:
 compress
-label data "Nacimientos 92-18 Chile (DEIS) -Glosas +bdata madre +outcomes maternidad"
+label data "Nacimientos `=substr(string(min_ano_nac), -2, 2)'-`=substr(string(max_ano_nac), -2, 2)' Chile (DEIS) -Glosas +bdata madre +outcomes maternidad"
 notes drop _dta
 note: Last modified by: $id_user_full ($id_user_email)
 note: Last modification timestamp: $S_DATE at $S_TIME
-save "NAC_1992_2018_NOGLOSAS_NODUPS_NONAS_WITH_MBDATA_MOSTATS.dta", replace
+save "${nac_original}_NOGLOSAS_NODUPS_NONAS_WITH_MBDATA_MOSTATS.dta", replace
 
 * Close log
 log close _all
