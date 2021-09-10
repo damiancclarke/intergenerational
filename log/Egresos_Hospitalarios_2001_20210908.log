@@ -1,0 +1,50 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  Egresos_Hospitalarios_2001
+       log:  C:\Users\nicol\Dropbox\Research Projects\Intergenerational/statalogs/Egresos_Hospitalarios_2001_20210908.log
+  log type:  text
+ opened on:   8 Sep 2021, 12:56:56
+(37 vars, 1,566,189 obs)
+ESTABLECIMIENTO_SALUD: all characters numeric; replaced as long
+(1 missing value generated)
+  variable PERTENENCIA_SNSS was long now byte
+  (4,698,567 bytes saved)
+PAIS_ORIGEN: all characters numeric; replaced as byte
+(1566189 missing values generated)
+  0
+COMUNA_RESIDENCIA: all characters numeric; replaced as long
+(1 missing value generated)
+REGION_RESIDENCIA: all characters numeric; replaced as byte
+(1 missing value generated)
+(0 real changes made)
+CODIGO_INTERV_Q_PPAL: all characters numeric; replaced as byte
+(1566189 missing values generated)
+  0
+CODIGO_PROCED_PPAL: all characters numeric; replaced as byte
+(1566189 missing values generated)
+  0
+  0
+FECHA_NACIMIENTO: all characters numeric; replaced as byte
+(1566189 missing values generated)
+  1,506,960
+(59,229 missing values generated)
+  variable _DIAG1 was long now int
+  (3,132,378 bytes saved)
+(11 missing values generated)
+  variable _GLOSA_DIAG1 was float now int
+  (3,132,378 bytes saved)
+(30 real changes made)
+  variable _DIAG2 was long now int
+  (3,132,378 bytes saved)
+(1,451,018 missing values generated)
+  variable _GLOSA_DIAG2 was float now int
+  (3,132,378 bytes saved)
+(1 real change made)
+  variable FECHA_EGRESO was float now int
+  (3,132,378 bytes saved)
+file EEHH_2001.dta saved
+   1:   1558.06 /        1 =    1558.0590
+      name:  Egresos_Hospitalarios_2001
+       log:  C:\Users\nicol\Dropbox\Research Projects\Intergenerational/statalogs/Egresos_Hospitalarios_2001_20210908.log
+  log type:  text
+ closed on:   8 Sep 2021, 13:22:55
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------

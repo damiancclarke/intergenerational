@@ -1,0 +1,44 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  Egresos_Hospitalarios_2010
+       log:  C:\Users\nicol\Dropbox\Research Projects\Intergenerational/statalogs/Egresos_Hospitalarios_2010_20210908.log
+  log type:  text
+ opened on:   8 Sep 2021, 18:30:26
+(37 vars, 1,623,875 obs)
+ESTABLECIMIENTO_SALUD: all characters numeric; replaced as long
+  variable PERTENENCIA_SNSS was long now byte
+  (4,871,625 bytes saved)
+PAIS_ORIGEN: all characters numeric; replaced as int
+  1,623,875
+COMUNA_RESIDENCIA: all characters numeric; replaced as long
+REGION_RESIDENCIA: all characters numeric; replaced as byte
+(0 real changes made)
+CODIGO_INTERV_Q_PPAL: all characters numeric; replaced as long
+(951763 missing values generated)
+  672,112
+CODIGO_PROCED_PPAL: all characters numeric; replaced as byte
+(1623875 missing values generated)
+  0
+  1,603,309
+(20,566 missing values generated)
+  1,623,875
+  variable _DIAG1 was long now int
+  (3,247,750 bytes saved)
+  variable _GLOSA_DIAG1 was float now int
+  (3,247,750 bytes saved)
+(29 real changes made)
+  variable _DIAG2 was long now int
+  (3,247,750 bytes saved)
+(1,471,099 missing values generated)
+  variable _GLOSA_DIAG2 was float now int
+  (3,247,750 bytes saved)
+(7 real changes made)
+  variable FECHA_NACIMIENTO was float now int
+  variable FECHA_EGRESO was float now int
+  (6,495,500 bytes saved)
+file EEHH_2010.dta saved
+  10:   1948.30 /        1 =    1948.3030
+      name:  Egresos_Hospitalarios_2010
+       log:  C:\Users\nicol\Dropbox\Research Projects\Intergenerational/statalogs/Egresos_Hospitalarios_2010_20210908.log
+  log type:  text
+ closed on:   8 Sep 2021, 19:02:54
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------

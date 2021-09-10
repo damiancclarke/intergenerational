@@ -1,0 +1,83 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  DEF_REMOVE_DUPSNAMISS
+       log:  C:\Users\nicol\Dropbox\Research Projects\Intergenerational/statalogs/DEF_REMOVE_DUPSNAMISS_20210908.log
+  log type:  text
+ opened on:   8 Sep 2021, 00:34:32
+
+. 
+. * Preamble:
+. clear all
+
+. set more off
+
+. 
+. * Switch to destination directory:
+. cd "$dtadir/DEIS"
+C:\Users\nicol\Dropbox\Research Projects\Intergenerational\data\dta\DEIS
+
+. 
+. * Load birth data:
+. use "${def_original}_NOGLOSAS.dta", clear
+(Defunciones 1990-2018 en Chile (DEIS/MINSAL) (sin glosas))
+
+. 
+. * Get minimum and maximum death years:
+. sum $dyear_var
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+     ANO_DEF |  2,549,800    2004.956    8.400236       1990       2018
+
+. scalar min_ano_def = r(min)
+
+. scalar max_ano_def = r(max)
+
+. 
+. * Drop exact duplicates:
+. duplicates drop
+
+Duplicates in terms of all variables
+
+(21 observations deleted)
+
+. 
+. * Drop births with NA IDs:
+. drop if ID_FALLECIDO == "NA"
+(2,963 observations deleted)
+
+. 
+. * Drop missing IDs:
+. drop if ID_FALLECIDO == ""
+(0 observations deleted)
+
+. 
+. * Drop duplicates in terms of ID_RECIEN_NACIDO:
+. duplicates tag ID_FALLECIDO, gen(dups_IDF)
+
+Duplicates in terms of ID_FALLECIDO
+
+. drop if dups_IDF > 0
+(14 observations deleted)
+
+. drop dups_IDF
+
+. 
+. * Compress, label, and save:
+. compress
+  (0 bytes saved)
+
+. label data "Defunciones `=min_ano_def'-`=max_ano_def' en Chile (DEIS/MINSAL), Sin Glosas, Sin Duplicados, Sin NAs"
+note: label truncated to 80 characters
+
+. save "${def_original}_NOGLOSAS_NODUPS_NONAS.dta", replace
+(note: file DEF_1990_2018_NOGLOSAS_NODUPS_NONAS.dta not found)
+file DEF_1990_2018_NOGLOSAS_NODUPS_NONAS.dta saved
+
+. 
+. * Close log:
+. log close _all
+      name:  DEF_REMOVE_DUPSNAMISS
+       log:  C:\Users\nicol\Dropbox\Research Projects\Intergenerational/statalogs/DEF_REMOVE_DUPSNAMISS_20210908.log
+  log type:  text
+ closed on:   8 Sep 2021, 00:34:56
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------

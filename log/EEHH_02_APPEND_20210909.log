@@ -1,0 +1,616 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  EEHH_02_APPEND
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/EEHH_02_APPEND_20210909.log
+  log type:  text
+ opened on:   9 Sep 2021, 11:06:43
+
+.                          
+. * Preamble:
+. cls
+
+. clear all
+
+. set more off
+
+. 
+. * Change directory to destination directory:
+. cd "$dtadir/DEIS"
+C:\Users\nicol\Dropbox\Research Projects\Intergenerational\data\dta\DEIS
+
+. 
+. * Get list of EEHH files:
+. local files : dir "$dtadir/DEIS" files "EEHH_????.dta", respect
+
+. 
+. timer on 1
+
+. * Append EEHH files: (warning: file sizes sum up to 15.4gb)
+. append using `files'
+(label _GLOSA_DIAG2 already defined)
+(label _DIAG2 already defined)
+(label _GLOSA_DIAG1 already defined)
+(label _DIAG1 already defined)
+(label REGION_RESIDENCIA already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label PERTENENCIA_SNSS already defined)
+(label ESTABLECIMIENTO_SALUD already defined)
+(note: variable EDAD_CANT was str1, now str3 to accommodate using data's values)
+(label _GLOSA_DIAG2 already defined)
+(label _DIAG2 already defined)
+(label _GLOSA_DIAG1 already defined)
+(label _DIAG1 already defined)
+(label REGION_RESIDENCIA already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label PERTENENCIA_SNSS already defined)
+(label ESTABLECIMIENTO_SALUD already defined)
+(note: variable CODIGO_INTERV_Q_PPAL was byte, now long to accommodate using data's values)
+(label _GLOSA_DIAG2 already defined)
+(label _DIAG2 already defined)
+(label _GLOSA_DIAG1 already defined)
+(label _DIAG1 already defined)
+(label REGION_RESIDENCIA already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label PERTENENCIA_SNSS already defined)
+(label ESTABLECIMIENTO_SALUD already defined)
+(note: variable FECHA_NACIMIENTO was byte, now int to accommodate using data's values)
+(label _GLOSA_DIAG2 already defined)
+(label _DIAG2 already defined)
+(label _GLOSA_DIAG1 already defined)
+(label _DIAG1 already defined)
+(label CODIGO_INTERV_Q_PPAL already defined)
+(label REGION_RESIDENCIA already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label PERTENENCIA_SNSS already defined)
+(label ESTABLECIMIENTO_SALUD already defined)
+(label _GLOSA_DIAG2 already defined)
+(label _DIAG2 already defined)
+(label _GLOSA_DIAG1 already defined)
+(label _DIAG1 already defined)
+(label CODIGO_INTERV_Q_PPAL already defined)
+(label REGION_RESIDENCIA already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label PERTENENCIA_SNSS already defined)
+(label ESTABLECIMIENTO_SALUD already defined)
+(note: variable PUEBLO_ORIGINARIO was str1, now str2 to accommodate using data's values)
+(label _GLOSA_DIAG2 already defined)
+(label _DIAG2 already defined)
+(label _GLOSA_DIAG1 already defined)
+(label _DIAG1 already defined)
+(label CODIGO_INTERV_Q_PPAL already defined)
+(label REGION_RESIDENCIA already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label PERTENENCIA_SNSS already defined)
+(label ESTABLECIMIENTO_SALUD already defined)
+(note: variable PAIS_ORIGEN was byte, now int to accommodate using data's values)
+(label _GLOSA_DIAG2 already defined)
+(label _DIAG2 already defined)
+(label _GLOSA_DIAG1 already defined)
+(label _DIAG1 already defined)
+(label CODIGO_INTERV_Q_PPAL already defined)
+(label REGION_RESIDENCIA already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label PERTENENCIA_SNSS already defined)
+(label ESTABLECIMIENTO_SALUD already defined)
+(label _GLOSA_DIAG2 already defined)
+(label _DIAG2 already defined)
+(label _GLOSA_DIAG1 already defined)
+(label _DIAG1 already defined)
+(label CODIGO_INTERV_Q_PPAL already defined)
+(label REGION_RESIDENCIA already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label PAIS_ORIGEN already defined)
+(label PERTENENCIA_SNSS already defined)
+(label ESTABLECIMIENTO_SALUD already defined)
+(label _GLOSA_DIAG2 already defined)
+(label _DIAG2 already defined)
+(label _GLOSA_DIAG1 already defined)
+(label _DIAG1 already defined)
+(label CODIGO_INTERV_Q_PPAL already defined)
+(label REGION_RESIDENCIA already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label PAIS_ORIGEN already defined)
+(label PERTENENCIA_SNSS already defined)
+(label ESTABLECIMIENTO_SALUD already defined)
+(label _GLOSA_DIAG2 already defined)
+(label _DIAG2 already defined)
+(label _GLOSA_DIAG1 already defined)
+(label _DIAG1 already defined)
+(label CODIGO_INTERV_Q_PPAL already defined)
+(label REGION_RESIDENCIA already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label PAIS_ORIGEN already defined)
+(label PERTENENCIA_SNSS already defined)
+(label ESTABLECIMIENTO_SALUD already defined)
+(label _GLOSA_DIAG2 already defined)
+(label _DIAG2 already defined)
+(label _GLOSA_DIAG1 already defined)
+(label _DIAG1 already defined)
+(label CODIGO_INTERV_Q_PPAL already defined)
+(label REGION_RESIDENCIA already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label PAIS_ORIGEN already defined)
+(label PERTENENCIA_SNSS already defined)
+(label ESTABLECIMIENTO_SALUD already defined)
+(label _GLOSA_DIAG2 already defined)
+(label _DIAG2 already defined)
+(label _GLOSA_DIAG1 already defined)
+(label _DIAG1 already defined)
+(label CODIGO_INTERV_Q_PPAL already defined)
+(label REGION_RESIDENCIA already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label PAIS_ORIGEN already defined)
+(label PERTENENCIA_SNSS already defined)
+(label ESTABLECIMIENTO_SALUD already defined)
+(label _GLOSA_DIAG2 already defined)
+(label _DIAG2 already defined)
+(label _GLOSA_DIAG1 already defined)
+(label _DIAG1 already defined)
+(label CODIGO_INTERV_Q_PPAL already defined)
+(label REGION_RESIDENCIA already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label PAIS_ORIGEN already defined)
+(label PERTENENCIA_SNSS already defined)
+(label ESTABLECIMIENTO_SALUD already defined)
+(label _GLOSA_DIAG2 already defined)
+(label _DIAG2 already defined)
+(label _GLOSA_DIAG1 already defined)
+(label _DIAG1 already defined)
+(label CODIGO_INTERV_Q_PPAL already defined)
+(label REGION_RESIDENCIA already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label PAIS_ORIGEN already defined)
+(label PERTENENCIA_SNSS already defined)
+(label ESTABLECIMIENTO_SALUD already defined)
+(label _GLOSA_DIAG2 already defined)
+(label _DIAG2 already defined)
+(label _GLOSA_DIAG1 already defined)
+(label _DIAG1 already defined)
+(label CODIGO_INTERV_Q_PPAL already defined)
+(label REGION_RESIDENCIA already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label PAIS_ORIGEN already defined)
+(label PERTENENCIA_SNSS already defined)
+(label ESTABLECIMIENTO_SALUD already defined)
+(label _GLOSA_DIAG2 already defined)
+(label _DIAG2 already defined)
+(label _GLOSA_DIAG1 already defined)
+(label _DIAG1 already defined)
+(label CODIGO_INTERV_Q_PPAL already defined)
+(label REGION_RESIDENCIA already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label PAIS_ORIGEN already defined)
+(label PERTENENCIA_SNSS already defined)
+(label ESTABLECIMIENTO_SALUD already defined)
+(note: variable CODIGO_PROCED_PPAL was byte, now long to accommodate using data's values)
+(label _GLOSA_DIAG2 already defined)
+(label _DIAG2 already defined)
+(label _GLOSA_DIAG1 already defined)
+(label _DIAG1 already defined)
+(label CODIGO_INTERV_Q_PPAL already defined)
+(label REGION_RESIDENCIA already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label PAIS_ORIGEN already defined)
+(label PERTENENCIA_SNSS already defined)
+(label ESTABLECIMIENTO_SALUD already defined)
+(note: variable MODALIDAD was str1, now str2 to accommodate using data's values)
+(label _GLOSA_DIAG2 already defined)
+(label _DIAG2 already defined)
+(label _GLOSA_DIAG1 already defined)
+(label _DIAG1 already defined)
+(label CODIGO_PROCED_PPAL already defined)
+(label CODIGO_INTERV_Q_PPAL already defined)
+(label REGION_RESIDENCIA already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label PAIS_ORIGEN already defined)
+(label PERTENENCIA_SNSS already defined)
+(label ESTABLECIMIENTO_SALUD already defined)
+
+. 
+. * Destring all numeric variables:
+. destring, replace
+ID_PACIENTE: contains nonnumeric characters; no replace
+ESTABLECIMIENTO_SALUD already numeric; no replace
+PERTENENCIA_SNSS already numeric; no replace
+SEREMI: all characters numeric; replaced as byte
+(21325063 missing values generated)
+SERVICIO_DE_SALUD: all characters numeric; replaced as byte
+(9788053 missing values generated)
+SEXO: all characters numeric; replaced as byte
+(5 missing values generated)
+FECHA_NACIMIENTO already numeric; no replace
+EDAD_CANT: all characters numeric; replaced as int
+(3165266 missing values generated)
+TIPO_EDAD: all characters numeric; replaced as byte
+(3165266 missing values generated)
+EDAD_A_OS: all characters numeric; replaced as int
+(2 missing values generated)
+PUEBLO_ORIGINARIO: all characters numeric; replaced as byte
+(10902067 missing values generated)
+PAIS_ORIGEN already numeric; no replace
+COMUNA_RESIDENCIA already numeric; no replace
+REGION_RESIDENCIA already numeric; no replace
+PREVISION: all characters numeric; replaced as byte
+(2 missing values generated)
+BENEFICIARIO: contains nonnumeric characters; no replace
+MODALIDAD: all characters numeric; replaced as byte
+(15730535 missing values generated)
+PROCEDENCIA: all characters numeric; replaced as byte
+(6012624 missing values generated)
+ANO_EGRESO: all characters numeric; replaced as int
+(2 missing values generated)
+FECHA_EGRESO already numeric; no replace
+AREA_FUNCIONAL_EGRESO: all characters numeric; replaced as int
+(30 missing values generated)
+DIAS_ESTADA: all characters numeric; replaced as long
+(2 missing values generated)
+CONDICION_EGRESO: all characters numeric; replaced as byte
+(2 missing values generated)
+DIAG1 already numeric; no replace
+GLOSA_DIAG1 already numeric; no replace
+DIAG2 already numeric; no replace
+GLOSA_DIAG2 already numeric; no replace
+INTERV_Q: all characters numeric; replaced as byte
+(4 missing values generated)
+CODIGO_INTERV_Q_PPAL already numeric; no replace
+PROCED: all characters numeric; replaced as byte
+(27807004 missing values generated)
+CODIGO_PROCED_PPAL already numeric; no replace
+
+. 
+. * Encode BENEFICIARIO:
+. encode BENEFICIARIO, gen(_BENEFICIARIO)
+
+. order _BENEFICIARIO, after(BENEFICIARIO)
+
+. drop BENEFICIARIO
+
+. rename _BENEFICIARIO BENEFICIARIO
+
+. 
+. * Create value labels and apply them:
+. label def seremi ///
+> 15 "SEREMI De Arica y Parinacota" ///
+> 1 "SEREMI De Tarapacá" ///
+> 2 "SEREMI De Antofagasta" ///
+> 3 "SEREMI De Atacama" ///
+> 4 "SEREMI De Coquimbo" ///
+> 5 "SEREMI De Valparaíso" ///
+> 13 "SEREMI Metropolitana De Santiago" ///
+> 6 "SEREMI Del Libertador B. O´Higgins" ///
+> 7 "SEREMI Del Maule" ///
+> 8 "SEREMI Del Biobío" ///
+> 9 "SEREMI De La Araucanía" ///
+> 14 "SEREMI De Los Rios" ///
+> 10 "SEREMI De Los Lagos" ///
+> 11 "SEREMI De Aisén del Gral.C.Ibañez del Campo" ///
+> 12 "SEREMI De Magallanes  y de La Antártica chilena"
+
+. label val SEREMI seremi
+
+. 
+. label def servicio_de_salud ///
+> 1 "Servicio de Salud Arica" ///
+> 2 "Servicio de Salud Iquique" ///
+> 3 "Servicio de Salud Antofagasta" ///
+> 4 "Servicio de Salud Atacama" ///
+> 5 "Servicio de Salud Coquimbo" ///
+> 6 "Servicio de Salud Valparaíso San Antonio" ///
+> 7 "Servicio de Salud Viña del Mar Quillota" ///
+> 8 "Servicio de Salud Aconcagua" ///
+> 15 "Servicio de Salud Del Libertador B. O´Higgins" ///
+> 16 "Servicio de Salud Del Maule" ///
+> 17 "Servicio de Salud Ñuble" ///
+> 18 "Servicio de Salud Concepción" ///
+> 19 "Servicio de Salud Talcahuano" ///
+> 20 "Servicio de Salud Biobío" ///
+> 28 "Servicio de Salud Arauco" ///
+> 29 "Servicio de Salud Araucanía Norte" ///
+> 21 "Servicio de Salud Araucanía Sur" ///
+> 33 "Servicio de Salud Chiloé" ///
+> 23 "Servicio de Salud Osorno" ///
+> 24 "Servicio de Salud Del Reloncaví" ///
+> 25 "Servicio de Salud Aisén" ///
+> 26 "Servicio de Salud Magallanes" ///
+> 9 "Servicio de Salud Metropolitano Norte" ///
+> 10 "Servicio de Salud Metropolitano Occidente" ///
+> 11 "Servicio de Salud Metropolitano Central" ///
+> 12 "Servicio de Salud Metropolitano Oriente" ///
+> 13 "Servicio de Salud Metropolitano Sur" ///
+> 14 "Servicio de Salud Metropolitano Sur Oriente" ///
+> 22 "Servicio de Salud Valdivia"
+
+. label val SERVICIO_DE_SALUD servicio_de_salud
+
+. 
+. label def sexo ///
+> 1 "Hombre" ///
+> 2 "Mujer" ///
+> 3 "Intersex(Indeterminado)" ///
+> 9 "Desconocido"
+
+. label val SEXO sexo
+
+. 
+. label def tipo_edad ///
+> 1 "años" ///
+> 2 "meses" ///
+> 3 "días" ///
+> 4 "horas"
+
+. label val TIPO_EDAD tipo_edad
+
+. 
+. label def prevision ///
+> 1 "FONASA" ///
+> 2 "ISAPRE" ///
+> 3 "CAPREDENA" ///
+> 4 "DIPRECA" ///
+> 5 "SISA" ///
+> 96 "NINGUNA" ///
+> 99 "DESCONOCIDO"
+
+. label val PREVISION prevision
+
+. 
+. label def modalidad ///
+> 1 "MODALIDAD DE ATENCIÓN INSTITUCIONAL (MAI)" ///
+> 2 "MODALIDAD DE LIBRE ELECCIÓN(MLE)"
+
+. label val MODALIDAD modalidad
+
+. 
+. label def procedencia ///
+> 1 "Unidad de Emergencia (mismo establecimiento)" ///
+> 3 "Atención Especialidades( mismo establecimiento)" ///
+> 4 "Otro Establecimiento" ///
+> 5 "Otra Procedencia" ///
+> 6 "Área de Cirugía Mayor Ambulatoria (mismo establecimiento)" ///
+> 7 "Hospital comunitario o de baja complejidad"
+
+. label val PROCEDENCIA procedencia
+
+. 
+. label def area_funcional_egreso ///
+> 0 "NO EXISTE ACTUALMENTE " ///
+> 10 "ÁREA MÉDICA INDIFERENCIADA" ///
+> 20 "ÁREA QUIRÚRGICA INDIFERENCIADA" ///
+> 110 "MEDICINA BÁSICA" ///
+> 111 "NEUMOLOGÍA" ///
+> 112 "INFECCIOSOS ADULTOS" ///
+> 113 "TRATAMIENTO ANTIALCOHÓLICO" ///
+> 114 "NUTRICIÓN" ///
+> 115 "MEDICINA AGUDOS" ///
+> 116 "AGUDO INDIFERENCIADO" ///
+> 119 "ÁREA MÉDICA QUIRÚRGICA INDIFERENCIADA" ///
+> 120 "CIRUGÍA BÁSICA" ///
+> 121 "CIRUGÍA TÓRAX" ///
+> 122 "CIRUGÍA CARDIOVASCULAR" ///
+> 123 "CIRUGÍA PLÁSTICA-QUEMADOS ADULTOS" ///
+> 124 "CIRUGÍA MÁXILO FACIAL" ///
+> 125 "CIRUGÍA AGUDOS" ///
+> 130 "TRAUMATOLOGÍA Y ORTOPEDIA ADULTOS" ///
+> 131 "TRAUMATOLOGÍA AGUDOS" ///
+> 132 "Traumatología-Ortopedia Indif." ///
+> 140 "CIRUGÍA INFANTIL" ///
+> 141 "CIRUGÍA PARTES BLANDAS INFANTIL" ///
+> 142 "CIRUGÍA PLÁSTICA-QUEMADOS INFANTIL" ///
+> 143 "TRAUMATOLOGÍA Y ORTOPEDIA INFANTIL" ///
+> 144 "CARDIOCIRUGIA INFANTIL" ///
+> 145 "ÁREA QUIRÚRGICA INFANTIL INDIFERENCIADA" ///
+> 150 "PEDIATRÍA INDIFERENCIADA" ///
+> 151 "NEONATOLOGÍA INCUBADORAS" ///
+> 152 "NEONATOLOGÍA CUNAS" ///
+> 153 "LACTANTES" ///
+> 154 "SEGUNDA INFANCIA" ///
+> 155 "INFECCIOSOS NIÑOS" ///
+> 156 "PEDIATRÍA AGUDOS" ///
+> 160 "OBSTETRICIA Y GINECOLOGÍA" ///
+> 161 "OBSTETRICIA" ///
+> 162 "GINECOLOGÍA" ///
+> 170 "DERMATOLOGÍA" ///
+> 180 "NEUROPSIQUIATRÍA INFANTIL" ///
+> 190 "NEUROLOGÍA ADULTO" ///
+> 191 "NEUROLOGÍA ADULTO AGUDOS" ///
+> 200 "NEUROCIRUGÍA INDIFERENCIADO" ///
+> 201 "NEUROCIRUGÍA ADULTO" ///
+> 202 "NEUROCIRUGÍA INFANTIL" ///
+> 210 "PSIQUIATRÍA" ///
+> 211 "PSIQUIATRÍA CORTA ESTADIA" ///
+> 212 "PSIQUIATRÍA CRÓNICO" ///
+> 213 "DESINTOXICACION ALCOHOL Y DROGAS" ///
+> 214 "PSIQUIATRÍA FORENSE MEDIANA COMPLEJIDAD" ///
+> 215 "PSIQUIATRÍA FORENSE ALTA COMPLEJIDAD" ///
+> 216 "PSIQUIATRÍA MEDIANA ESTADÍA" ///
+> 217 "EXTERNALIZACIÓN (Unidad Forense)" ///
+> 218 "UNIDAD EVALUACIÓN DE PERSONAS IMPUTADAS (UEPI)" ///
+> 220 "OFTALMOLOGÍA" ///
+> 230 "ONCOLOGÍA" ///
+> 231 "ONCOLOGÍA ADULTOS" ///
+> 232 "ONCOLOGÍA INFANTIL" ///
+> 240 "OTORRINOLARINGOLOGÍA" ///
+> 250 "UROLOGÍA" ///
+> 260 "MEDICINA FÍSICA Y REHABILITACIÓN" ///
+> 270 "DERIVACIÓN MEDICO QUIRÚRGICO" ///
+> 271 "DERIVACIÓN MEDICO QUIRÚRGICO RESPIRATORIO" ///
+> 280 "TISIOLOGÍA CRÓNICOS" ///
+> 290 "GERIATRÍA" ///
+> 300 "UNID.EMERG.INDIFERENCIADO" ///
+> 301 "UNID.EMERG.ADULTO" ///
+> 302 "UNID.EMERG.NIÑOS" ///
+> 310 "UNIDAD DE CUIDADOS INTENSIVOS (UCI) INDIFERENCIADO" ///
+> 311 "UNIDAD DE CUIDADOS INTENSIVOS (UCI) NEONATOLOGÍA" ///
+> 312 "UNIDAD DE CUIDADOS INTENSIVOS (UCI) ADULTO" ///
+> 313 "UNIDAD DE CUIDADOS INTENSIVOS (UCI) PEDIATRÍA" ///
+> 314 "UNIDAD DE CUIDADOS INTENSIVOS (UCI) CORONARIA" ///
+> 315 "UNIDAD DE CUIDADOS INTENSIVOS (UCI) QUEMADOS" ///
+> 320 "UNIDAD DE TRATAMIENTO INTERMEDIO (UTI) INDIFERENCIADO" ///
+> 321 "UNIDAD DE TRATAMIENTO INTERMEDIO (UTI) MEDICINA" ///
+> 322 "UNIDAD DE TRATAMIENTO INTERMEDIO (UTI) CIRUGÍA" ///
+> 323 "UNIDAD DE TRATAMIENTO INTERMEDIO (UTI) PEDIATRÍA" ///
+> 324 "UNIDAD DE TRATAMIENTO INTERMEDIO (UTI) NEONATOLOGÍA" ///
+> 325 "UNIDAD DE TRATAMIENTO INTERMEDIO (UTI) QUEMADOS" ///
+> 326 "UNIDAD DE TRATAMIENTO INTERMEDIO (UTI) NEUROCIRUGÍA" ///
+> 327 "UNIDAD CORONARIO INTERMEDIO" ///
+> 330 "Área Pensionado" ///
+> 330 "PENSIONADO" ///
+> 331 "PENSIONADO OFTALMOLOGÍA" ///
+> 401 "Área Médica Adulto Cuidados Básicos" ///
+> 402 "Área Médica Adulto Cuidados Medios" ///
+> 403 "Área Médico-Quirúrgico Cuidados Básicos" ///
+> 404 "Área Médico-Quirúrgico Cuidados Medios" ///
+> 405 "Área Cuidados Intensivos Adultos" ///
+> 406 "Área Cuidados Intermedios Adultos" ///
+> 407 "Área Médica Pediátrica Cuidados Básicos" ///
+> 408 "Área Médica Pediátrica Cuidados Medios" ///
+> 409 "Área Médico-Quirúrgico Pediátrica Cuidados Básicos" ///
+> 410 "Área Médico-Quirúrgico Pediátrica Cuidados Medios" ///
+> 411 "Área Cuidados Intensivos Pediátricos" ///
+> 412 "Área Cuidados Intermedios Pediátricos" ///
+> 413 "Área Neonatología Cuidados Básicos" ///
+> 414 "Área Neonatología Cuidados Intensivos" ///
+> 415 "Área Neonatología Cuidados Intermedios" ///
+> 416 "Área Obstetricia" ///
+> 418 "Área Psiquiatría Adulto Corta estadía" ///
+> 419 "Área Psiquiatría Adulto Mediana estadía" ///
+> 420 "Área Psiquiatría Adulto Larga estadía" ///
+> 421 "Área Psiquiatría Infanto-adolescente corta estadía" ///
+> 422 "Área Psiquiatría Infanto-adolescente mediana estadía" ///
+> 423 "Área Psiquiatría Forense Adulto evaluación e inicio tto." ///
+> 424 "Área Psiquiatría Forense Adulto tratamiento" ///
+> 425 "Área Psiquiatría Forense Infanto Adolescente evaluación e inicio tto." ///
+> 426 "Área Psiquiatría Forense Infanto Adolescente tratamiento" ///
+> 427 "Área Sociosanitaria Adulto" ///
+> 428 "Área de Hospitalización de Cuidados Intensivos en Psiquatría Adulto" ///
+> 429 "Área de Hospitalización de Cuidados Intensivos en Psiquatría Infanto Adolescente" ///
+> 999 "INDIFERENCIADO"
+
+. label val AREA_FUNCIONAL_EGRESO area_funcional_egreso
+
+. 
+. label def condicion_egreso ///
+> 1 "Vivo" ///
+> 2 "Fallecido"
+
+. label val CONDICION_EGRESO condicion_egreso
+
+. 
+. label def interv_q ///
+> 1 "Sí" ///
+> 2 "No"
+
+. label val INTERV_Q interv_q
+
+. 
+. label def proced ///
+> 1 "Sí" ///
+> 2 "No"
+
+. label val PROCED proced
+
+. 
+. ********************************************************************************
+. * Label variables:
+. label var ID_PACIENTE "Identificador único y anónimo del paciente"
+
+. label var ESTABLECIMIENTO_SALUD "Código del Establecimiento"
+
+. label var PERTENENCIA_SNSS "Tipo de pertenencia (Perteneciente o No perteneciente al SNSS)"
+
+. label var SEREMI "Código SEREMI"
+
+. label var SERVICIO_DE_SALUD "Código Servicio de salud"
+
+. label var SEXO "Código del sexo biologico del paciente"
+
+. label var FECHA_NACIMIENTO "Fecha de Nacimiento del paciente"
+
+. label var EDAD_CANT "Registro numérico de la edad del paciente al ingreso"
+
+. label var TIPO_EDAD "Unidad de Medida de la edad, según modalidad descrita en valores"
+
+. label var EDAD_A_OS "Edad en años del paciente al momento del ingreso"
+
+. label var PUEBLO_ORIGINARIO "Código del Pueblo originario"
+
+. label var PAIS_ORIGEN "Código País de origen"
+
+. label var COMUNA_RESIDENCIA "Código comuna de residencia del paciente"
+
+. label var REGION_RESIDENCIA "Código región de residencia del paciente"
+
+. label var PREVISION "Código de previsión de salud del paciente al momento del ingreso"
+
+. label var BENEFICIARIO "Código clase Beneficiario FONASA"
+
+. label var MODALIDAD "Código modalidad de Atención FONASA"
+
+. label var PROCEDENCIA "Código de procedencia del paciente al momento del ingreso"
+
+. label var ANO_EGR "Año Egreso"
+
+. label var FECHA_EGR "Fecha de egreso"
+
+. label var AREA_FUNCIONAL_EGRESO "Código del nivel de Cuidado o área funcional del que egreso el paciente"
+
+. label var DIAS_ESTAD "Días de estadía total"
+
+. label var CONDICION_EGRESO "Código de la condición al egreso del paciente"
+
+. label var DIAG1 "Código CIE-10 del diagnostico principal"
+
+. label var GLOSA_DIAG1 "Glosa del diagnóstico principal"
+
+. label var DIAG2 "Código de la causa externa"
+
+. label var GLOSA_DIAG2 "Glosa de la causa externa"
+
+. label var INTERV_Q "Código Intervención Quirúrgica"
+
+. label var CODIGO_INTERV_Q_PPAL "Código FONASA Intervención Quirúrgica Principal"
+
+. label var PROCED "Código Procedimiento"
+
+. label var CODIGO_PROCED_PPAL "Código FONASA Procedimiento Principal"
+
+. ********************************************************************************
+. 
+. * Get minimum and maximum EEHH year:
+. sum $eyear_var
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+  ANO_EGRESO | 31,113,112    2010.066    5.455722       2001       2019
+
+. scalar min_ano_eehh = r(min)
+
+. scalar max_ano_eehh = r(max)
+
+. 
+. * Compress, label, sign and save:
+. compress
+  variable BENEFICIARIO was long now byte
+  (93,339,342 bytes saved)
+
+. label data "Egresos Hospitalarios en Chile, `=min_ano_eehh'-`=max_ano_eehh' (DEIS/MINSAL)"
+
+. char _dta[Fuente] "https://deis.minsal.cl/#datosabiertos"
+
+. save "${eehh_original}.dta", replace
+(note: file EEHH_2001_2019.dta not found)
+file EEHH_2001_2019.dta saved
+
+.         
+. * End timer:
+. timer off 1
+
+. timer list
+   1:   1037.75 /        1 =    1037.7530
+
+. 
+. * Close log:
+. log close _all
+      name:  EEHH_02_APPEND
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/EEHH_02_APPEND_20210909.log
+  log type:  text
+ closed on:   9 Sep 2021, 11:24:01
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------

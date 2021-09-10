@@ -1,0 +1,172 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  EEHH_06b_COLLAPSET
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/EEHH_06b_COLLAPSET_20210909.log
+  log type:  text
+ opened on:   9 Sep 2021, 20:00:30
+
+. 
+. * Preamble:
+. cls
+
+. clear all
+
+. set more off
+
+. 
+. * Switch to destination directory:
+. cd "$dtadir/DEIS"
+C:\Users\nicol\Dropbox\Research Projects\Intergenerational\data\dta\DEIS
+
+. 
+. ********************************************************************************
+. * Load data by patient and public/private:
+. use hospdays_by_public_long.dta, clear
+(Days hospitalized 2001-2019 by public/private hospital (long, from EEHH database)
+
+. 
+. * Store variable labels:
+. foreach var of varlist days_* nvsts_* olap {
+  2.         local vlbl_`var' : variable label `var'
+  3. }
+
+. 
+. * Collapse:
+. collapse (sum) days_* nvsts_* olap ///
+>         (max) any_public = public_hosp ///
+>         (min) any_private = public_hosp, by(ID_PACIENTE)
+
+. 
+. replace any_private = 1 - any_private
+(2,908,129 real changes made)
+
+. 
+. * Relabel variables:
+. foreach var of varlist days_* nvsts_* olap {
+  2.         label var `var' "`vlbl_`var''"
+  3. }
+
+. 
+. * Label other variables:
+. label var any_public "=1 if any hospitalization in a public hospital"
+
+. label var any_private "=1 if any hospitalization in a private hospital"
+
+. 
+. * Compress, label, sign, and save:
+. compress
+  variable days_y01 was double now int
+  variable days_y02 was double now int
+  variable days_y03 was double now int
+  variable days_y04 was double now int
+  variable days_y05 was double now int
+  variable days_y06 was double now int
+  variable days_y07 was double now int
+  variable days_y08 was double now int
+  variable days_y09 was double now int
+  variable days_y10 was double now int
+  variable days_y11 was double now int
+  variable days_y12 was double now int
+  variable days_y13 was double now int
+  variable days_y14 was double now int
+  variable days_y15 was double now int
+  variable days_y16 was double now int
+  variable days_y17 was double now int
+  variable days_y18 was double now int
+  variable days_y19 was double now int
+  variable days_y20 was double now int
+  variable days_y21 was double now int
+  variable days_y22 was double now int
+  variable days_y23 was double now int
+  variable days_y24 was double now int
+  variable days_y25 was double now int
+  variable days_y26 was double now int
+  variable days_y27 was double now int
+  variable days_m01 was double now byte
+  variable days_m02 was double now int
+  variable days_m03 was double now int
+  variable days_m04 was double now int
+  variable days_m05 was double now byte
+  variable days_m06 was double now byte
+  variable days_m07 was double now byte
+  variable days_m08 was double now int
+  variable days_m09 was double now byte
+  variable days_m10 was double now byte
+  variable days_m11 was double now byte
+  variable days_m12 was double now int
+  variable days_s00 was double now int
+  variable days_s05 was double now int
+  variable days_s10 was double now int
+  variable days_s15 was double now int
+  variable days_s20 was double now int
+  variable days_s25 was double now int
+  variable days_s30 was double now int
+  variable nvsts_y01 was double now byte
+  variable nvsts_y02 was double now int
+  variable nvsts_y03 was double now int
+  variable nvsts_y04 was double now int
+  variable nvsts_y05 was double now int
+  variable nvsts_y06 was double now int
+  variable nvsts_y07 was double now int
+  variable nvsts_y08 was double now int
+  variable nvsts_y09 was double now int
+  variable nvsts_y10 was double now byte
+  variable nvsts_y11 was double now int
+  variable nvsts_y12 was double now int
+  variable nvsts_y13 was double now byte
+  variable nvsts_y14 was double now byte
+  variable nvsts_y15 was double now int
+  variable nvsts_y16 was double now int
+  variable nvsts_y17 was double now int
+  variable nvsts_y18 was double now int
+  variable nvsts_y19 was double now byte
+  variable nvsts_y20 was double now byte
+  variable nvsts_y21 was double now byte
+  variable nvsts_y22 was double now byte
+  variable nvsts_y23 was double now byte
+  variable nvsts_y24 was double now byte
+  variable nvsts_y25 was double now byte
+  variable nvsts_y26 was double now byte
+  variable nvsts_y27 was double now byte
+  variable nvsts_m01 was double now byte
+  variable nvsts_m02 was double now byte
+  variable nvsts_m03 was double now byte
+  variable nvsts_m04 was double now byte
+  variable nvsts_m05 was double now byte
+  variable nvsts_m06 was double now byte
+  variable nvsts_m07 was double now byte
+  variable nvsts_m08 was double now byte
+  variable nvsts_m09 was double now byte
+  variable nvsts_m10 was double now byte
+  variable nvsts_m11 was double now byte
+  variable nvsts_m12 was double now byte
+  variable nvsts_s00 was double now byte
+  variable nvsts_s05 was double now byte
+  variable nvsts_s10 was double now byte
+  variable nvsts_s15 was double now byte
+  variable nvsts_s20 was double now byte
+  variable nvsts_s25 was double now byte
+  variable nvsts_s30 was double now byte
+  variable olap was double now byte
+  (1,739,061,142 bytes saved)
+
+. local data_label : data label
+
+. label data `"`=subinstr("`data_label'", "by public/private hospital", "by patient", 1)'"'
+
+. notes drop _dta
+  (1 note dropped)
+
+. notes: Last modified on $S_DATE at $S_TIME
+
+. save hospdays_by_patient.dta, replace
+file hospdays_by_patient.dta saved
+
+. ********************************************************************************
+. 
+. * Close log:
+. log close _all
+      name:  EEHH_06b_COLLAPSET
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/EEHH_06b_COLLAPSET_20210909.log
+  log type:  text
+ closed on:   9 Sep 2021, 20:02:56
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------

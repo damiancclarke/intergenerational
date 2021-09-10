@@ -1,0 +1,116 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  EEHH_CLEAN
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/EEHH_03_CLEAN_20210909.log
+  log type:  text
+ opened on:   9 Sep 2021, 11:39:03
+
+. 
+. * Preamble:
+. cls
+
+. clear all
+
+. set more off
+
+. 
+. * Switch to destination directory:
+. cd "$dtadir/DEIS"
+C:\Users\nicol\Dropbox\Research Projects\Intergenerational\data\dta\DEIS
+
+. 
+. * Load data:
+. use "${eehh_original}.dta", clear
+(Egresos Hospitalarios en Chile, 2001-2019 (DEIS/MINSAL))
+
+. 
+. * Drop ID Missing:
+. drop if ID_PACIENTE == ""
+(2 observations deleted)
+
+. 
+. * Drop ID NA:
+. drop if ID_PACIENTE == "NA"
+(3,103,675 observations deleted)
+
+. 
+. * Report and drop exact duplicates (after dropping missing/NA IDs):
+. duplicates report
+
+Duplicates in terms of all variables
+
+--------------------------------------
+   copies | observations       surplus
+----------+---------------------------
+        1 |     27982862             0
+        2 |        23758         11879
+        3 |         1293           862
+        4 |          528           396
+        5 |          290           232
+        6 |          246           205
+        7 |          112            96
+        8 |           72            63
+        9 |           36            32
+       10 |           60            54
+       11 |           44            40
+       12 |           36            33
+       13 |           52            48
+       15 |           30            28
+       18 |           18            17
+--------------------------------------
+
+. duplicates drop
+
+Duplicates in terms of all variables
+
+(13,985 observations deleted)
+
+. 
+. * Fix PERTENENCIA_SNNS ex-post:
+. replace PERTENENCIA_SNSS = PERTENENCIA_SNSS - 1 if ANO_EGRESO == 2001 | ANO_EGRESO == 2004
+(2,093,439 real changes made)
+
+. label drop PERTENENCIA_SNSS
+
+. label def PERTENENCIA_SNSS ///
+>         1 "No Pertenecientes al Sistema Nacional de Servicios de Salud, SNSS" ///
+>         2 "Pertenecientes al Sistema Nacional de Servicios de Salud, SNSS"
+
+. label val PERTENENCIA_SNSS PERTENENCIA_SNSS
+
+. 
+. * Get minimum and maximum EEHH year:
+. sum $eyear_var
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+  ANO_EGRESO | 27,995,452    2010.681    5.248028       2001       2019
+
+. scalar min_ano_eehh = r(min)
+
+. scalar max_ano_eehh = r(max)
+
+. 
+. * Compress, label, and save:
+. compress
+  variable DIAS_ESTADA was long now int
+  (55,990,904 bytes saved)
+
+. label data "Egresos Hospitalarios `=min_ano_eehh'-`=max_ano_eehh' en Chile (DEIS/MINSAL), -duplicados/NAs"
+
+. notes drop _dta
+  (0 notes dropped)
+
+. notes: Last modified on $S_DATE at $S_TIME
+
+. save "${eehh_original}_NODUPS_NONAS.dta", replace
+(note: file EEHH_2001_2019_NODUPS_NONAS.dta not found)
+file EEHH_2001_2019_NODUPS_NONAS.dta saved
+
+. 
+. * Close log:
+. log close _all
+      name:  EEHH_CLEAN
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/EEHH_03_CLEAN_20210909.log
+  log type:  text
+ closed on:   9 Sep 2021, 11:45:19
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------

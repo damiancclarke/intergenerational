@@ -1,0 +1,160 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  COUNTERFACTUAL_MOTHERS
+       log:  C:\Users\nicol\Dropbox\Research Projects\Intergenerational/statalogs/COUNTERFACTUAL_MOTHERS_20210907.log
+  log type:  text
+ opened on:   7 Sep 2021, 21:51:51
+
+.                           
+. * Preamble:
+. clear all
+
+. set more off
+
+. 
+. * Switch to destination directory:
+. cd "$dtadir/DEIS"
+C:\Users\nicol\Dropbox\Research Projects\Intergenerational\data\dta\DEIS
+
+. 
+. 
+. * Check necessary files exist:
+. capture confirm file "${def_original}_NOGLOSAS_NODUPS_NONAS.dta"
+
+. if _rc != 0 {
+.         display "Necessary file not found: ${def_original}_NOGLOSAS_NODUPS_NONAS.dta"
+.         display "Run steps 01 to 03 for the DEATHS data first"
+.         log close _all
+.         stop
+. }
+
+. 
+. * Load all births (excluding duplicates and NAs):
+. use "${nac_original}_NOGLOSAS_NODUPS_NONAS.dta", clear
+(Nacimientos 1992-2018 en Chile (DEIS/MINSAL), Sin Duplicados, Sin NAs)
+
+. 
+. * Merge with latest working data:
+. gen ID_FALLECIDO = ID_RECIEN_NACIDO
+
+. merge 1:1 ID_FALLECIDO using "${def_original}_NOGLOSAS_NODUPS_NONAS.dta", ///
+>         keepusing(FECHA_DEF_SIF) nogen
+(label EST_CIV_MADRE already defined)
+(label URBANO_RURAL already defined)
+(label SERV_RES already defined)
+(label SEXO already defined)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                     8,843,539
+        from master                 6,533,797  
+        from using                  2,309,742  
+
+    matched                            83,841  
+    -----------------------------------------
+
+.         
+. * Create variables related to infant mortality:
+. gen dias_muerte = FECHA_DEF_SIF - FECHA_NACIMIENTO_SIF /*Días vividos antes de morir*/
+(8,843,539 missing values generated)
+
+. gen muerte_1a = 1 if dias_muerte <= 365
+(8,868,387 missing values generated)
+
+. replace muerte_1a = 0 if (dias_muerte == . | dias_muerte > 365) /*Missing corresponde a nacidos que permanecen vivos*/
+(8,868,387 real changes made)
+
+. tab muerte_1a, m    /*1.453 fallecidos menores de 1 año*/
+
+  muerte_1a |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |  8,868,387       99.34       99.34
+          1 |     58,993        0.66      100.00
+------------+-----------------------------------
+      Total |  8,927,380      100.00
+
+. label var dias_muerte "Days alive before death (missing for living)"
+
+. label var muerte_1a "Infant Mortality (death within 1 year of birth)"
+
+. 
+. * Keep only girls that died before 1 year:      
+. keep if muerte_1a == 1 & SEXO == 2
+(8,901,100 observations deleted)
+
+. 
+. * Drop unnecessary variables:
+. drop dias_muerte muerte_1a ID_FALLECIDO
+
+. 
+. * Rename father variables to grandfather:
+. foreach var of varlist *_PADRE {
+  2.         local varlbl : variable label `var'
+  3.         local nvar = subinstr("`var'", "_PADRE", "_ABUELO", .)
+  4.         rename `var' `nvar'
+  5.         label var `nvar' "Abuelo: `varlbl'"
+  6. }
+note: label truncated to 80 characters
+note: label truncated to 80 characters
+
+. 
+. * Rename mother variables to grandmother:
+. foreach var of varlist *_MADRE {
+  2.         local varlbl : variable label `var'
+  3.         local nvar = subinstr("`var'", "_MADRE", "_ABUELA", .)
+  4.         rename `var' `nvar'
+  5.         label var `nvar' "Abuela: `varlbl'"
+  6. }
+note: label truncated to 80 characters
+note: label truncated to 80 characters
+note: label truncated to 80 characters
+note: label truncated to 80 characters
+
+. 
+. * Rename the rest of the variables as mother variables:
+. ds *_ABUELO *_ABUELA ID_RECIEN_NACIDO, not
+SEXO          MES_NAC       FECHA_NACI~F  TIPO_ATEN     SEMANAS       TALLA         REGION_RES~A  URBANO_RURAL
+DIA_NAC       ANO_NAC       TIPO_PARTO    PARTO_LOCAL   PESO          COMUNA_RES~A  SERV_RES      FECHA_DEF_~F
+
+. foreach var of varlist `r(varlist)' {
+  2.         local varlbl : variable label `var'
+  3.         rename `var' `var'_MADRE
+  4.         label var `var'_MADRE "Madre: `varlbl'"
+  5. }
+note: label truncated to 80 characters
+
+. 
+. * Rename ID variable:
+. rename ID_RECIEN_NACIDO ID_MADRE
+
+. label var ID_MADRE "Identificador único y anónimo de la madre del recién nacido vivo"
+
+. 
+. * Assign a prefix to all variables:
+. foreach var of varlist * {
+  2.         rename `var' NAC_`var'
+  3. }
+
+. 
+. * Compress, label, sign, and save:
+. compress
+  variable NAC_PAIS_ORIGEN_ABUELA was str41 now str40
+  (26,280 bytes saved)
+
+. label data "Counterfactual mothers: girls that died within 1 year + mother vars"
+
+. notes drop _all
+  (25 notes dropped)
+
+. note: This dataset contains observations of girls that died within 1 year, as if they had become mothers.
+
+. save COUNTERFACTUAL_MOTHERS.dta, replace
+file COUNTERFACTUAL_MOTHERS.dta saved
+
+. 
+. * Close log
+. log close _all
+      name:  COUNTERFACTUAL_MOTHERS
+       log:  C:\Users\nicol\Dropbox\Research Projects\Intergenerational/statalogs/COUNTERFACTUAL_MOTHERS_20210907.log
+  log type:  text
+ closed on:   7 Sep 2021, 21:52:09
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------

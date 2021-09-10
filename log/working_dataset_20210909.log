@@ -1,0 +1,1705 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  working_dataset
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/working_dataset_20210909.log
+  log type:  text
+ opened on:   9 Sep 2021, 22:32:27
+
+. 
+. * Preamble:
+. cls
+
+. clear all
+
+. set more off
+
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> * Go to directory:
+. cd "$dtadir/DEIS"
+C:\Users\nicol\Dropbox\Research Projects\Intergenerational\data\dta\DEIS
+
+. 
+. * Load data:
+. use MERGED_HOSPDATS2DEF2NAC.dta, clear
+(hosp. days merged to 1990-2018 deaths merged to 1992-2018 births)
+
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> * CREATE NEW VARIABLES:
+. 
+. * Sort by mother ID and birth date:
+. sort NAC_ID_MADRE NAC_FECHA_NACIMIENTO_SIF
+
+. 
+. * Get birth order:
+. by NAC_ID_MADRE: egen birth_order_by_mother_u = rank(NAC_FECHA_NACIMIENTO_SIF) if NAC_ID_MADRE != "NA", unique
+(2410011 missing values generated)
+
+. by NAC_ID_MADRE: egen birth_order_by_mother_t = rank(NAC_FECHA_NACIMIENTO_SIF) if NAC_ID_MADRE != "NA", track
+(2410011 missing values generated)
+
+. 
+. * Recode missing values for some of BLN(2013)'s control variables:
+. recode NAC_TIPO_ATEN NAC_NIVEL_MADRE NAC_EST_CIV_MADRE (9 = .), ///
+>         gen(nac_tipo_aten_recode nac_nivel_madre_recode nac_est_civ_madre_recode)
+(5573 differences between NAC_TIPO_ATEN and nac_tipo_aten_recode)
+(14329 differences between NAC_NIVEL_MADRE and nac_nivel_madre_recode)
+(78 differences between NAC_EST_CIV_MADRE and nac_est_civ_madre_recode)
+
+. 
+. * Apply value labels to recoded variables:
+. foreach var of varlist NAC_TIPO_ATEN NAC_NIVEL_MADRE NAC_EST_CIV_MADRE {
+  2.         local val_lbl_`var' : value label `var'
+  3.         local trgt_var = lower("`var'") + "_recode"
+  4.         label values `trgt_var' `val_lbl_`var''
+  5. }
+
+. 
+. * Create dummy for 32 or more weeks of gestation:
+. gen sem32 = NAC_SEMANAS >= 32 if NAC_SEMANAS != .
+(13,240 missing values generated)
+
+. label var sem32 "Gestational Weeks >= 32"
+
+. label def sem32 0 "Gestational Weeks <= 31" 1 "Gestational Weeks >= 32"
+
+. label val sem32 sem32
+
+. 
+. * Create dummy for 32 or more weeks of gestation (mother):
+. gen sem32m = NAC_SEMANAS_MADRE >= 32 if NAC_SEMANAS_MADRE != .
+(6,184,305 missing values generated)
+
+. label var sem32m "Mother's Gestational Weeks >= 32"
+
+. label def sem32m 0 "Mother's Gestational Weeks <= 31" 1 "Mother's Gestational Weeks >= 32"
+
+. label val sem32m sem32m
+
+. 
+. * Create variables related to infant mortality:
+. gen dias_muerte = DEF_FECHA_DEF_SIF - NAC_FECHA_NACIMIENTO_SIF /*Días vividos antes de morir*/
+(6,533,797 missing values generated)
+
+. gen muerte_1a = 1 if dias_muerte <= 365
+(6,558,645 missing values generated)
+
+. replace muerte_1a = 0 if (dias_muerte == . | dias_muerte > 365) /*Missing corresponde a nacidos que permanecen vivos*/
+(6,558,645 real changes made)
+
+. tab muerte_1a, m    /*1.453 fallecidos menores de 1 año*/
+
+  muerte_1a |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |  6,558,645       99.11       99.11
+          1 |     58,993        0.89      100.00
+------------+-----------------------------------
+      Total |  6,617,638      100.00
+
+. label var dias_muerte "Days alive before death (missing for living)"
+
+. label var muerte_1a "Infant Mortality (death within 1 year of birth)"
+
+. 
+. * Create variables related to life duration:
+. gen durlife_days = td(31dec2018) - NAC_FECHA_NACIMIENTO_SIF if mrg_DEF2NAC == 1
+(83,898 missing values generated)
+
+. replace durlife_days = dias_muerte if mrg_DEF2NAC == 3
+(83,841 real changes made)
+
+. label var durlife_days "Days alive up to 31 december 2018"
+
+. 
+. * Mother's education:
+. gen edmom = NAC_CURSO_MADRE if NAC_CURSO_MADRE <= 8 & (nac_nivel_madre_recode == 4 | nac_nivel_madre_recode == 5) 
+(5,290,130 missing values generated)
+
+. replace edmom = 8 if NAC_CURSO_MADRE == 9 & (nac_nivel_madre_recode == 4 | nac_nivel_madre_recode == 5)
+(56 real changes made)
+
+. replace edmom = 8 + NAC_CURSO_MADRE if NAC_CURSO_MADRE <= 4 & nac_nivel_madre_recode == 2
+(3,555,242 real changes made)
+
+. replace edmom = 12 if NAC_CURSO_MADRE >= 5 & NAC_CURSO_MADRE <= 9 & nac_nivel_madre_recode == 2
+(190,436 real changes made)
+
+. replace edmom = 8 + NAC_CURSO_MADRE if NAC_CURSO_MADRE <= 4 & nac_nivel_madre_recode == 3
+(1,046 real changes made)
+
+. replace edmom = 12 if NAC_CURSO_MADRE >= 5 & NAC_CURSO_MADRE <= 9 & nac_nivel_madre_recode == 3
+(727 real changes made)
+
+. replace edmom = 12 + NAC_CURSO_MADRE if nac_nivel_madre_recode == 1
+(1,528,131 real changes made)
+
+. label var edmom "Años de educación de la madre"
+
+. note edmom: Basado en NAC_CURSO_MADRE y nac_nivel_madre_recode ($id_user_short on $S_DATE)
+
+. sum edmom, d
+
+               Años de educación de la madre
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            3              0
+ 5%            6              0
+10%            7              0       Obs           6,603,146
+25%            9              0       Sum of Wgt.   6,603,146
+
+50%           12                      Mean           11.40959
+                        Largest       Std. Dev.      3.252577
+75%           12             21
+90%           16             21       Variance       10.57926
+95%           17             21       Skewness      -.2601746
+99%           18             21       Kurtosis       3.319091
+
+. count if edmom == .
+  14,492
+
+. 
+. * BLN2013 exclusions:
+. gen exclbln13 = 0
+
+. replace exclbln13 = 1 if mrg_DEF2NAC == 2 /* dead not in birth dataset */
+(0 real changes made)
+
+. replace exclbln13 = 1 if NAC_PESO == 1500
+(1,350 real changes made)
+
+. replace exclbln13 = 1 if NAC_PESO == 1400
+(1,132 real changes made)
+
+. replace exclbln13 = 1 if NAC_PESO == 1600
+(1,519 real changes made)
+
+. label var exclbln13 "Exclusions by Bharadwah, Loken, and Neilson (2013)"
+
+. 
+. * Tag obs. with a "round" birthweight (to control for heaping):
+. gen round100 = mod(NAC_PESO, 100) == 0 if mod(NAC_PESO, 100)!=.
+(11,280 missing values generated)
+
+. gen round100m = mod(NAC_PESO_MADRE, 100) == 0 if mod(NAC_PESO_MADRE, 100)!=.
+(6,183,844 missing values generated)
+
+. label var round100 "=1 if person's birthweight is a multiple of 100"
+
+. label var round100m "=1 if person's mother's birthweight is a multiple of 100"
+
+. note round100m: Available only for people born after 2001
+
+. 
+. * Compress newly created variables:
+. compress
+  variable birth_order_by_mother_u was float now byte
+  variable birth_order_by_mother_t was float now byte
+  variable sem32 was float now byte
+  variable sem32m was float now byte
+  variable dias_muerte was float now int
+  variable muerte_1a was float now byte
+  variable durlife_days was float now int
+  variable edmom was float now byte
+  variable exclbln13 was float now byte
+  variable round100 was float now byte
+  variable round100m was float now byte
+  (205,146,778 bytes saved)
+
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> * FIX "NUMBER OF HOSPITAL VISITS" VARIABLES:
+. 
+. * First, yearly:
+. foreach var of varlist EEHH_nvsts_y* {
+  2.         * Get year cutoff from variable name:
+.         local y = real(word(subinstr(subinstr("`var'", "EEHH_nvsts_y", "", .), "_", " ", .), 1))
+  3.         
+.         * Assign ZERO to children who never visited the hospital 
+.         * (they don't show up in the EEHH database):
+.         replace `var' = 0 if `var' == . & mrg_hosp2DEF2NAC == 1
+  4.         
+.         * Assign MISSING to children who did not survive the cutoff:
+.         replace `var' = . if `var' != . & dias_muerte < `y'*365 & mrg_DEF2NAC == 3
+  5.         
+.         * Assign MISSING to children not old enough by the cutoff:
+.         replace `var' = . if `var' != . & durlife_days < `y'*365 & mrg_DEF2NAC == 1
+  6. }
+(3,709,509 real changes made)
+(58,979 real changes made, 58,979 to missing)
+(220,391 real changes made, 220,391 to missing)
+(3,709,509 real changes made)
+(63,222 real changes made, 63,222 to missing)
+(437,953 real changes made, 437,953 to missing)
+(3,709,509 real changes made)
+(65,339 real changes made, 65,339 to missing)
+(667,633 real changes made, 667,633 to missing)
+(3,709,509 real changes made)
+(66,863 real changes made, 66,863 to missing)
+(910,343 real changes made, 910,343 to missing)
+(3,709,509 real changes made)
+(68,051 real changes made, 68,051 to missing)
+(1,159,322 real changes made, 1,159,322 to missing)
+(3,709,509 real changes made)
+(69,009 real changes made, 69,009 to missing)
+(1,399,400 real changes made, 1,399,400 to missing)
+(3,709,509 real changes made)
+(69,822 real changes made, 69,822 to missing)
+(1,640,250 real changes made, 1,640,250 to missing)
+(3,709,509 real changes made)
+(70,592 real changes made, 70,592 to missing)
+(1,885,613 real changes made, 1,885,613 to missing)
+(3,709,509 real changes made)
+(71,263 real changes made, 71,263 to missing)
+(2,133,866 real changes made, 2,133,866 to missing)
+(3,709,509 real changes made)
+(71,876 real changes made, 71,876 to missing)
+(2,383,438 real changes made, 2,383,438 to missing)
+(3,709,509 real changes made)
+(72,446 real changes made, 72,446 to missing)
+(2,626,745 real changes made, 2,626,745 to missing)
+(3,709,509 real changes made)
+(73,030 real changes made, 73,030 to missing)
+(2,864,850 real changes made, 2,864,850 to missing)
+(3,709,509 real changes made)
+(73,637 real changes made, 73,637 to missing)
+(3,093,942 real changes made, 3,093,942 to missing)
+(3,709,509 real changes made)
+(74,241 real changes made, 74,241 to missing)
+(3,322,572 real changes made, 3,322,572 to missing)
+(3,709,509 real changes made)
+(74,933 real changes made, 74,933 to missing)
+(3,549,670 real changes made, 3,549,670 to missing)
+(3,709,509 real changes made)
+(75,833 real changes made, 75,833 to missing)
+(3,777,087 real changes made, 3,777,087 to missing)
+(3,709,509 real changes made)
+(76,815 real changes made, 76,815 to missing)
+(3,987,203 real changes made, 3,987,203 to missing)
+(3,709,509 real changes made)
+(77,859 real changes made, 77,859 to missing)
+(4,200,493 real changes made, 4,200,493 to missing)
+(3,709,509 real changes made)
+(78,985 real changes made, 78,985 to missing)
+(4,445,087 real changes made, 4,445,087 to missing)
+(3,709,509 real changes made)
+(80,084 real changes made, 80,084 to missing)
+(4,691,851 real changes made, 4,691,851 to missing)
+(3,709,509 real changes made)
+(80,995 real changes made, 80,995 to missing)
+(4,944,603 real changes made, 4,944,603 to missing)
+(3,709,509 real changes made)
+(81,801 real changes made, 81,801 to missing)
+(5,199,983 real changes made, 5,199,983 to missing)
+(3,709,509 real changes made)
+(82,527 real changes made, 82,527 to missing)
+(5,458,664 real changes made, 5,458,664 to missing)
+(3,709,509 real changes made)
+(83,080 real changes made, 83,080 to missing)
+(5,719,360 real changes made, 5,719,360 to missing)
+(3,709,509 real changes made)
+(83,456 real changes made, 83,456 to missing)
+(5,987,669 real changes made, 5,987,669 to missing)
+(3,709,509 real changes made)
+(83,736 real changes made, 83,736 to missing)
+(6,257,219 real changes made, 6,257,219 to missing)
+(3,709,509 real changes made)
+(83,841 real changes made, 83,841 to missing)
+(6,528,394 real changes made, 6,528,394 to missing)
+(3,709,509 real changes made)
+(58,761 real changes made, 58,761 to missing)
+(214,100 real changes made, 214,100 to missing)
+(3,709,509 real changes made)
+(49,751 real changes made, 49,751 to missing)
+(338,982 real changes made, 338,982 to missing)
+(3,709,509 real changes made)
+(50,338 real changes made, 50,338 to missing)
+(485,740 real changes made, 485,740 to missing)
+(3,709,509 real changes made)
+(50,996 real changes made, 50,996 to missing)
+(645,038 real changes made, 645,038 to missing)
+(3,709,509 real changes made)
+(51,536 real changes made, 51,536 to missing)
+(804,537 real changes made, 804,537 to missing)
+(3,709,509 real changes made)
+(51,970 real changes made, 51,970 to missing)
+(953,132 real changes made, 953,132 to missing)
+(3,709,509 real changes made)
+(52,271 real changes made, 52,271 to missing)
+(1,095,002 real changes made, 1,095,002 to missing)
+(3,709,509 real changes made)
+(52,561 real changes made, 52,561 to missing)
+(1,237,194 real changes made, 1,237,194 to missing)
+(3,709,509 real changes made)
+(52,766 real changes made, 52,766 to missing)
+(1,376,729 real changes made, 1,376,729 to missing)
+(3,709,509 real changes made)
+(52,925 real changes made, 52,925 to missing)
+(1,512,931 real changes made, 1,512,931 to missing)
+(3,709,509 real changes made)
+(53,055 real changes made, 53,055 to missing)
+(1,643,728 real changes made, 1,643,728 to missing)
+(3,709,509 real changes made)
+(53,220 real changes made, 53,220 to missing)
+(1,771,718 real changes made, 1,771,718 to missing)
+(3,709,509 real changes made)
+(53,392 real changes made, 53,392 to missing)
+(1,893,390 real changes made, 1,893,390 to missing)
+(3,709,509 real changes made)
+(53,534 real changes made, 53,534 to missing)
+(2,013,597 real changes made, 2,013,597 to missing)
+(3,709,509 real changes made)
+(53,815 real changes made, 53,815 to missing)
+(2,134,042 real changes made, 2,134,042 to missing)
+(3,709,509 real changes made)
+(54,167 real changes made, 54,167 to missing)
+(2,250,358 real changes made, 2,250,358 to missing)
+(3,709,509 real changes made)
+(54,521 real changes made, 54,521 to missing)
+(2,359,433 real changes made, 2,359,433 to missing)
+(3,709,509 real changes made)
+(54,852 real changes made, 54,852 to missing)
+(2,471,439 real changes made, 2,471,439 to missing)
+(3,709,509 real changes made)
+(55,225 real changes made, 55,225 to missing)
+(2,605,434 real changes made, 2,605,434 to missing)
+(3,709,509 real changes made)
+(55,581 real changes made, 55,581 to missing)
+(2,741,966 real changes made, 2,741,966 to missing)
+(3,709,509 real changes made)
+(55,818 real changes made, 55,818 to missing)
+(2,879,785 real changes made, 2,879,785 to missing)
+(3,709,509 real changes made)
+(56,066 real changes made, 56,066 to missing)
+(3,015,263 real changes made, 3,015,263 to missing)
+(3,709,509 real changes made)
+(56,293 real changes made, 56,293 to missing)
+(3,148,756 real changes made, 3,148,756 to missing)
+(3,709,509 real changes made)
+(56,396 real changes made, 56,396 to missing)
+(3,281,736 real changes made, 3,281,736 to missing)
+(3,709,509 real changes made)
+(56,478 real changes made, 56,478 to missing)
+(3,415,345 real changes made, 3,415,345 to missing)
+(3,709,509 real changes made)
+(56,530 real changes made, 56,530 to missing)
+(3,546,898 real changes made, 3,546,898 to missing)
+(3,709,509 real changes made)
+(56,519 real changes made, 56,519 to missing)
+(3,676,112 real changes made, 3,676,112 to missing)
+(3,709,509 real changes made)
+(58,761 real changes made, 58,761 to missing)
+(214,100 real changes made, 214,100 to missing)
+(3,709,509 real changes made)
+(49,751 real changes made, 49,751 to missing)
+(338,982 real changes made, 338,982 to missing)
+(3,709,509 real changes made)
+(50,338 real changes made, 50,338 to missing)
+(485,740 real changes made, 485,740 to missing)
+(3,709,509 real changes made)
+(50,996 real changes made, 50,996 to missing)
+(645,038 real changes made, 645,038 to missing)
+(3,709,509 real changes made)
+(51,536 real changes made, 51,536 to missing)
+(804,537 real changes made, 804,537 to missing)
+(3,709,509 real changes made)
+(51,970 real changes made, 51,970 to missing)
+(953,132 real changes made, 953,132 to missing)
+(3,709,509 real changes made)
+(52,271 real changes made, 52,271 to missing)
+(1,095,002 real changes made, 1,095,002 to missing)
+(3,709,509 real changes made)
+(52,561 real changes made, 52,561 to missing)
+(1,237,194 real changes made, 1,237,194 to missing)
+(3,709,509 real changes made)
+(52,766 real changes made, 52,766 to missing)
+(1,376,729 real changes made, 1,376,729 to missing)
+(3,709,509 real changes made)
+(52,925 real changes made, 52,925 to missing)
+(1,512,931 real changes made, 1,512,931 to missing)
+(3,709,509 real changes made)
+(53,055 real changes made, 53,055 to missing)
+(1,643,728 real changes made, 1,643,728 to missing)
+(3,709,509 real changes made)
+(53,220 real changes made, 53,220 to missing)
+(1,771,718 real changes made, 1,771,718 to missing)
+(3,709,509 real changes made)
+(53,392 real changes made, 53,392 to missing)
+(1,893,390 real changes made, 1,893,390 to missing)
+(3,709,509 real changes made)
+(53,534 real changes made, 53,534 to missing)
+(2,013,597 real changes made, 2,013,597 to missing)
+(3,709,509 real changes made)
+(53,815 real changes made, 53,815 to missing)
+(2,134,042 real changes made, 2,134,042 to missing)
+(3,709,509 real changes made)
+(54,167 real changes made, 54,167 to missing)
+(2,250,358 real changes made, 2,250,358 to missing)
+(3,709,509 real changes made)
+(54,521 real changes made, 54,521 to missing)
+(2,359,433 real changes made, 2,359,433 to missing)
+(3,709,509 real changes made)
+(54,852 real changes made, 54,852 to missing)
+(2,471,439 real changes made, 2,471,439 to missing)
+(3,709,509 real changes made)
+(55,225 real changes made, 55,225 to missing)
+(2,605,434 real changes made, 2,605,434 to missing)
+(3,709,509 real changes made)
+(55,581 real changes made, 55,581 to missing)
+(2,741,966 real changes made, 2,741,966 to missing)
+(3,709,509 real changes made)
+(55,818 real changes made, 55,818 to missing)
+(2,879,785 real changes made, 2,879,785 to missing)
+(3,709,509 real changes made)
+(56,066 real changes made, 56,066 to missing)
+(3,015,263 real changes made, 3,015,263 to missing)
+(3,709,509 real changes made)
+(56,293 real changes made, 56,293 to missing)
+(3,148,756 real changes made, 3,148,756 to missing)
+(3,709,509 real changes made)
+(56,396 real changes made, 56,396 to missing)
+(3,281,736 real changes made, 3,281,736 to missing)
+(3,709,509 real changes made)
+(56,478 real changes made, 56,478 to missing)
+(3,415,345 real changes made, 3,415,345 to missing)
+(3,709,509 real changes made)
+(56,530 real changes made, 56,530 to missing)
+(3,546,898 real changes made, 3,546,898 to missing)
+(3,709,509 real changes made)
+(56,519 real changes made, 56,519 to missing)
+(3,676,112 real changes made, 3,676,112 to missing)
+
+. 
+. * Second, monthly:
+. foreach var of varlist EEHH_nvsts_m* {
+  2.         * Get month cutoff from variable name:
+.         local m = real(word(subinstr(subinstr("`var'", "EEHH_nvsts_m", "", .), "_", " ", .), 1))
+  3. 
+.         * Assign ZERO to children who never visited the hospital 
+.         * (they don't show up in the EEHH database):
+.         replace `var' = 0 if `var' == . & mrg_hosp2DEF2NAC == 1
+  4.         
+.         * Assign MISSING to children who did not survive the cutoff:
+.         replace `var' = . if `var' != . & dias_muerte < `m'*365/12 & mrg_DEF2NAC == 3
+  5.         
+.         * Assign MISSING to children not old enough by the cutoff:
+.         replace `var' = . if `var' != . & durlife_days < `m'*365/12 & mrg_DEF2NAC == 1
+  6. }
+(3,709,509 real changes made)
+(38,395 real changes made, 38,395 to missing)
+(18,588 real changes made, 18,588 to missing)
+(3,709,509 real changes made)
+(43,937 real changes made, 43,937 to missing)
+(36,365 real changes made, 36,365 to missing)
+(3,709,509 real changes made)
+(47,958 real changes made, 47,958 to missing)
+(55,318 real changes made, 55,318 to missing)
+(3,709,509 real changes made)
+(50,830 real changes made, 50,830 to missing)
+(73,533 real changes made, 73,533 to missing)
+(3,709,509 real changes made)
+(52,965 real changes made, 52,965 to missing)
+(92,012 real changes made, 92,012 to missing)
+(3,709,509 real changes made)
+(54,461 real changes made, 54,461 to missing)
+(109,569 real changes made, 109,569 to missing)
+(3,709,509 real changes made)
+(55,568 real changes made, 55,568 to missing)
+(127,626 real changes made, 127,626 to missing)
+(3,709,509 real changes made)
+(56,522 real changes made, 56,522 to missing)
+(146,937 real changes made, 146,937 to missing)
+(3,709,509 real changes made)
+(57,315 real changes made, 57,315 to missing)
+(165,156 real changes made, 165,156 to missing)
+(3,709,509 real changes made)
+(57,947 real changes made, 57,947 to missing)
+(183,743 real changes made, 183,743 to missing)
+(3,709,509 real changes made)
+(58,479 real changes made, 58,479 to missing)
+(202,201 real changes made, 202,201 to missing)
+(3,709,509 real changes made)
+(58,979 real changes made, 58,979 to missing)
+(220,391 real changes made, 220,391 to missing)
+(3,709,509 real changes made)
+(38,238 real changes made, 38,238 to missing)
+(16,888 real changes made, 16,888 to missing)
+(3,709,509 real changes made)
+(36,195 real changes made, 36,195 to missing)
+(28,161 real changes made, 28,161 to missing)
+(3,709,509 real changes made)
+(38,996 real changes made, 38,996 to missing)
+(42,426 real changes made, 42,426 to missing)
+(3,709,509 real changes made)
+(41,017 real changes made, 41,017 to missing)
+(56,101 real changes made, 56,101 to missing)
+(3,709,509 real changes made)
+(42,443 real changes made, 42,443 to missing)
+(69,642 real changes made, 69,642 to missing)
+(3,709,509 real changes made)
+(43,378 real changes made, 43,378 to missing)
+(82,302 real changes made, 82,302 to missing)
+(3,709,509 real changes made)
+(44,048 real changes made, 44,048 to missing)
+(95,341 real changes made, 95,341 to missing)
+(3,709,509 real changes made)
+(44,611 real changes made, 44,611 to missing)
+(108,974 real changes made, 108,974 to missing)
+(3,709,509 real changes made)
+(45,076 real changes made, 45,076 to missing)
+(121,926 real changes made, 121,926 to missing)
+(3,709,509 real changes made)
+(45,418 real changes made, 45,418 to missing)
+(135,197 real changes made, 135,197 to missing)
+(3,709,509 real changes made)
+(45,713 real changes made, 45,713 to missing)
+(148,481 real changes made, 148,481 to missing)
+(3,709,509 real changes made)
+(45,994 real changes made, 45,994 to missing)
+(161,491 real changes made, 161,491 to missing)
+(3,709,509 real changes made)
+(38,238 real changes made, 38,238 to missing)
+(16,888 real changes made, 16,888 to missing)
+(3,709,509 real changes made)
+(36,195 real changes made, 36,195 to missing)
+(28,161 real changes made, 28,161 to missing)
+(3,709,509 real changes made)
+(38,996 real changes made, 38,996 to missing)
+(42,426 real changes made, 42,426 to missing)
+(3,709,509 real changes made)
+(41,017 real changes made, 41,017 to missing)
+(56,101 real changes made, 56,101 to missing)
+(3,709,509 real changes made)
+(42,443 real changes made, 42,443 to missing)
+(69,642 real changes made, 69,642 to missing)
+(3,709,509 real changes made)
+(43,378 real changes made, 43,378 to missing)
+(82,302 real changes made, 82,302 to missing)
+(3,709,509 real changes made)
+(44,048 real changes made, 44,048 to missing)
+(95,341 real changes made, 95,341 to missing)
+(3,709,509 real changes made)
+(44,611 real changes made, 44,611 to missing)
+(108,974 real changes made, 108,974 to missing)
+(3,709,509 real changes made)
+(45,076 real changes made, 45,076 to missing)
+(121,926 real changes made, 121,926 to missing)
+(3,709,509 real changes made)
+(45,418 real changes made, 45,418 to missing)
+(135,197 real changes made, 135,197 to missing)
+(3,709,509 real changes made)
+(45,713 real changes made, 45,713 to missing)
+(148,481 real changes made, 148,481 to missing)
+(3,709,509 real changes made)
+(45,994 real changes made, 45,994 to missing)
+(161,491 real changes made, 161,491 to missing)
+
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> * FIX "DAYS OF HOSPITAL VISITS" VARIABLES:
+. 
+. * First, yearly:
+. foreach var of varlist EEHH_days_y* {
+  2.         * Get year cutoff from variable name:
+.         local y = real(word(subinstr(subinstr("`var'", "EEHH_days_y", "", .), "_", " ", .), 1))
+  3. 
+.         * Assign MISSING to sums that exceed 366 days:
+.         replace `var' = . if `var' > 366 & `var' != .
+  4.         
+.         * Assign MISSING to children who did not survive the cutoff:
+.         replace `var' = . if `var' != . & dias_muerte < `y'*365 & mrg_DEF2NAC == 3
+  5.         
+.         * Assign MISSING to children not old enough by the cutoff:
+.         replace `var' = . if `var' != . & durlife_days < `y'*365 & mrg_DEF2NAC == 1
+  6. }
+(78 real changes made, 78 to missing)
+(12,874 real changes made, 12,874 to missing)
+(54,876 real changes made, 54,876 to missing)
+(57 real changes made, 57 to missing)
+(1,426 real changes made, 1,426 to missing)
+(28,286 real changes made, 28,286 to missing)
+(45 real changes made, 45 to missing)
+(717 real changes made, 717 to missing)
+(18,198 real changes made, 18,198 to missing)
+(25 real changes made, 25 to missing)
+(534 real changes made, 534 to missing)
+(16,299 real changes made, 16,299 to missing)
+(11 real changes made, 11 to missing)
+(452 real changes made, 452 to missing)
+(16,076 real changes made, 16,076 to missing)
+(6 real changes made, 6 to missing)
+(431 real changes made, 431 to missing)
+(14,676 real changes made, 14,676 to missing)
+(7 real changes made, 7 to missing)
+(397 real changes made, 397 to missing)
+(12,734 real changes made, 12,734 to missing)
+(9 real changes made, 9 to missing)
+(403 real changes made, 403 to missing)
+(11,759 real changes made, 11,759 to missing)
+(3 real changes made, 3 to missing)
+(383 real changes made, 383 to missing)
+(10,718 real changes made, 10,718 to missing)
+(6 real changes made, 6 to missing)
+(373 real changes made, 373 to missing)
+(10,260 real changes made, 10,260 to missing)
+(6 real changes made, 6 to missing)
+(339 real changes made, 339 to missing)
+(9,651 real changes made, 9,651 to missing)
+(2 real changes made, 2 to missing)
+(332 real changes made, 332 to missing)
+(9,228 real changes made, 9,228 to missing)
+(4 real changes made, 4 to missing)
+(336 real changes made, 336 to missing)
+(9,119 real changes made, 9,119 to missing)
+(3 real changes made, 3 to missing)
+(293 real changes made, 293 to missing)
+(9,812 real changes made, 9,812 to missing)
+(5 real changes made, 5 to missing)
+(317 real changes made, 317 to missing)
+(10,856 real changes made, 10,856 to missing)
+(3 real changes made, 3 to missing)
+(400 real changes made, 400 to missing)
+(10,365 real changes made, 10,365 to missing)
+(1 real change made, 1 to missing)
+(431 real changes made, 431 to missing)
+(11,097 real changes made, 11,097 to missing)
+(1 real change made, 1 to missing)
+(404 real changes made, 404 to missing)
+(12,233 real changes made, 12,233 to missing)
+(1 real change made, 1 to missing)
+(412 real changes made, 412 to missing)
+(14,553 real changes made, 14,553 to missing)
+(2 real changes made, 2 to missing)
+(376 real changes made, 376 to missing)
+(16,996 real changes made, 16,996 to missing)
+(0 real changes made)
+(301 real changes made, 301 to missing)
+(19,584 real changes made, 19,584 to missing)
+(1 real change made, 1 to missing)
+(257 real changes made, 257 to missing)
+(20,921 real changes made, 20,921 to missing)
+(2 real changes made, 2 to missing)
+(254 real changes made, 254 to missing)
+(21,471 real changes made, 21,471 to missing)
+(0 real changes made)
+(175 real changes made, 175 to missing)
+(22,636 real changes made, 22,636 to missing)
+(0 real changes made)
+(113 real changes made, 113 to missing)
+(23,667 real changes made, 23,667 to missing)
+(0 real changes made)
+(80 real changes made, 80 to missing)
+(24,538 real changes made, 24,538 to missing)
+(0 real changes made)
+(31 real changes made, 31 to missing)
+(25,801 real changes made, 25,801 to missing)
+(18 real changes made, 18 to missing)
+(12,876 real changes made, 12,876 to missing)
+(54,879 real changes made, 54,879 to missing)
+(19 real changes made, 19 to missing)
+(1,318 real changes made, 1,318 to missing)
+(28,022 real changes made, 28,022 to missing)
+(19 real changes made, 19 to missing)
+(678 real changes made, 678 to missing)
+(18,107 real changes made, 18,107 to missing)
+(8 real changes made, 8 to missing)
+(505 real changes made, 505 to missing)
+(16,228 real changes made, 16,228 to missing)
+(1 real change made, 1 to missing)
+(429 real changes made, 429 to missing)
+(16,031 real changes made, 16,031 to missing)
+(0 real changes made)
+(419 real changes made, 419 to missing)
+(14,641 real changes made, 14,641 to missing)
+(1 real change made, 1 to missing)
+(387 real changes made, 387 to missing)
+(12,692 real changes made, 12,692 to missing)
+(1 real change made, 1 to missing)
+(392 real changes made, 392 to missing)
+(11,722 real changes made, 11,722 to missing)
+(0 real changes made)
+(372 real changes made, 372 to missing)
+(10,675 real changes made, 10,675 to missing)
+(0 real changes made)
+(360 real changes made, 360 to missing)
+(10,214 real changes made, 10,214 to missing)
+(0 real changes made)
+(328 real changes made, 328 to missing)
+(9,608 real changes made, 9,608 to missing)
+(0 real changes made)
+(323 real changes made, 323 to missing)
+(9,191 real changes made, 9,191 to missing)
+(0 real changes made)
+(322 real changes made, 322 to missing)
+(9,067 real changes made, 9,067 to missing)
+(0 real changes made)
+(285 real changes made, 285 to missing)
+(9,758 real changes made, 9,758 to missing)
+(0 real changes made)
+(311 real changes made, 311 to missing)
+(10,791 real changes made, 10,791 to missing)
+(0 real changes made)
+(386 real changes made, 386 to missing)
+(10,268 real changes made, 10,268 to missing)
+(0 real changes made)
+(421 real changes made, 421 to missing)
+(11,015 real changes made, 11,015 to missing)
+(0 real changes made)
+(394 real changes made, 394 to missing)
+(12,147 real changes made, 12,147 to missing)
+(0 real changes made)
+(397 real changes made, 397 to missing)
+(14,461 real changes made, 14,461 to missing)
+(0 real changes made)
+(367 real changes made, 367 to missing)
+(16,902 real changes made, 16,902 to missing)
+(0 real changes made)
+(292 real changes made, 292 to missing)
+(19,493 real changes made, 19,493 to missing)
+(0 real changes made)
+(248 real changes made, 248 to missing)
+(20,802 real changes made, 20,802 to missing)
+(0 real changes made)
+(241 real changes made, 241 to missing)
+(21,371 real changes made, 21,371 to missing)
+(0 real changes made)
+(164 real changes made, 164 to missing)
+(22,525 real changes made, 22,525 to missing)
+(0 real changes made)
+(109 real changes made, 109 to missing)
+(23,548 real changes made, 23,548 to missing)
+(0 real changes made)
+(74 real changes made, 74 to missing)
+(24,421 real changes made, 24,421 to missing)
+(0 real changes made)
+(28 real changes made, 28 to missing)
+(25,688 real changes made, 25,688 to missing)
+(15 real changes made, 15 to missing)
+(12,876 real changes made, 12,876 to missing)
+(54,880 real changes made, 54,880 to missing)
+(12 real changes made, 12 to missing)
+(1,408 real changes made, 1,408 to missing)
+(28,217 real changes made, 28,217 to missing)
+(12 real changes made, 12 to missing)
+(708 real changes made, 708 to missing)
+(18,177 real changes made, 18,177 to missing)
+(9 real changes made, 9 to missing)
+(529 real changes made, 529 to missing)
+(16,286 real changes made, 16,286 to missing)
+(7 real changes made, 7 to missing)
+(447 real changes made, 447 to missing)
+(16,059 real changes made, 16,059 to missing)
+(4 real changes made, 4 to missing)
+(430 real changes made, 430 to missing)
+(14,670 real changes made, 14,670 to missing)
+(3 real changes made, 3 to missing)
+(397 real changes made, 397 to missing)
+(12,724 real changes made, 12,724 to missing)
+(5 real changes made, 5 to missing)
+(400 real changes made, 400 to missing)
+(11,750 real changes made, 11,750 to missing)
+(3 real changes made, 3 to missing)
+(381 real changes made, 381 to missing)
+(10,710 real changes made, 10,710 to missing)
+(5 real changes made, 5 to missing)
+(371 real changes made, 371 to missing)
+(10,254 real changes made, 10,254 to missing)
+(6 real changes made, 6 to missing)
+(337 real changes made, 337 to missing)
+(9,647 real changes made, 9,647 to missing)
+(2 real changes made, 2 to missing)
+(331 real changes made, 331 to missing)
+(9,217 real changes made, 9,217 to missing)
+(4 real changes made, 4 to missing)
+(335 real changes made, 335 to missing)
+(9,115 real changes made, 9,115 to missing)
+(3 real changes made, 3 to missing)
+(291 real changes made, 291 to missing)
+(9,804 real changes made, 9,804 to missing)
+(5 real changes made, 5 to missing)
+(316 real changes made, 316 to missing)
+(10,849 real changes made, 10,849 to missing)
+(3 real changes made, 3 to missing)
+(399 real changes made, 399 to missing)
+(10,351 real changes made, 10,351 to missing)
+(1 real change made, 1 to missing)
+(428 real changes made, 428 to missing)
+(11,076 real changes made, 11,076 to missing)
+(1 real change made, 1 to missing)
+(403 real changes made, 403 to missing)
+(12,208 real changes made, 12,208 to missing)
+(1 real change made, 1 to missing)
+(409 real changes made, 409 to missing)
+(14,532 real changes made, 14,532 to missing)
+(1 real change made, 1 to missing)
+(374 real changes made, 374 to missing)
+(16,981 real changes made, 16,981 to missing)
+(0 real changes made)
+(301 real changes made, 301 to missing)
+(19,561 real changes made, 19,561 to missing)
+(1 real change made, 1 to missing)
+(256 real changes made, 256 to missing)
+(20,896 real changes made, 20,896 to missing)
+(2 real changes made, 2 to missing)
+(253 real changes made, 253 to missing)
+(21,442 real changes made, 21,442 to missing)
+(0 real changes made)
+(174 real changes made, 174 to missing)
+(22,605 real changes made, 22,605 to missing)
+(0 real changes made)
+(113 real changes made, 113 to missing)
+(23,642 real changes made, 23,642 to missing)
+(0 real changes made)
+(79 real changes made, 79 to missing)
+(24,511 real changes made, 24,511 to missing)
+(0 real changes made)
+(31 real changes made, 31 to missing)
+(25,766 real changes made, 25,766 to missing)
+
+. 
+. foreach var of varlist EEHH_days_m* {
+  2.         * Get month cutoff from variable name:
+.         local m = real(word(subinstr(subinstr("`var'", "EEHH_days_m", "", .), "_", " ", .), 1))
+  3. 
+.         * Assign MISSING to sums that exceed 31 days:
+.         replace `var' = . if `var' > 31 & `var' != .
+  4.         
+.         * Assign MISSING to children who did not survive the cutoff:
+.         replace `var' = . if `var' != . & dias_muerte < `m'*365/12 & mrg_DEF2NAC == 3
+  5.         
+.         * Assign MISSING to children who were born too late to experience the cutoff:
+.         replace `var' = . if `var' != . & durlife_days < `m'*365/12 & mrg_DEF2NAC == 1
+  6. }
+(145 real changes made, 145 to missing)
+(6,725 real changes made, 6,725 to missing)
+(2,755 real changes made, 2,755 to missing)
+(182 real changes made, 182 to missing)
+(1,238 real changes made, 1,238 to missing)
+(1,279 real changes made, 1,279 to missing)
+(165 real changes made, 165 to missing)
+(774 real changes made, 774 to missing)
+(1,052 real changes made, 1,052 to missing)
+(147 real changes made, 147 to missing)
+(571 real changes made, 571 to missing)
+(960 real changes made, 960 to missing)
+(124 real changes made, 124 to missing)
+(510 real changes made, 510 to missing)
+(938 real changes made, 938 to missing)
+(121 real changes made, 121 to missing)
+(419 real changes made, 419 to missing)
+(1,151 real changes made, 1,151 to missing)
+(107 real changes made, 107 to missing)
+(327 real changes made, 327 to missing)
+(1,632 real changes made, 1,632 to missing)
+(99 real changes made, 99 to missing)
+(302 real changes made, 302 to missing)
+(2,035 real changes made, 2,035 to missing)
+(115 real changes made, 115 to missing)
+(250 real changes made, 250 to missing)
+(2,334 real changes made, 2,334 to missing)
+(93 real changes made, 93 to missing)
+(202 real changes made, 202 to missing)
+(2,456 real changes made, 2,456 to missing)
+(92 real changes made, 92 to missing)
+(193 real changes made, 193 to missing)
+(2,536 real changes made, 2,536 to missing)
+(71 real changes made, 71 to missing)
+(175 real changes made, 175 to missing)
+(2,528 real changes made, 2,528 to missing)
+(18 real changes made, 18 to missing)
+(6,726 real changes made, 6,726 to missing)
+(2,756 real changes made, 2,756 to missing)
+(25 real changes made, 25 to missing)
+(634 real changes made, 634 to missing)
+(837 real changes made, 837 to missing)
+(17 real changes made, 17 to missing)
+(388 real changes made, 388 to missing)
+(766 real changes made, 766 to missing)
+(19 real changes made, 19 to missing)
+(310 real changes made, 310 to missing)
+(738 real changes made, 738 to missing)
+(15 real changes made, 15 to missing)
+(270 real changes made, 270 to missing)
+(767 real changes made, 767 to missing)
+(22 real changes made, 22 to missing)
+(218 real changes made, 218 to missing)
+(1,004 real changes made, 1,004 to missing)
+(20 real changes made, 20 to missing)
+(189 real changes made, 189 to missing)
+(1,482 real changes made, 1,482 to missing)
+(21 real changes made, 21 to missing)
+(173 real changes made, 173 to missing)
+(1,821 real changes made, 1,821 to missing)
+(25 real changes made, 25 to missing)
+(159 real changes made, 159 to missing)
+(2,122 real changes made, 2,122 to missing)
+(23 real changes made, 23 to missing)
+(125 real changes made, 125 to missing)
+(2,244 real changes made, 2,244 to missing)
+(24 real changes made, 24 to missing)
+(121 real changes made, 121 to missing)
+(2,314 real changes made, 2,314 to missing)
+(19 real changes made, 19 to missing)
+(115 real changes made, 115 to missing)
+(2,320 real changes made, 2,320 to missing)
+(113 real changes made, 113 to missing)
+(6,725 real changes made, 6,725 to missing)
+(2,756 real changes made, 2,756 to missing)
+(124 real changes made, 124 to missing)
+(1,160 real changes made, 1,160 to missing)
+(1,149 real changes made, 1,149 to missing)
+(103 real changes made, 103 to missing)
+(741 real changes made, 741 to missing)
+(974 real changes made, 974 to missing)
+(73 real changes made, 73 to missing)
+(527 real changes made, 527 to missing)
+(909 real changes made, 909 to missing)
+(57 real changes made, 57 to missing)
+(487 real changes made, 487 to missing)
+(903 real changes made, 903 to missing)
+(58 real changes made, 58 to missing)
+(405 real changes made, 405 to missing)
+(1,113 real changes made, 1,113 to missing)
+(48 real changes made, 48 to missing)
+(316 real changes made, 316 to missing)
+(1,595 real changes made, 1,595 to missing)
+(45 real changes made, 45 to missing)
+(289 real changes made, 289 to missing)
+(1,998 real changes made, 1,998 to missing)
+(51 real changes made, 51 to missing)
+(243 real changes made, 243 to missing)
+(2,288 real changes made, 2,288 to missing)
+(40 real changes made, 40 to missing)
+(196 real changes made, 196 to missing)
+(2,402 real changes made, 2,402 to missing)
+(42 real changes made, 42 to missing)
+(188 real changes made, 188 to missing)
+(2,482 real changes made, 2,482 to missing)
+(33 real changes made, 33 to missing)
+(170 real changes made, 170 to missing)
+(2,479 real changes made, 2,479 to missing)
+
+. 
+. * Third, length of early stay:
+. foreach var of varlist EEHH_days_s* {
+  2.         * Assign MISSING to individuals whose visit lasted 0 days:
+.         replace `var' = . if `var' == 0
+  3.         
+.         * Get cutoff from variable name:
+.         local d = real(word(subinstr(subinstr("`var'", "EEHH_days_s", "", .), "_", " ", .), 1))
+  4.         
+.         * Assign MISSING to individuals who do not survive the cutoff:
+.         replace `var' = . if dias_muerte < `d' & mrg_DEF2NAC == 3
+  5.         
+.         * Assign MISSING to individuals who were born too late to experience the cutoff:
+.         * (these are children born at the very end of our database, and were alive
+.         * by the last day, December 31, 2018)
+.         replace `var' = . if durlife_days < `d' & mrg_DEF2NAC == 1
+  6. }
+(2,901,766 real changes made, 2,901,766 to missing)
+(0 real changes made)
+(0 real changes made)
+(2,641,865 real changes made, 2,641,865 to missing)
+(3,519 real changes made, 3,519 to missing)
+(371 real changes made, 371 to missing)
+(2,590,021 real changes made, 2,590,021 to missing)
+(4,641 real changes made, 4,641 to missing)
+(757 real changes made, 757 to missing)
+(2,566,612 real changes made, 2,566,612 to missing)
+(5,393 real changes made, 5,393 to missing)
+(1,247 real changes made, 1,247 to missing)
+(2,548,147 real changes made, 2,548,147 to missing)
+(5,928 real changes made, 5,928 to missing)
+(1,713 real changes made, 1,713 to missing)
+(2,530,372 real changes made, 2,530,372 to missing)
+(6,318 real changes made, 6,318 to missing)
+(2,207 real changes made, 2,207 to missing)
+(2,512,972 real changes made, 2,512,972 to missing)
+(6,662 real changes made, 6,662 to missing)
+(2,691 real changes made, 2,691 to missing)
+(889,522 real changes made, 889,522 to missing)
+(0 real changes made)
+(0 real changes made)
+(842,874 real changes made, 842,874 to missing)
+(316 real changes made, 316 to missing)
+(56 real changes made, 56 to missing)
+(831,781 real changes made, 831,781 to missing)
+(490 real changes made, 490 to missing)
+(125 real changes made, 125 to missing)
+(828,011 real changes made, 828,011 to missing)
+(576 real changes made, 576 to missing)
+(227 real changes made, 227 to missing)
+(825,380 real changes made, 825,380 to missing)
+(652 real changes made, 652 to missing)
+(306 real changes made, 306 to missing)
+(822,791 real changes made, 822,791 to missing)
+(706 real changes made, 706 to missing)
+(399 real changes made, 399 to missing)
+(820,174 real changes made, 820,174 to missing)
+(743 real changes made, 743 to missing)
+(504 real changes made, 504 to missing)
+(2,201,301 real changes made, 2,201,301 to missing)
+(0 real changes made)
+(0 real changes made)
+(1,987,019 real changes made, 1,987,019 to missing)
+(3,217 real changes made, 3,217 to missing)
+(316 real changes made, 316 to missing)
+(1,945,681 real changes made, 1,945,681 to missing)
+(4,188 real changes made, 4,188 to missing)
+(635 real changes made, 635 to missing)
+(1,925,629 real changes made, 1,925,629 to missing)
+(4,869 real changes made, 4,869 to missing)
+(1,028 real changes made, 1,028 to missing)
+(1,909,443 real changes made, 1,909,443 to missing)
+(5,339 real changes made, 5,339 to missing)
+(1,420 real changes made, 1,420 to missing)
+(1,893,936 real changes made, 1,893,936 to missing)
+(5,694 real changes made, 5,694 to missing)
+(1,829 real changes made, 1,829 to missing)
+(1,878,842 real changes made, 1,878,842 to missing)
+(6,013 real changes made, 6,013 to missing)
+(2,213 real changes made, 2,213 to missing)
+
+. 
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> * Create variable for cumulative days in and visits to hospital by age 1-15:
+. 
+. * First, organize variables:
+. order EEHH_nvsts_y?? EEHH_days_y??, after(ID_PACIENTE)
+
+. 
+. * Second, create variables:
+. foreach nvsts_var of varlist EEHH_nvsts_y?? {
+  2.         * Get year from variable name:
+.         local yy = subinstr(word(subinstr("`nvsts_var'", "_", " ", .), -1), "y", "", 1)
+  3.         local y = real("`yy'")
+  4.         
+.         * Get name of days variable:
+.         local days_var = subinstr("`nvsts_var'", "nvsts", "days", 1)
+  5.         
+.         * Sum rowwise (automatically assigns 0s to missings, unless all are missing -> assigns missing):
+.         egen hospdays_by_`yy' = rowtotal(EEHH_days_y01-`days_var'), missing
+  6.         label var hospdays_by_`yy' "Days in hospital by age `y'"
+  7.         
+.         egen hospvsts_by_`yy' = rowtotal(EEHH_nvsts_y01-`nvsts_var'), missing
+  8.         label var hospvsts_by_`yy' "Hospital admissions by age `y'"
+  9.         
+.         * Assign MISSING to individuals who died before the given age:
+.         replace hospdays_by_`yy' = . if dias_muerte <= 365*`y' & mrg_DEF2NAC == 3
+ 10.         replace hospvsts_by_`yy' = . if dias_muerte <= 365*`y' & mrg_DEF2NAC == 3
+ 11.         
+.         * Assign MISSING to individuals who are not old enough by the end of 2018:
+.         replace hospdays_by_`yy' = . if durlife_days < `y'*365 & mrg_DEF2NAC == 1
+ 12.         replace hospvsts_by_`yy' = . if durlife_days < `y'*365 & mrg_DEF2NAC == 1
+ 13.         
+.         **** Version 2 ****
+.         * Copy original variable:
+.         gen hospdays2_by_`yy' = hospdays_by_`yy'
+ 14.         label var hospdays2_by_`yy' "Days in hospital by age `y'"
+ 15.         note hospdays2_by_`yy': same as hospdays_by_`yy' but excluding 0s and individuals who never visited a hospital.
+ 16.         
+.         * Assign MISSING to individuals who never visited the hospital by that age:
+.         replace hospdays2_by_`yy' = . if hospvsts_by_`yy' == 0
+ 17.         
+.         * Assign MISSING to individuals who matched but visit length is 0:
+.         replace hospdays2_by_`yy' = . if hospdays2_by_`yy' == 0 & hospvsts_by_`yy' > 0 & hospvsts_by_`yy' != .
+ 18. }
+(5839744 missing values generated)
+(279370 missing values generated)
+(5 real changes made, 5 to missing)
+(14 real changes made, 14 to missing)
+(0 real changes made)
+(0 real changes made)
+(5,839,749 missing values generated)
+(0 real changes made)
+(121,139 real changes made, 121,139 to missing)
+(5613675 missing values generated)
+(279370 missing values generated)
+(1,204 real changes made, 1,204 to missing)
+(4,251 real changes made, 4,251 to missing)
+(51,604 real changes made, 51,604 to missing)
+(217,562 real changes made, 217,562 to missing)
+(5,666,483 missing values generated)
+(0 real changes made)
+(173,442 real changes made, 173,442 to missing)
+(5474202 missing values generated)
+(279370 missing values generated)
+(1,881 real changes made, 1,881 to missing)
+(6,366 real changes made, 6,366 to missing)
+(115,089 real changes made, 115,089 to missing)
+(447,242 real changes made, 447,242 to missing)
+(5,591,172 missing values generated)
+(0 real changes made)
+(217,134 real changes made, 217,134 to missing)
+(5349667 missing values generated)
+(279370 missing values generated)
+(2,428 real changes made, 2,428 to missing)
+(7,889 real changes made, 7,889 to missing)
+(187,805 real changes made, 187,805 to missing)
+(689,952 real changes made, 689,952 to missing)
+(5,539,900 missing values generated)
+(0 real changes made)
+(264,676 real changes made, 264,676 to missing)
+(5231061 missing values generated)
+(279370 missing values generated)
+(2,863 real changes made, 2,863 to missing)
+(9,077 real changes made, 9,077 to missing)
+(268,540 real changes made, 268,540 to missing)
+(938,931 real changes made, 938,931 to missing)
+(5,502,464 missing values generated)
+(0 real changes made)
+(309,883 real changes made, 309,883 to missing)
+(5122489 missing values generated)
+(279370 missing values generated)
+(3,275 real changes made, 3,275 to missing)
+(10,035 real changes made, 10,035 to missing)
+(351,678 real changes made, 351,678 to missing)
+(1,179,009 real changes made, 1,179,009 to missing)
+(5,477,442 missing values generated)
+(0 real changes made)
+(346,035 real changes made, 346,035 to missing)
+(5025319 missing values generated)
+(279370 missing values generated)
+(3,657 real changes made, 3,657 to missing)
+(10,844 real changes made, 10,844 to missing)
+(442,820 real changes made, 442,820 to missing)
+(1,419,859 real changes made, 1,419,859 to missing)
+(5,471,796 missing values generated)
+(0 real changes made)
+(368,305 real changes made, 368,305 to missing)
+(4938003 missing values generated)
+(279370 missing values generated)
+(4,043 real changes made, 4,043 to missing)
+(11,615 real changes made, 11,615 to missing)
+(539,866 real changes made, 539,866 to missing)
+(1,665,222 real changes made, 1,665,222 to missing)
+(5,481,912 missing values generated)
+(0 real changes made)
+(379,532 real changes made, 379,532 to missing)
+(4857248 missing values generated)
+(279370 missing values generated)
+(4,398 real changes made, 4,398 to missing)
+(12,285 real changes made, 12,285 to missing)
+(643,015 real changes made, 643,015 to missing)
+(1,913,475 real changes made, 1,913,475 to missing)
+(5,504,661 missing values generated)
+(0 real changes made)
+(382,690 real changes made, 382,690 to missing)
+(4781795 missing values generated)
+(279370 missing values generated)
+(4,752 real changes made, 4,752 to missing)
+(12,898 real changes made, 12,898 to missing)
+(751,681 real changes made, 751,681 to missing)
+(2,163,047 real changes made, 2,163,047 to missing)
+(5,538,228 missing values generated)
+(0 real changes made)
+(380,279 real changes made, 380,279 to missing)
+(4711513 missing values generated)
+(279370 missing values generated)
+(5,062 real changes made, 5,062 to missing)
+(13,469 real changes made, 13,469 to missing)
+(859,711 real changes made, 859,711 to missing)
+(2,406,354 real changes made, 2,406,354 to missing)
+(5,576,286 missing values generated)
+(0 real changes made)
+(374,181 real changes made, 374,181 to missing)
+(4646717 missing values generated)
+(279370 missing values generated)
+(5,402 real changes made, 5,402 to missing)
+(14,053 real changes made, 14,053 to missing)
+(965,675 real changes made, 965,675 to missing)
+(2,644,459 real changes made, 2,644,459 to missing)
+(5,617,794 missing values generated)
+(0 real changes made)
+(364,567 real changes made, 364,567 to missing)
+(4587675 missing values generated)
+(279370 missing values generated)
+(5,755 real changes made, 5,755 to missing)
+(14,658 real changes made, 14,658 to missing)
+(1,069,293 real changes made, 1,069,293 to missing)
+(2,873,551 real changes made, 2,873,551 to missing)
+(5,662,723 missing values generated)
+(0 real changes made)
+(352,750 real changes made, 352,750 to missing)
+(4530506 missing values generated)
+(279370 missing values generated)
+(6,111 real changes made, 6,111 to missing)
+(15,264 real changes made, 15,264 to missing)
+(1,174,420 real changes made, 1,174,420 to missing)
+(3,102,181 real changes made, 3,102,181 to missing)
+(5,711,037 missing values generated)
+(0 real changes made)
+(337,470 real changes made, 337,470 to missing)
+(4469108 missing values generated)
+(279370 missing values generated)
+(6,453 real changes made, 6,453 to missing)
+(15,959 real changes made, 15,959 to missing)
+(1,277,638 real changes made, 1,277,638 to missing)
+(3,329,279 real changes made, 3,329,279 to missing)
+(5,753,199 missing values generated)
+(0 real changes made)
+(320,326 real changes made, 320,326 to missing)
+(4407148 missing values generated)
+(279370 missing values generated)
+(6,958 real changes made, 6,958 to missing)
+(16,857 real changes made, 16,857 to missing)
+(1,383,697 real changes made, 1,383,697 to missing)
+(3,556,696 real changes made, 3,556,696 to missing)
+(5,797,803 missing values generated)
+(0 real changes made)
+(300,834 real changes made, 300,834 to missing)
+(4336007 missing values generated)
+(279370 missing values generated)
+(7,486 real changes made, 7,486 to missing)
+(17,837 real changes made, 17,837 to missing)
+(1,480,606 real changes made, 1,480,606 to missing)
+(3,766,812 real changes made, 3,766,812 to missing)
+(5,824,099 missing values generated)
+(0 real changes made)
+(281,668 real changes made, 281,668 to missing)
+(4261268 missing values generated)
+(279370 missing values generated)
+(8,037 real changes made, 8,037 to missing)
+(18,884 real changes made, 18,884 to missing)
+(1,577,021 real changes made, 1,577,021 to missing)
+(3,980,102 real changes made, 3,980,102 to missing)
+(5,846,326 missing values generated)
+(0 real changes made)
+(261,224 real changes made, 261,224 to missing)
+(4191505 missing values generated)
+(279370 missing values generated)
+(8,645 real changes made, 8,645 to missing)
+(20,008 real changes made, 20,008 to missing)
+(1,682,532 real changes made, 1,682,532 to missing)
+(4,224,696 real changes made, 4,224,696 to missing)
+(5,882,682 missing values generated)
+(0 real changes made)
+(232,864 real changes made, 232,864 to missing)
+(4129099 missing values generated)
+(279370 missing values generated)
+(9,247 real changes made, 9,247 to missing)
+(21,107 real changes made, 21,107 to missing)
+(1,786,710 real changes made, 1,786,710 to missing)
+(4,471,460 real changes made, 4,471,460 to missing)
+(5,925,056 missing values generated)
+(0 real changes made)
+(202,614 real changes made, 202,614 to missing)
+(4076941 missing values generated)
+(279370 missing values generated)
+(9,754 real changes made, 9,754 to missing)
+(22,016 real changes made, 22,016 to missing)
+(1,894,975 real changes made, 1,894,975 to missing)
+(4,724,212 real changes made, 4,724,212 to missing)
+(5,981,670 missing values generated)
+(0 real changes made)
+(171,723 real changes made, 171,723 to missing)
+(4036726 missing values generated)
+(279370 missing values generated)
+(10,201 real changes made, 10,201 to missing)
+(22,826 real changes made, 22,826 to missing)
+(2,006,972 real changes made, 2,006,972 to missing)
+(4,979,592 real changes made, 4,979,592 to missing)
+(6,053,899 missing values generated)
+(0 real changes made)
+(141,698 real changes made, 141,698 to missing)
+(4006835 missing values generated)
+(279370 missing values generated)
+(10,622 real changes made, 10,622 to missing)
+(23,548 real changes made, 23,548 to missing)
+(2,123,984 real changes made, 2,123,984 to missing)
+(5,238,273 real changes made, 5,238,273 to missing)
+(6,141,441 missing values generated)
+(0 real changes made)
+(112,351 real changes made, 112,351 to missing)
+(3986071 missing values generated)
+(279370 missing values generated)
+(10,952 real changes made, 10,952 to missing)
+(24,102 real changes made, 24,102 to missing)
+(2,244,161 real changes made, 2,244,161 to missing)
+(5,498,969 real changes made, 5,498,969 to missing)
+(6,241,184 missing values generated)
+(0 real changes made)
+(84,384 real changes made, 84,384 to missing)
+(3973162 missing values generated)
+(279370 missing values generated)
+(11,167 real changes made, 11,167 to missing)
+(24,477 real changes made, 24,477 to missing)
+(2,371,374 real changes made, 2,371,374 to missing)
+(5,767,278 real changes made, 5,767,278 to missing)
+(6,355,703 missing values generated)
+(0 real changes made)
+(56,215 real changes made, 56,215 to missing)
+(3966973 missing values generated)
+(279370 missing values generated)
+(11,337 real changes made, 11,337 to missing)
+(24,757 real changes made, 24,757 to missing)
+(2,501,822 real changes made, 2,501,822 to missing)
+(6,036,828 real changes made, 6,036,828 to missing)
+(6,480,132 missing values generated)
+(0 real changes made)
+(28,324 real changes made, 28,324 to missing)
+(3966849 missing values generated)
+(279370 missing values generated)
+(11,397 real changes made, 11,397 to missing)
+(24,862 real changes made, 24,862 to missing)
+(2,636,656 real changes made, 2,636,656 to missing)
+(6,308,003 real changes made, 6,308,003 to missing)
+(6,614,902 missing values generated)
+(0 real changes made)
+(516 real changes made, 516 to missing)
+
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> * Fill in and edit fertility variables:
+. 
+. * First, for the dummies 0/1 had child at a certain age:
+. foreach var of varlist NAC_had_child_at_* {
+  2.         * Get age from variable name:
+.         local y = real(word(subinstr("`var'", "_", " ", .), -1))
+  3.         
+.         * Assign 0 to women in births database but not in mothers database:
+.         replace `var' = 0 if NAC_SEXO == 2 & `var' == . & NAC_mrg_mostats2main == 1
+  4.         
+.         * Assign missing to women who died before age in variable name:
+.         replace `var' = . if dias_muerte < `y'*365 & `var' != . & mrg_DEF2NAC == 3
+  5.         
+.         * Assign missing to people who are not old enough by 2018:
+.         replace `var' = . if durlife_days < `y'*365 & `var' != . & mrg_DEF2NAC == 1
+  6. }
+(2,900,707 real changes made)
+(33,277 real changes made, 33,277 to missing)
+(1,739,547 real changes made, 1,739,547 to missing)
+(2,900,707 real changes made)
+(33,604 real changes made, 33,604 to missing)
+(1,850,956 real changes made, 1,850,956 to missing)
+(2,900,707 real changes made)
+(33,931 real changes made, 33,931 to missing)
+(1,955,711 real changes made, 1,955,711 to missing)
+(2,900,707 real changes made)
+(34,241 real changes made, 34,241 to missing)
+(2,062,489 real changes made, 2,062,489 to missing)
+(2,900,707 real changes made)
+(34,544 real changes made, 34,544 to missing)
+(2,181,687 real changes made, 2,181,687 to missing)
+(2,900,707 real changes made)
+(34,814 real changes made, 34,814 to missing)
+(2,302,488 real changes made, 2,302,488 to missing)
+(2,900,707 real changes made)
+(35,032 real changes made, 35,032 to missing)
+(2,426,430 real changes made, 2,426,430 to missing)
+(2,900,707 real changes made)
+(35,228 real changes made, 35,228 to missing)
+(2,551,100 real changes made, 2,551,100 to missing)
+(2,900,707 real changes made)
+(35,403 real changes made, 35,403 to missing)
+(2,677,704 real changes made, 2,677,704 to missing)
+(2,900,707 real changes made)
+(35,559 real changes made, 35,559 to missing)
+(2,805,590 real changes made, 2,805,590 to missing)
+(2,900,707 real changes made)
+(35,653 real changes made, 35,653 to missing)
+(2,937,322 real changes made, 2,937,322 to missing)
+(2,900,707 real changes made)
+(35,720 real changes made, 35,720 to missing)
+(3,069,502 real changes made, 3,069,502 to missing)
+
+. 
+. * Second, for the count variable number of CHILDREN by a certain age:
+. foreach var of varlist NAC_nchilds_by_* {
+  2.         * Get age from variable name:
+.         local y = real(word(subinstr("`var'", "_", " ", .), -1))
+  3.         
+.         * Assign 0s to women who have survived up to the given age:
+.         replace `var' = 0 if NAC_SEXO == 2 & `var' == . & (dias_muerte >= `y'*365 | mrg_DEF2NAC == 1)
+  4.         
+.         * Assign missing to women who died before age in variable name:
+.         replace `var' = . if dias_muerte < `y'*365 & `var' != . & mrg_DEF2NAC == 3
+  5.         
+.         * Assign missing to people who are not old enough by 2018:
+.         replace `var' = . if durlife_days < `y'*365 & `var' != . & mrg_DEF2NAC == 1
+  6. }
+(3,176,553 real changes made)
+(1 real change made, 1 to missing)
+(1,739,547 real changes made, 1,739,547 to missing)
+(3,139,177 real changes made)
+(5 real changes made, 5 to missing)
+(1,850,956 real changes made, 1,850,956 to missing)
+(3,093,213 real changes made)
+(20 real changes made, 20 to missing)
+(1,955,711 real changes made, 1,955,711 to missing)
+(3,044,325 real changes made)
+(42 real changes made, 42 to missing)
+(2,062,489 real changes made, 2,062,489 to missing)
+(2,995,750 real changes made)
+(74 real changes made, 74 to missing)
+(2,181,687 real changes made, 2,181,687 to missing)
+(2,954,460 real changes made)
+(116 real changes made, 116 to missing)
+(2,302,484 real changes made, 2,302,484 to missing)
+(2,922,429 real changes made)
+(165 real changes made, 165 to missing)
+(2,426,426 real changes made, 2,426,426 to missing)
+(2,899,109 real changes made)
+(225 real changes made, 225 to missing)
+(2,551,096 real changes made, 2,551,096 to missing)
+(2,883,324 real changes made)
+(286 real changes made, 286 to missing)
+(2,677,700 real changes made, 2,677,700 to missing)
+(2,873,063 real changes made)
+(339 real changes made, 339 to missing)
+(2,805,586 real changes made, 2,805,586 to missing)
+(2,867,300 real changes made)
+(383 real changes made, 383 to missing)
+(2,937,318 real changes made, 2,937,318 to missing)
+(2,865,400 real changes made)
+(411 real changes made, 411 to missing)
+(3,069,500 real changes made, 3,069,500 to missing)
+
+. 
+. * Second, for the count variable number of BIRTHS by a certain age:
+. foreach var of varlist NAC_nbirths_by_* {
+  2.         * Get age from variable name:
+.         local y = real(word(subinstr("`var'", "_", " ", .), -1))
+  3.         
+.         * Assign 0s to women who have survived up to the given age:
+.         replace `var' = 0 if NAC_SEXO == 2 & `var' == . & (dias_muerte >= `y'*365 | mrg_DEF2NAC == 1)
+  4.         
+.         * Assign missing to women who died before age in variable name:
+.         replace `var' = . if dias_muerte < `y'*365 & `var' != . & mrg_DEF2NAC == 3
+  5.         
+.         * Assign missing to people who are not old enough by 2018:
+.         replace `var' = . if durlife_days < `y'*365 & `var' != . & mrg_DEF2NAC == 1
+  6. }
+(3,176,553 real changes made)
+(1 real change made, 1 to missing)
+(1,739,547 real changes made, 1,739,547 to missing)
+(3,139,177 real changes made)
+(5 real changes made, 5 to missing)
+(1,850,956 real changes made, 1,850,956 to missing)
+(3,093,213 real changes made)
+(20 real changes made, 20 to missing)
+(1,955,711 real changes made, 1,955,711 to missing)
+(3,044,325 real changes made)
+(42 real changes made, 42 to missing)
+(2,062,489 real changes made, 2,062,489 to missing)
+(2,995,750 real changes made)
+(74 real changes made, 74 to missing)
+(2,181,687 real changes made, 2,181,687 to missing)
+(2,954,460 real changes made)
+(116 real changes made, 116 to missing)
+(2,302,484 real changes made, 2,302,484 to missing)
+(2,922,429 real changes made)
+(165 real changes made, 165 to missing)
+(2,426,426 real changes made, 2,426,426 to missing)
+(2,899,109 real changes made)
+(225 real changes made, 225 to missing)
+(2,551,096 real changes made, 2,551,096 to missing)
+(2,883,324 real changes made)
+(286 real changes made, 286 to missing)
+(2,677,700 real changes made, 2,677,700 to missing)
+(2,873,063 real changes made)
+(339 real changes made, 339 to missing)
+(2,805,586 real changes made, 2,805,586 to missing)
+(2,867,300 real changes made)
+(383 real changes made, 383 to missing)
+(2,937,318 real changes made, 2,937,318 to missing)
+(2,865,400 real changes made)
+(411 real changes made, 411 to missing)
+(3,069,500 real changes made, 3,069,500 to missing)
+
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> * Create variables "had a child by a certain age"
+. 
+. foreach at_var of varlist NAC_had_child_at_* {
+  2.         * Get age cutoff from variable name:
+.         local y = real(word(subinstr("`at_var'", "_", " ", .), -1))
+  3.         
+.         * Define new variable name:
+.         local by_var = subinstr("`at_var'", "_at_", "_by_", 1)
+  4.         
+.         * Create new variable and label:
+.         gen byte `by_var' = NAC_age_at_first_child <= `y' if NAC_mrg_mostats2main == 3
+  5.         label var `by_var' "=1 if woman had a child by age `y'"
+  6.         
+.         * Assign 0 to women who haven't had a child yet:
+.         replace `by_var' = 0 if NAC_age_at_first_child == . & NAC_mrg_mostats2main == 1 & NAC_SEXO == 2
+  7.         
+.         * Assign missing to people who die before reaching the given age:
+.         replace `by_var' = . if dias_muerte < `y'*365 & mrg_DEF2NAC == 3
+  8.         
+.         * Assign missing to people who are not old enough by 2018:
+.         replace `by_var' = . if durlife_days < `y'*365 & mrg_DEF2NAC == 1
+  9. }
+(6,277,297 missing values generated)
+(2,900,707 real changes made)
+(33,277 real changes made, 33,277 to missing)
+(1,739,547 real changes made, 1,739,547 to missing)
+(6,277,297 missing values generated)
+(2,900,707 real changes made)
+(33,604 real changes made, 33,604 to missing)
+(1,850,956 real changes made, 1,850,956 to missing)
+(6,277,297 missing values generated)
+(2,900,707 real changes made)
+(33,931 real changes made, 33,931 to missing)
+(1,955,711 real changes made, 1,955,711 to missing)
+(6,277,297 missing values generated)
+(2,900,707 real changes made)
+(34,241 real changes made, 34,241 to missing)
+(2,062,489 real changes made, 2,062,489 to missing)
+(6,277,297 missing values generated)
+(2,900,707 real changes made)
+(34,544 real changes made, 34,544 to missing)
+(2,181,687 real changes made, 2,181,687 to missing)
+(6,277,297 missing values generated)
+(2,900,707 real changes made)
+(34,814 real changes made, 34,814 to missing)
+(2,302,488 real changes made, 2,302,488 to missing)
+(6,277,297 missing values generated)
+(2,900,707 real changes made)
+(35,032 real changes made, 35,032 to missing)
+(2,426,430 real changes made, 2,426,430 to missing)
+(6,277,297 missing values generated)
+(2,900,707 real changes made)
+(35,228 real changes made, 35,228 to missing)
+(2,551,100 real changes made, 2,551,100 to missing)
+(6,277,297 missing values generated)
+(2,900,707 real changes made)
+(35,403 real changes made, 35,403 to missing)
+(2,677,704 real changes made, 2,677,704 to missing)
+(6,277,297 missing values generated)
+(2,900,707 real changes made)
+(35,559 real changes made, 35,559 to missing)
+(2,805,590 real changes made, 2,805,590 to missing)
+(6,277,297 missing values generated)
+(2,900,707 real changes made)
+(35,653 real changes made, 35,653 to missing)
+(2,937,322 real changes made, 2,937,322 to missing)
+(6,277,297 missing values generated)
+(2,900,707 real changes made)
+(35,720 real changes made, 35,720 to missing)
+(3,069,502 real changes made, 3,069,502 to missing)
+
+. 
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> * Save dataset:
+. compress
+  variable EEHH_nvsts_y08 was int now byte
+  variable EEHH_nvsts_y18 was int now byte
+  variable EEHH_days_m02 was int now byte
+  variable EEHH_days_m03 was int now byte
+  variable EEHH_days_m04 was int now byte
+  variable EEHH_days_m08 was int now byte
+  variable EEHH_days_m12 was int now byte
+  variable EEHH_days_y27_priv was int now byte
+  variable EEHH_nvsts_y18_priv was int now byte
+  variable EEHH_days_m02_publ was int now byte
+  variable EEHH_days_m03_publ was int now byte
+  variable EEHH_days_m04_publ was int now byte
+  variable EEHH_days_m08_publ was int now byte
+  variable EEHH_nvsts_y08_publ was int now byte
+  variable hospdays_by_01 was float now int
+  variable hospvsts_by_01 was float now byte
+  variable hospdays2_by_01 was float now int
+  variable hospdays_by_02 was float now int
+  variable hospvsts_by_02 was float now int
+  variable hospdays2_by_02 was float now int
+  variable hospdays_by_03 was float now int
+  variable hospvsts_by_03 was float now int
+  variable hospdays2_by_03 was float now int
+  variable hospdays_by_04 was float now int
+  variable hospvsts_by_04 was float now int
+  variable hospdays2_by_04 was float now int
+  variable hospdays_by_05 was float now int
+  variable hospvsts_by_05 was float now int
+  variable hospdays2_by_05 was float now int
+  variable hospdays_by_06 was float now int
+  variable hospvsts_by_06 was float now int
+  variable hospdays2_by_06 was float now int
+  variable hospdays_by_07 was float now int
+  variable hospvsts_by_07 was float now int
+  variable hospdays2_by_07 was float now int
+  variable hospdays_by_08 was float now int
+  variable hospvsts_by_08 was float now int
+  variable hospdays2_by_08 was float now int
+  variable hospdays_by_09 was float now int
+  variable hospvsts_by_09 was float now int
+  variable hospdays2_by_09 was float now int
+  variable hospdays_by_10 was float now int
+  variable hospvsts_by_10 was float now int
+  variable hospdays2_by_10 was float now int
+  variable hospdays_by_11 was float now int
+  variable hospvsts_by_11 was float now int
+  variable hospdays2_by_11 was float now int
+  variable hospdays_by_12 was float now int
+  variable hospvsts_by_12 was float now int
+  variable hospdays2_by_12 was float now int
+  variable hospdays_by_13 was float now int
+  variable hospvsts_by_13 was float now int
+  variable hospdays2_by_13 was float now int
+  variable hospdays_by_14 was float now int
+  variable hospvsts_by_14 was float now int
+  variable hospdays2_by_14 was float now int
+  variable hospdays_by_15 was float now int
+  variable hospvsts_by_15 was float now int
+  variable hospdays2_by_15 was float now int
+  variable hospdays_by_16 was float now int
+  variable hospvsts_by_16 was float now int
+  variable hospdays2_by_16 was float now int
+  variable hospdays_by_17 was float now int
+  variable hospvsts_by_17 was float now int
+  variable hospdays2_by_17 was float now int
+  variable hospdays_by_18 was float now int
+  variable hospvsts_by_18 was float now int
+  variable hospdays2_by_18 was float now int
+  variable hospdays_by_19 was float now int
+  variable hospvsts_by_19 was float now int
+  variable hospdays2_by_19 was float now int
+  variable hospdays_by_20 was float now int
+  variable hospvsts_by_20 was float now int
+  variable hospdays2_by_20 was float now int
+  variable hospdays_by_21 was float now int
+  variable hospvsts_by_21 was float now int
+  variable hospdays2_by_21 was float now int
+  variable hospdays_by_22 was float now int
+  variable hospvsts_by_22 was float now int
+  variable hospdays2_by_22 was float now int
+  variable hospdays_by_23 was float now int
+  variable hospvsts_by_23 was float now int
+  variable hospdays2_by_23 was float now int
+  variable hospdays_by_24 was float now int
+  variable hospvsts_by_24 was float now int
+  variable hospdays2_by_24 was float now int
+  variable hospdays_by_25 was float now int
+  variable hospvsts_by_25 was float now int
+  variable hospdays2_by_25 was float now int
+  variable hospdays_by_26 was float now int
+  variable hospvsts_by_26 was float now int
+  variable hospdays2_by_26 was float now int
+  variable hospdays_by_27 was float now int
+  variable hospvsts_by_27 was float now byte
+  variable hospdays2_by_27 was float now int
+  (1,177,939,564 bytes saved)
+
+. label data "Working dataset $S_DATE"
+
+. notes drop _dta
+  (2 notes dropped)
+
+. note: Last modified by: $id_user_full ($id_user_email)
+
+. note: Last modification timestamp: $S_DATE at $S_TIME
+
+. save `"workingdata`=subinstr("$S_DATE", " ", "", .)'.dta"', replace
+(note: file workingdata9Sep2021.dta not found)
+file workingdata9Sep2021.dta saved
+
+. 
+. * Close log:
+. log close _all
+      name:  working_dataset
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/working_dataset_20210909.log
+  log type:  text
+ closed on:   9 Sep 2021, 23:02:49
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
