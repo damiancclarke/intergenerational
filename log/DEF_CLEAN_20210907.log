@@ -1,0 +1,1383 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  DEF_CLEAN
+       log:  C:\Users\nicol\Dropbox\Research Projects\Intergenerational/statalogs/DEF_CLEAN_20210907.log
+  log type:  text
+ opened on:   7 Sep 2021, 22:14:07
+
+.                           
+. * Preamble:
+. clear all
+
+. set more off
+
+. 
+. * Switch to destination directory:
+. cd "$dtadir/DEIS"
+C:\Users\nicol\Dropbox\Research Projects\Intergenerational\data\dta\DEIS
+
+. 
+. * Load data:
+. use "${def_original}.dta", clear
+(Defunciones 1990-2018 en Chile (DEIS/MINSAL))
+
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> * Destring numeric variables without value labels:
+. destring DIA_DEF MES_DEF ANO_DEF, replace
+DIA_DEF: all characters numeric; replaced as byte
+(311 missing values generated)
+MES_DEF: all characters numeric; replaced as byte
+(15 missing values generated)
+ANO_DEF: all characters numeric; replaced as int
+
+. destring DIA_NAC MES_NAC ANO_NAC, replace
+DIA_NAC: all characters numeric; replaced as byte
+(152390 missing values generated)
+MES_NAC: all characters numeric; replaced as byte
+(152353 missing values generated)
+ANO_NAC: all characters numeric; replaced as int
+(151544 missing values generated)
+
+. destring DIA_PARTO MES_PARTO ANO_PARTO, replace
+DIA_PARTO: all characters numeric; replaced as byte
+(2510976 missing values generated)
+MES_PARTO: all characters numeric; replaced as byte
+(2512266 missing values generated)
+ANO_PARTO: all characters numeric; replaced as int
+(2522258 missing values generated)
+
+. destring CER_MES CER_ANO, replace
+CER_MES: all characters numeric; replaced as byte
+(1735241 missing values generated)
+CER_ANO: all characters numeric; replaced as int
+(1734869 missing values generated)
+
+. destring EDAD_CANT, replace
+EDAD_CANT: all characters numeric; replaced as int
+
+. destring CURSO_INS, replace
+CURSO_INS: all characters numeric; replaced as byte
+(150351 missing values generated)
+
+. destring ANO_INSCR, replace
+ANO_INSCR: all characters numeric; replaced as int
+(1733837 missing values generated)
+
+. destring ANO_PARTO, replace
+ANO_PARTO already numeric; no replace
+
+. format %ty ANO_*
+
+. destring HIJ_*, replace
+HIJ_VIVOS: all characters numeric; replaced as byte
+(2381894 missing values generated)
+HIJ_FALLECIDOS: all characters numeric; replaced as byte
+(2381894 missing values generated)
+HIJ_MORTINATOS: all characters numeric; replaced as byte
+(2381894 missing values generated)
+HIJ_TOTAL: all characters numeric; replaced as byte
+(2381894 missing values generated)
+
+. destring PESO, replace
+PESO: all characters numeric; replaced as int
+(2488023 missing values generated)
+
+. destring GESTACION, replace
+GESTACION: all characters numeric; replaced as byte
+(2488023 missing values generated)
+
+. 
+. sum $dyear_var
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+     ANO_DEF |  2,549,800    2004.956    8.400236       1990       2018
+
+. scalar min_ano_def = r(min)
+
+. scalar max_ano_def = r(max)
+
+. 
+. * String dates to numeric:
+. gen FECHA_NACIMIENTO_SIF = date(FECHA_NACIMIENTO, "YMD")
+(152,756 missing values generated)
+
+. format FECHA_NACIMIENTO_SIF %td
+
+. order FECHA_NACIMIENTO_SIF, after(FECHA_NACIMIENTO)
+
+. local varlabel : variable label FECHA_NACIMIENTO
+
+. compress FECHA_NACIMIENTO_SIF
+  (0 bytes saved)
+
+. drop FECHA_NACIMIENTO
+
+. label var FECHA_NACIMIENTO_SIF "`varlabel' (SIF)"
+
+. 
+. gen FECHA_DEF_SIF = date(FECHA_DEF, "YMD")
+(312 missing values generated)
+
+. format FECHA_DEF_SIF %td
+
+. order FECHA_DEF_SIF, after(FECHA_DEF)
+
+. local varlabel : variable label FECHA_DEF
+
+. compress FECHA_DEF_SIF
+  variable FECHA_DEF_SIF was float now int
+  (5,099,600 bytes saved)
+
+. drop FECHA_DEF
+
+. label var FECHA_DEF_SIF "`varlabel' (SIF)"
+
+. 
+. gen FECHA_PARTO_SIF = date(FECHA_PARTO, "YMD")
+(2,523,571 missing values generated)
+
+. format FECHA_PARTO_SIF %td
+
+. order FECHA_PARTO_SIF, after(FECHA_PARTO)
+
+. local varlabel : variable label FECHA_PARTO
+
+. compress FECHA_PARTO_SIF
+  variable FECHA_PARTO_SIF was float now int
+  (5,099,600 bytes saved)
+
+. drop FECHA_PARTO
+
+. label var FECHA_PARTO_SIF "`varlabel' (SIF)"
+
+. 
+. compress
+  (0 bytes saved)
+
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> * Encode variables and remove their glosas...
+. 
+. ********************************************************************************
+. * SEXO:
+. destring SEXO, replace
+SEXO: all characters numeric; replaced as byte
+(1 missing value generated)
+
+. labmask SEXO, values(GLOSA_SEXO)
+
+. drop GLOSA_SEXO
+
+. 
+. ********************************************************************************
+. * EDAD_TIPO:
+. destring EDAD_TIPO , replace
+EDAD_TIPO: all characters numeric; replaced as byte
+(1 missing value generated)
+
+. labmask EDAD_TIPO, values(GLOSA_EDAD_TIPO)
+
+. drop GLOSA_EDAD_TIPO
+
+. 
+. ********************************************************************************
+. * EST_CIVIL:
+. destring EST_CIVIL, replace
+EST_CIVIL: all characters numeric; replaced as byte
+(150352 missing values generated)
+
+. labmask EST_CIVIL, values(GLOSA_EST_CIVIL)
+
+. drop GLOSA_EST_CIVIL
+
+. 
+. ********************************************************************************
+. * NIVEL_INS:
+. destring NIVEL_INS, replace
+NIVEL_INS: all characters numeric; replaced as byte
+(150423 missing values generated)
+
+. labmask NIVEL_INS, values(GLOSA_NIVEL_INS)
+
+. drop GLOSA_NIVEL_INS
+
+. 
+. ********************************************************************************
+. * ACTIVIDAD:
+. destring ACTIVIDAD, replace
+ACTIVIDAD: all characters numeric; replaced as byte
+(150352 missing values generated)
+
+. labmask ACTIVIDAD, values(GLOSA_ACTIVIDAD)
+
+. drop GLOSA_ACTIVIDAD
+
+. 
+. ********************************************************************************
+. * OCUPACION:
+. * Pendiente...
+. 
+. 
+. ********************************************************************************
+. * CATEGORIA:
+. * Pendiente...
+. 
+. 
+. ********************************************************************************
+. * LOCAL_DEF:
+. destring LOCAL_DEF, replace
+LOCAL_DEF: all characters numeric; replaced as byte
+(2 missing values generated)
+
+. labmask LOCAL_DEF, values(GLOSA_LOCAL_DEF)
+
+. drop GLOSA_LOCAL_DEF
+
+. 
+. ********************************************************************************
+. * REG_RES:
+. destring REG_RES, replace
+REG_RES: all characters numeric; replaced as byte
+
+. labmask REG_RES, values(GLOSA_REG_RES)
+
+. drop GLOSA_REG_RES
+
+. 
+. ********************************************************************************
+. * SERV_RES:
+. destring SERV_RES, replace
+SERV_RES: all characters numeric; replaced as byte
+
+. labmask SERV_RES, values(GLOSA_SERV_RES)
+
+. drop GLOSA_SERV_RES
+
+. 
+. ********************************************************************************
+. * COMUNA:
+. destring COMUNA, replace
+COMUNA: all characters numeric; replaced as long
+
+. labmask COMUNA, values(GLOSA_COMUNA_RESIDENCIA)
+
+. drop GLOSA_COMUNA_RESIDENCIA
+
+. 
+. ********************************************************************************
+. * URBANO_RURAL:
+. destring URBANO_RURAL, replace
+URBANO_RURAL: all characters numeric; replaced as byte
+(150371 missing values generated)
+
+. label def URBANO_RURAL 1 "Urbano" 2 "Rural"
+
+. label val URBANO_RURAL URBANO_RURAL
+
+. 
+. ********************************************************************************
+. * DIAG1 y GLOSA_SUBCATEGORIA_DIAG1:
+. * encode original into new numeric variable (and organize right after original):
+. encode DIAG1, gen(_DIAG1)
+
+. order _DIAG1, after(DIAG1)
+
+. compress _DIAG1
+  variable _DIAG1 was long now int
+  (5,099,600 bytes saved)
+
+. 
+. * store original variable label in a local macro:
+. local varlabel : variable label DIAG1
+
+. 
+. * store list of notes of original label in local macros:
+. local char_list : char DIAG1[]
+
+. foreach c of local char_list {
+  2.         local DIAG1_`c' : char DIAG1[`c']
+  3.         display "`DIAG1_`c''"
+  4. }
+1
+Etiqueta completa: Causa básica de defunción en caso de muertes por enfermedades. En el caso de las muertes por causas externas el DIAG1 corresponde a la naturaleza d
+> e la lesión y comprende los cógidos que empiezan con letras S y T. (Desde 1997 se comienza a codificar con la CIE 10)
+
+. 
+. * drop original:
+. drop DIAG1
+
+. 
+. * rename copy as original and apply variable label:
+. rename _DIAG1 DIAG1
+
+. label var DIAG1 "`varlabel'"
+
+. 
+. * reapply notes:
+. foreach c of local char_list {
+  2.         if real("`DIAG1_`c''") == . {
+  3.                 notes DIAG1: `DIAG1_`c''
+  4.         }
+  5. }
+
+. 
+. * create copy of numeric variable as numeric glosa:
+. gen _GLOSA_SUBCATEGORIA_DIAG1 = DIAG1
+(1 missing value generated)
+
+. order _GLOSA_SUBCATEGORIA_DIAG1, after(GLOSA_SUBCATEGORIA_DIAG1)
+
+. compress _GLOSA_SUBCATEGORIA_DIAG1
+  variable _GLOSA_SUBCATEGORIA_DIAG1 was float now int
+  (5,099,600 bytes saved)
+
+. 
+. * store original variable label in a local macro:
+. local varlabel : variable label GLOSA_SUBCATEGORIA_DIAG1
+
+. 
+. * store list of notes of original label in local macros:
+. local char_list : char GLOSA_SUBCATEGORIA_DIAG1[]
+
+. foreach c of local char_list {
+  2.         local GLOSA_SUBCATEGORIA_DIAG1_`c' : char GLOSA_SUBCATEGORIA_DIAG1[`c']
+  3.         display "`GLOSA_SUBCATEGORIA_DIAG1_`c''"
+  4. }
+1
+Etiqueta completa: Glosa causa básica de defunción en caso de muertes por enfermedades. En el caso de las muertes por causas externas el DIAG1 corresponde a la natura
+> leza de la lesión y comprende los cógidos que empiezan con letras S y T. (Desde 1997 se comienza a codificar con la CIE 10)
+
+. 
+. * remove blanks from original glosa:
+. replace GLOSA_SUBCATEGORIA_DIAG1 = ustrtrim(stritrim(GLOSA_SUBCATEGORIA_DIAG1))
+(474 real changes made)
+
+. 
+. * assign values in string glosa as value labels to numeric glosa:
+. labmask _GLOSA_SUBCATEGORIA_DIAG1, values(GLOSA_SUBCATEGORIA_DIAG1) // very long process more than 30m on a i7 machine
+
+. 
+. * drop original:
+. drop GLOSA_SUBCATEGORIA_DIAG1
+
+. 
+. * rename copy as original and apply variable label:
+. rename _GLOSA_SUBCATEGORIA_DIAG1 GLOSA_SUBCATEGORIA_DIAG1
+
+. label var GLOSA_SUBCATEGORIA_DIAG1 "`varlabel'"
+
+. 
+. * reapply notes:
+. foreach c of local char_list {
+  2.         if real("`GLOSA_SUBCATEGORIA_DIAG1_`c''") == . {
+  3.                 notes GLOSA_SUBCATEGORIA_DIAG1: `GLOSA_SUBCATEGORIA_DIAG1_`c''
+  4.         }
+  5. }
+
+. 
+. ********************************************************************************
+. * CODIGO_CATEGORIA_DIAG1 y GLOSA_CATEGORIA_DIAG1:
+. * encode original into new numeric variable (and organize right after original):
+. encode CODIGO_CATEGORIA_DIAG1, gen(_CODIGO_CATEGORIA_DIAG1)
+
+. order _CODIGO_CATEGORIA_DIAG1, after(CODIGO_CATEGORIA_DIAG1)
+
+. compress _CODIGO_CATEGORIA_DIAG1
+  variable _CODIGO_CATEGORIA_DIAG1 was long now int
+  (5,099,600 bytes saved)
+
+. 
+. * store original variable label in a local macro:
+. local varlabel : variable label CODIGO_CATEGORIA_DIAG1
+
+. 
+. * store list of notes of original label in local macros:
+. local char_list : char CODIGO_CATEGORIA_DIAG1[]
+
+. foreach c of local char_list {
+  2.         local CODIGO_CATEGORIA_DIAG1_`c' : char CODIGO_CATEGORIA_DIAG1[`c']
+  3.         display "`CODIGO_CATEGORIA_DIAG1_`c''"
+  4. }
+1
+Etiqueta completa: Código causa básica de defunción en caso de muertes por enfermedades. En el caso de las muertes por causas externas el DIAG1 corresponde a la natur
+> aleza de la lesión y comprende los cógidos que empiezan con letras S y T. (Desde 1997 se comienza a codificar con la CIE 10)
+
+. 
+. * drop original:
+. drop CODIGO_CATEGORIA_DIAG1
+
+. 
+. * rename copy as original and apply variable label:
+. rename _CODIGO_CATEGORIA_DIAG1 CODIGO_CATEGORIA_DIAG1
+
+. label var CODIGO_CATEGORIA_DIAG1 "`varlabel'"
+
+. 
+. * reapply notes:
+. foreach c of local char_list {
+  2.         if real("`CODIGO_CATEGORIA_DIAG1_`c''") == . {
+  3.                 notes CODIGO_CATEGORIA_DIAG1: `CODIGO_CATEGORIA_DIAG1_`c''
+  4.         }
+  5. }
+
+. 
+. * create copy of numeric variable as numeric glosa:
+. gen _GLOSA_CATEGORIA_DIAG1 = CODIGO_CATEGORIA_DIAG1
+(536,746 missing values generated)
+
+. order _GLOSA_CATEGORIA_DIAG1, after(GLOSA_CATEGORIA_DIAG1)
+
+. compress _GLOSA_CATEGORIA_DIAG1
+  variable _GLOSA_CATEGORIA_DIAG1 was float now int
+  (5,099,600 bytes saved)
+
+. 
+. * store original variable label in a local macro:
+. local varlabel : variable label GLOSA_CATEGORIA_DIAG1
+
+. 
+. * store list of notes of original label in local macros:
+. local char_list : char GLOSA_CATEGORIA_DIAG1[]
+
+. foreach c of local char_list {
+  2.         local GLOSA_CATEGORIA_DIAG1_`c' : char GLOSA_CATEGORIA_DIAG1[`c']
+  3.         display "`GLOSA_CATEGORIA_DIAG1_`c''"
+  4. }
+1
+Etiqueta completa: Glosa del código causa básica de defunción en caso de muertes por enfermedades. En el caso de las muertes por causas externas el DIAG1 corresponde 
+> a la naturaleza de la lesión y comprende los cógidos que empiezan con letras S y T. (Desde 1997 se comienza a codificar con la CIE 10)
+
+. 
+. * remove blanks from original glosa:
+. replace GLOSA_CATEGORIA_DIAG1 = ustrtrim(stritrim(GLOSA_CATEGORIA_DIAG1))
+(7,056 real changes made)
+
+. 
+. * assign values in string glosa as value labels to numeric glosa:
+. labmask _GLOSA_CATEGORIA_DIAG1, values(GLOSA_CATEGORIA_DIAG1)
+
+. 
+. * drop original:
+. drop GLOSA_CATEGORIA_DIAG1
+
+. 
+. * rename copy as original and apply variable label:
+. rename _GLOSA_CATEGORIA_DIAG1 GLOSA_CATEGORIA_DIAG1
+
+. label var GLOSA_CATEGORIA_DIAG1 "`varlabel'"
+
+. 
+. * reapply notes:
+. foreach c of local char_list {
+  2.         if real("`GLOSA_CATEGORIA_DIAG1_`c''") == . {
+  3.                 notes GLOSA_CATEGORIA_DIAG1: `GLOSA_CATEGORIA_DIAG1_`c''
+  4.         }
+  5. }
+
+. 
+. ********************************************************************************
+. * CODIGO_GRUPO_DIAG1 y GLOSA_GRUPO_DIAG1:
+. * encode original into new numeric variable (and organize right after original):
+. encode CODIGO_GRUPO_DIAG1, gen(_CODIGO_GRUPO_DIAG1)
+
+. order _CODIGO_GRUPO_DIAG1, after(CODIGO_GRUPO_DIAG1)
+
+. compress _CODIGO_GRUPO_DIAG1
+  variable _CODIGO_GRUPO_DIAG1 was long now int
+  (5,099,600 bytes saved)
+
+. 
+. * store original variable label in a local macro:
+. local varlabel : variable label CODIGO_GRUPO_DIAG1
+
+. 
+. * store list of notes of original label in local macros:
+. local char_list : char CODIGO_GRUPO_DIAG1[]
+
+. foreach c of local char_list {
+  2.         local CODIGO_GRUPO_DIAG1_`c' : char CODIGO_GRUPO_DIAG1[`c']
+  3.         display "`CODIGO_GRUPO_DIAG1_`c''"
+  4. }
+
+. 
+. * drop original:
+. drop CODIGO_GRUPO_DIAG1
+
+. 
+. * rename copy as original and apply variable label:
+. rename _CODIGO_GRUPO_DIAG1 CODIGO_GRUPO_DIAG1
+
+. label var CODIGO_GRUPO_DIAG1 "`varlabel'"
+
+. 
+. * reapply notes:
+. foreach c of local char_list {
+  2.         if real("`CODIGO_GRUPO_DIAG1_`c''") == . {
+  3.                 notes CODIGO_GRUPO_DIAG1: `CODIGO_GRUPO_DIAG1_`c''
+  4.         }
+  5. }
+
+. 
+. * create copy of numeric variable as numeric glosa:
+. gen _GLOSA_GRUPO_DIAG1 = CODIGO_GRUPO_DIAG1
+(536,746 missing values generated)
+
+. order _GLOSA_GRUPO_DIAG1, after(GLOSA_GRUPO_DIAG1)
+
+. compress _GLOSA_GRUPO_DIAG1
+  variable _GLOSA_GRUPO_DIAG1 was float now int
+  (5,099,600 bytes saved)
+
+. 
+. * store original variable label in a local macro:
+. local varlabel : variable label GLOSA_GRUPO_DIAG1
+
+. 
+. * store list of notes of original label in local macros:
+. local char_list : char GLOSA_GRUPO_DIAG1[]
+
+. foreach c of local char_list {
+  2.         local GLOSA_GRUPO_DIAG1_`c' : char GLOSA_GRUPO_DIAG1[`c']
+  3.         display "`GLOSA_GRUPO_DIAG1_`c''"
+  4. }
+
+. 
+. * remove blanks from original glosa:
+. replace GLOSA_GRUPO_DIAG1 = ustrtrim(stritrim(GLOSA_GRUPO_DIAG1))
+(243,597 real changes made)
+
+. 
+. * assign values in string glosa as value labels to numeric glosa:
+. labmask _GLOSA_GRUPO_DIAG1, values(GLOSA_GRUPO_DIAG1)
+
+. 
+. * drop original:
+. drop GLOSA_GRUPO_DIAG1
+
+. 
+. * rename copy as original and apply variable label:
+. rename _GLOSA_GRUPO_DIAG1 GLOSA_GRUPO_DIAG1
+
+. label var GLOSA_GRUPO_DIAG1 "`varlabel'"
+
+. 
+. * reapply notes:
+. foreach c of local char_list {
+  2.         if real("`GLOSA_GRUPO_DIAG1_`c''") == . {
+  3.                 notes GLOSA_GRUPO_DIAG1: `GLOSA_GRUPO_DIAG1_`c''
+  4.         }
+  5. }
+
+. 
+. ********************************************************************************
+. * CAPITULO_DIAG1 y GLOSA_CAPITULO_DIAG1:
+. * encode original into new numeric variable (and organize right after original):
+. encode CAPITULO_DIAG1, gen(_CAPITULO_DIAG1)
+
+. order _CAPITULO_DIAG1, after(CAPITULO_DIAG1)
+
+. compress _CAPITULO_DIAG1
+  variable _CAPITULO_DIAG1 was long now byte
+  (7,649,400 bytes saved)
+
+. 
+. * store original variable label in a local macro:
+. local varlabel : variable label CAPITULO_DIAG1
+
+. 
+. * store list of notes of original label in local macros:
+. local char_list : char CAPITULO_DIAG1[]
+
+. foreach c of local char_list {
+  2.         local CAPITULO_DIAG1_`c' : char CAPITULO_DIAG1[`c']
+  3.         display "`CAPITULO_DIAG1_`c''"
+  4. }
+
+. 
+. * drop original:
+. drop CAPITULO_DIAG1
+
+. 
+. * rename copy as original and apply variable label:
+. rename _CAPITULO_DIAG1 CAPITULO_DIAG1
+
+. label var CAPITULO_DIAG1 "`varlabel'"
+
+. 
+. * reapply notes:
+. foreach c of local char_list {
+  2.         if real("`CAPITULO_DIAG1_`c''") == . {
+  3.                 notes CAPITULO_DIAG1: `CAPITULO_DIAG1_`c''
+  4.         }
+  5. }
+
+. 
+. * create copy of numeric variable as numeric glosa:
+. gen _GLOSA_CAPITULO_DIAG1 = CAPITULO_DIAG1
+(536,746 missing values generated)
+
+. order _GLOSA_CAPITULO_DIAG1, after(GLOSA_CAPITULO_DIAG1)
+
+. compress _GLOSA_CAPITULO_DIAG1
+  variable _GLOSA_CAPITULO_DIAG1 was float now byte
+  (7,649,400 bytes saved)
+
+. 
+. * store original variable label in a local macro:
+. local varlabel : variable label GLOSA_CAPITULO_DIAG1
+
+. 
+. * store list of notes of original label in local macros:
+. local char_list : char GLOSA_CAPITULO_DIAG1[]
+
+. foreach c of local char_list {
+  2.         local GLOSA_CAPITULO_DIAG1_`c' : char GLOSA_CAPITULO_DIAG1[`c']
+  3.         display "`GLOSA_CAPITULO_DIAG1_`c''"
+  4. }
+
+. 
+. * remove blanks from original glosa:
+. replace GLOSA_CAPITULO_DIAG1 = ustrtrim(stritrim(GLOSA_CAPITULO_DIAG1))
+(769,622 real changes made)
+
+. 
+. * assign values in string glosa as value labels to numeric glosa:
+. labmask _GLOSA_CAPITULO_DIAG1, values(GLOSA_CAPITULO_DIAG1)
+
+. 
+. * drop original:
+. drop GLOSA_CAPITULO_DIAG1
+
+. 
+. * rename copy as original and apply variable label:
+. rename _GLOSA_CAPITULO_DIAG1 GLOSA_CAPITULO_DIAG1
+
+. label var GLOSA_CAPITULO_DIAG1 "`varlabel'"
+
+. 
+. * reapply notes:
+. foreach c of local char_list {
+  2.         if real("`GLOSA_CAPITULO_DIAG1_`c''") == . {
+  3.                 notes GLOSA_CAPITULO_DIAG1: `GLOSA_CAPITULO_DIAG1_`c''
+  4.         }
+  5. }
+
+. 
+. ********************************************************************************
+. * DIAG2 y GLOSA_SUBCATEGORIA_DIAG2:
+. * encode original into new numeric variable (and organize right after original):
+. encode DIAG2, gen(_DIAG2)
+
+. order _DIAG2, after(DIAG2)
+
+. compress _DIAG2
+  variable _DIAG2 was long now int
+  (5,099,600 bytes saved)
+
+. 
+. * store original variable label in a local macro:
+. local varlabel : variable label DIAG2
+
+. 
+. * store list of notes of original label in local macros:
+. local char_list : char DIAG2[]
+
+. foreach c of local char_list {
+  2.         local DIAG2_`c' : char DIAG2[`c']
+  3.         display "`DIAG2_`c''"
+  4. }
+1
+Etiqueta completa: Causa externa de defunción. (Desde 1997 se comienza a codificar con la CIE 10), corresponde a los códigos CIE-10  de la V a la Y
+
+. 
+. * drop original:
+. drop DIAG2
+
+. 
+. * rename copy as original and apply variable label:
+. rename _DIAG2 DIAG2
+
+. label var DIAG2 "`varlabel'"
+
+. 
+. * reapply notes:
+. foreach c of local char_list {
+  2.         if real("`DIAG2_`c''") == . {
+  3.                 notes DIAG2: `DIAG2_`c''
+  4.         }
+  5. }
+
+. 
+. * create copy of numeric variable as numeric glosa:
+. gen _GLOSA_SUBCATEGORIA_DIAG2 = DIAG2
+(2,314,989 missing values generated)
+
+. order _GLOSA_SUBCATEGORIA_DIAG2, after(GLOSA_SUBCATEGORIA_DIAG2)
+
+. compress _GLOSA_SUBCATEGORIA_DIAG2
+  variable _GLOSA_SUBCATEGORIA_DIAG2 was float now int
+  (5,099,600 bytes saved)
+
+. 
+. * store original variable label in a local macro:
+. local varlabel : variable label GLOSA_SUBCATEGORIA_DIAG2
+
+. 
+. * store list of notes of original label in local macros:
+. local char_list : char GLOSA_SUBCATEGORIA_DIAG2[]
+
+. foreach c of local char_list {
+  2.         local GLOSA_SUBCATEGORIA_DIAG2_`c' : char GLOSA_SUBCATEGORIA_DIAG2[`c']
+  3.         display "`GLOSA_SUBCATEGORIA_DIAG2_`c''"
+  4. }
+1
+Etiqueta completa: Glosa causa básica de defunción en caso de muertes por enfermedades. En el caso de las muertes por causas externas el DIAG2 corresponde a la natura
+> leza de la lesión y comprende los cógidos que empiezan con letras S y T. (Desde 1997 se comienza a codificar con la CIE 10)
+
+. 
+. * remove blanks from original glosa:
+. replace GLOSA_SUBCATEGORIA_DIAG2 = ustrtrim(stritrim(GLOSA_SUBCATEGORIA_DIAG2))
+(4 real changes made)
+
+. 
+. * assign values in string glosa as value labels to numeric glosa:
+. labmask _GLOSA_SUBCATEGORIA_DIAG2, values(GLOSA_SUBCATEGORIA_DIAG2) // very long process more than 30m on a i7 machine
+
+. 
+. * drop original:
+. drop GLOSA_SUBCATEGORIA_DIAG2
+
+. 
+. * rename copy as original and apply variable label:
+. rename _GLOSA_SUBCATEGORIA_DIAG2 GLOSA_SUBCATEGORIA_DIAG2
+
+. label var GLOSA_SUBCATEGORIA_DIAG2 "`varlabel'"
+
+. 
+. * reapply notes:
+. foreach c of local char_list {
+  2.         if real("`GLOSA_SUBCATEGORIA_DIAG2_`c''") == . {
+  3.                 notes GLOSA_SUBCATEGORIA_DIAG2: `GLOSA_SUBCATEGORIA_DIAG2_`c''
+  4.         }
+  5. }
+
+. 
+. ********************************************************************************
+. * CODIGO_CATEGORIA_DIAG2 y GLOSA_CATEGORIA_DIAG2:
+. * encode original into new numeric variable (and organize right after original):
+. encode CODIGO_CATEGORIA_DIAG2, gen(_CODIGO_CATEGORIA_DIAG2)
+
+. order _CODIGO_CATEGORIA_DIAG2, after(CODIGO_CATEGORIA_DIAG2)
+
+. compress _CODIGO_CATEGORIA_DIAG2
+  variable _CODIGO_CATEGORIA_DIAG2 was long now int
+  (5,099,600 bytes saved)
+
+. 
+. * store original variable label in a local macro:
+. local varlabel : variable label CODIGO_CATEGORIA_DIAG2
+
+. 
+. * store list of notes of original label in local macros:
+. local char_list : char CODIGO_CATEGORIA_DIAG2[]
+
+. foreach c of local char_list {
+  2.         local CODIGO_CATEGORIA_DIAG2_`c' : char CODIGO_CATEGORIA_DIAG2[`c']
+  3.         display "`CODIGO_CATEGORIA_DIAG2_`c''"
+  4. }
+1
+Etiqueta completa: Código causa básica de defunción en caso de muertes por enfermedades. En el caso de las muertes por causas externas el DIAG2 corresponde a la natur
+> aleza de la lesión y comprende los cógidos que empiezan con letras S y T. (Desde 1997 se comienza a codificar con la CIE 10)
+
+. 
+. * drop original:
+. drop CODIGO_CATEGORIA_DIAG2
+
+. 
+. * rename copy as original and apply variable label:
+. rename _CODIGO_CATEGORIA_DIAG2 CODIGO_CATEGORIA_DIAG2
+
+. label var CODIGO_CATEGORIA_DIAG2 "`varlabel'"
+
+. 
+. * reapply notes:
+. foreach c of local char_list {
+  2.         if real("`CODIGO_CATEGORIA_DIAG2_`c''") == . {
+  3.                 notes CODIGO_CATEGORIA_DIAG2: `CODIGO_CATEGORIA_DIAG2_`c''
+  4.         }
+  5. }
+
+. 
+. * create copy of numeric variable as numeric glosa:
+. gen _GLOSA_CATEGORIA_DIAG2 = CODIGO_CATEGORIA_DIAG2
+(2,378,019 missing values generated)
+
+. order _GLOSA_CATEGORIA_DIAG2, after(GLOSA_CATEGORIA_DIAG2)
+
+. compress _GLOSA_CATEGORIA_DIAG2
+  variable _GLOSA_CATEGORIA_DIAG2 was float now int
+  (5,099,600 bytes saved)
+
+. 
+. * store original variable label in a local macro:
+. local varlabel : variable label GLOSA_CATEGORIA_DIAG2
+
+. 
+. * store list of notes of original label in local macros:
+. local char_list : char GLOSA_CATEGORIA_DIAG2[]
+
+. foreach c of local char_list {
+  2.         local GLOSA_CATEGORIA_DIAG2_`c' : char GLOSA_CATEGORIA_DIAG2[`c']
+  3.         display "`GLOSA_CATEGORIA_DIAG2_`c''"
+  4. }
+1
+Glosa del código causa básica de defunción en caso de muertes por enfermedades. En el caso de las muertes por causas externas el DIAG2 corresponde a la naturaleza de 
+> la lesión y comprende los cógidos que empiezan con letras S y T. (Desde 1997 se comienza a codificar con la CIE 10)
+
+. 
+. * remove blanks from original glosa:
+. replace GLOSA_CATEGORIA_DIAG2 = ustrtrim(stritrim(GLOSA_CATEGORIA_DIAG2))
+(250 real changes made)
+
+. 
+. * assign values in string glosa as value labels to numeric glosa:
+. labmask _GLOSA_CATEGORIA_DIAG2, values(GLOSA_CATEGORIA_DIAG2)
+
+. 
+. * drop original:
+. drop GLOSA_CATEGORIA_DIAG2
+
+. 
+. * rename copy as original and apply variable label:
+. rename _GLOSA_CATEGORIA_DIAG2 GLOSA_CATEGORIA_DIAG2
+
+. label var GLOSA_CATEGORIA_DIAG2 "`varlabel'"
+
+. 
+. * reapply notes:
+. foreach c of local char_list {
+  2.         if real("`GLOSA_CATEGORIA_DIAG2_`c''") == . {
+  3.                 notes GLOSA_CATEGORIA_DIAG2: `GLOSA_CATEGORIA_DIAG2_`c''
+  4.         }
+  5. }
+
+. 
+. ********************************************************************************
+. * CODIGO_GRUPO_DIAG2 y GLOSA_GRUPO_DIAG2:
+. * encode original into new numeric variable (and organize right after original):
+. encode CODIGO_GRUPO_DIAG2, gen(_CODIGO_GRUPO_DIAG2)
+
+. order _CODIGO_GRUPO_DIAG2, after(CODIGO_GRUPO_DIAG2)
+
+. compress _CODIGO_GRUPO_DIAG2
+  variable _CODIGO_GRUPO_DIAG2 was long now byte
+  (7,649,400 bytes saved)
+
+. 
+. * store original variable label in a local macro:
+. local varlabel : variable label CODIGO_GRUPO_DIAG2
+
+. 
+. * store list of notes of original label in local macros:
+. local char_list : char CODIGO_GRUPO_DIAG2[]
+
+. foreach c of local char_list {
+  2.         local CODIGO_GRUPO_DIAG2_`c' : char CODIGO_GRUPO_DIAG2[`c']
+  3.         display "`CODIGO_GRUPO_DIAG2_`c''"
+  4. }
+
+. 
+. * drop original:
+. drop CODIGO_GRUPO_DIAG2
+
+. 
+. * rename copy as original and apply variable label:
+. rename _CODIGO_GRUPO_DIAG2 CODIGO_GRUPO_DIAG2
+
+. label var CODIGO_GRUPO_DIAG2 "`varlabel'"
+
+. 
+. * reapply notes:
+. foreach c of local char_list {
+  2.         if real("`CODIGO_GRUPO_DIAG2_`c''") == . {
+  3.                 notes CODIGO_GRUPO_DIAG2: `CODIGO_GRUPO_DIAG2_`c''
+  4.         }
+  5. }
+
+. 
+. * create copy of numeric variable as numeric glosa:
+. gen _GLOSA_GRUPO_DIAG2 = CODIGO_GRUPO_DIAG2
+(2,378,019 missing values generated)
+
+. order _GLOSA_GRUPO_DIAG2, after(GLOSA_GRUPO_DIAG2)
+
+. compress _GLOSA_GRUPO_DIAG2
+  variable _GLOSA_GRUPO_DIAG2 was float now byte
+  (7,649,400 bytes saved)
+
+. 
+. * store original variable label in a local macro:
+. local varlabel : variable label GLOSA_GRUPO_DIAG2
+
+. 
+. * store list of notes of original label in local macros:
+. local char_list : char GLOSA_GRUPO_DIAG2[]
+
+. foreach c of local char_list {
+  2.         local GLOSA_GRUPO_DIAG2_`c' : char GLOSA_GRUPO_DIAG2[`c']
+  3.         display "`GLOSA_GRUPO_DIAG2_`c''"
+  4. }
+
+. 
+. * remove blanks from original glosa:
+. replace GLOSA_GRUPO_DIAG2 = ustrtrim(stritrim(GLOSA_GRUPO_DIAG2))
+(45,094 real changes made)
+
+. 
+. * assign values in string glosa as value labels to numeric glosa:
+. labmask _GLOSA_GRUPO_DIAG2, values(GLOSA_GRUPO_DIAG2)
+
+. 
+. * drop original:
+. drop GLOSA_GRUPO_DIAG2
+
+. 
+. * rename copy as original and apply variable label:
+. rename _GLOSA_GRUPO_DIAG2 GLOSA_GRUPO_DIAG2
+
+. label var GLOSA_GRUPO_DIAG2 "`varlabel'"
+
+. 
+. * reapply notes:
+. foreach c of local char_list {
+  2.         if real("`GLOSA_GRUPO_DIAG2_`c''") == . {
+  3.                 notes GLOSA_GRUPO_DIAG2: `GLOSA_GRUPO_DIAG2_`c''
+  4.         }
+  5. }
+
+. 
+. ********************************************************************************
+. * CAPITULO_DIAG2 y GLOSA_CAPITULO_DIAG2:
+. * encode original into new numeric variable (and organize right after original):
+. encode CAPITULO_DIAG2, gen(_CAPITULO_DIAG2)
+
+. order _CAPITULO_DIAG2, after(CAPITULO_DIAG2)
+
+. compress _CAPITULO_DIAG2
+  variable _CAPITULO_DIAG2 was long now byte
+  (7,649,400 bytes saved)
+
+. 
+. * store original variable label in a local macro:
+. local varlabel : variable label CAPITULO_DIAG2
+
+. 
+. * store list of notes of original label in local macros:
+. local char_list : char CAPITULO_DIAG2[]
+
+. foreach c of local char_list {
+  2.         local CAPITULO_DIAG2_`c' : char CAPITULO_DIAG2[`c']
+  3.         display "`CAPITULO_DIAG2_`c''"
+  4. }
+
+. 
+. * drop original:
+. drop CAPITULO_DIAG2
+
+. 
+. * rename copy as original and apply variable label:
+. rename _CAPITULO_DIAG2 CAPITULO_DIAG2
+
+. label var CAPITULO_DIAG2 "`varlabel'"
+
+. 
+. * reapply notes:
+. foreach c of local char_list {
+  2.         if real("`CAPITULO_DIAG2_`c''") == . {
+  3.                 notes CAPITULO_DIAG2: `CAPITULO_DIAG2_`c''
+  4.         }
+  5. }
+
+. 
+. * create copy of numeric variable as numeric glosa:
+. gen _GLOSA_CAPITULO_DIAG2 = CAPITULO_DIAG2
+(2,378,019 missing values generated)
+
+. order _GLOSA_CAPITULO_DIAG2, after(GLOSA_CAPITULO_DIAG2)
+
+. compress _GLOSA_CAPITULO_DIAG2
+  variable _GLOSA_CAPITULO_DIAG2 was float now byte
+  (7,649,400 bytes saved)
+
+. 
+. * store original variable label in a local macro:
+. local varlabel : variable label GLOSA_CAPITULO_DIAG2
+
+. 
+. * store list of notes of original label in local macros:
+. local char_list : char GLOSA_CAPITULO_DIAG2[]
+
+. foreach c of local char_list {
+  2.         local GLOSA_CAPITULO_DIAG2_`c' : char GLOSA_CAPITULO_DIAG2[`c']
+  3.         display "`GLOSA_CAPITULO_DIAG2_`c''"
+  4. }
+
+. 
+. * remove blanks from original glosa:
+. replace GLOSA_CAPITULO_DIAG2 = ustrtrim(stritrim(GLOSA_CAPITULO_DIAG2))
+(0 real changes made)
+
+. 
+. * assign values in string glosa as value labels to numeric glosa:
+. labmask _GLOSA_CAPITULO_DIAG2, values(GLOSA_CAPITULO_DIAG2)
+
+. 
+. * drop original:
+. drop GLOSA_CAPITULO_DIAG2
+
+. 
+. * rename copy as original and apply variable label:
+. rename _GLOSA_CAPITULO_DIAG2 GLOSA_CAPITULO_DIAG2
+
+. label var GLOSA_CAPITULO_DIAG2 "`varlabel'"
+
+. 
+. * reapply notes:
+. foreach c of local char_list {
+  2.         if real("`GLOSA_CAPITULO_DIAG2_`c''") == . {
+  3.                 notes GLOSA_CAPITULO_DIAG2: `GLOSA_CAPITULO_DIAG2_`c''
+  4.         }
+  5. }
+
+. 
+. ********************************************************************************
+. * AT_MEDICA:
+. destring AT_MEDICA, replace
+AT_MEDICA: all characters numeric; replaced as byte
+(7 missing values generated)
+
+. labmask AT_MEDICA, values(GLOSA_AT_MEDICA)
+
+. drop GLOSA_AT_MEDICA
+
+. 
+. ********************************************************************************
+. * CAL_MEDICO:
+. destring CAL_MEDICO, replace
+CAL_MEDICO: all characters numeric; replaced as byte
+(20 missing values generated)
+
+. labmask CAL_MEDICO, values(GLOSA_CAL_MEDICO)
+
+. drop GLOSA_CAL_MEDICO
+
+. 
+. ********************************************************************************
+. * FUND_CAUSA:
+. destring FUND_CAUSA, replace
+FUND_CAUSA: all characters numeric; replaced as byte
+(1733837 missing values generated)
+
+. labmask FUND_CAUSA, values(GLOSA_FUND_CAUSA)
+
+. drop GLOSA_FUND_CAUSA
+
+. 
+. ********************************************************************************
+. * COD_MENOR:
+. * Pendiente... (inconsistencies with GLOSA)
+. 
+. 
+. ********************************************************************************
+. * NUTRITIVO:
+. destring NUTRITIVO, replace
+NUTRITIVO: all characters numeric; replaced as byte
+(2490529 missing values generated)
+
+. labmask NUTRITIVO, values(GLOSA_NUTRITIVO)
+
+. drop GLOSA_NUTRITIVO
+
+. 
+. ********************************************************************************
+. * EST_CIV_MADRE:
+. destring EST_CIV_MADRE, replace
+EST_CIV_MADRE: all characters numeric; replaced as byte
+(2487216 missing values generated)
+
+. labmask EST_CIV_MADRE, values(GLOSA_EST_CIV_MADRE)
+
+. drop GLOSA_EST_CIV_MADRE
+
+. 
+. ********************************************************************************
+. * ACTIV_MADRE:
+. destring ACTIV_MADRE, replace
+ACTIV_MADRE: all characters numeric; replaced as byte
+(2383196 missing values generated)
+
+. labmask ACTIV_MADRE, values(GLOSA_ACTIV_MADRE)
+
+. drop GLOSA_ACTIV_MADRE
+
+. 
+. ********************************************************************************
+. * OCUPA_MADRE:
+. * Pending...
+. 
+. 
+. ********************************************************************************
+. * CATEG_MADRE:
+. * Pending...
+. 
+. 
+. ********************************************************************************
+. * NIVEL_MADRE:
+. destring NIVEL_MADRE, replace
+NIVEL_MADRE: all characters numeric; replaced as byte
+(2487217 missing values generated)
+
+. labmask NIVEL_MADRE, values(GLOSA_NIVEL_MADRE)
+
+. drop GLOSA_NIVEL_MADRE
+
+. 
+. ********************************************************************************
+. * PARTO_ABORTO:
+. destring PARTO_ABORTO, replace
+PARTO_ABORTO: all characters numeric; replaced as byte
+(2507932 missing values generated)
+
+. labmask PARTO_ABORTO, values(GLOSA_PARTO_ABORTO)
+
+. drop GLOSA_PARTO_ABORTO
+
+. 
+. ********************************************************************************
+. * ACTIV_PADRE:
+. destring ACTIV_PADRE, replace
+ACTIV_PADRE: all characters numeric; replaced as byte
+(2381963 missing values generated)
+
+. labmask ACTIV_PADRE, values(GLOSA_ACTIV_PADRE)
+
+. drop GLOSA_ACTIV_PADRE
+
+. 
+. ********************************************************************************
+. * OCUPA_PADRE:
+. * Pending...
+. 
+. 
+. ********************************************************************************
+. * CATEG_PADRE:
+. * Pending...
+. 
+. 
+. ********************************************************************************
+. * NIVEL_PADRE:
+. destring NIVEL_PADRE, replace
+NIVEL_PADRE: all characters numeric; replaced as byte
+(2487227 missing values generated)
+
+. labmask NIVEL_PADRE, values(GLOSA_NIVEL_PADRE)
+
+. drop GLOSA_NIVEL_PADRE
+
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> /* FINAL THINGS */
+. * Compress, label, and metadata:
+. compress
+  (0 bytes saved)
+
+. label data "Defunciones `=min_ano_def'-`=max_ano_def' en Chile (DEIS/MINSAL) (sin glosas)"
+
+. notes drop _dta
+  (3 notes dropped)
+
+. note: Last modified by: $id_user_full ($id_user_email)
+
+. note: Last modification timestamp: $S_DATE at $S_TIME
+
+. note: Fuente: https://deis.minsal.cl/#datosabiertos
+
+. 
+. * Save file:
+. save "${def_original}_NOGLOSAS.dta", replace
+(note: file DEF_1990_2018_NOGLOSAS.dta not found)
+file DEF_1990_2018_NOGLOSAS.dta saved
+
+. 
+. * Save labels to do file:
+. label save using "$dodir/(auto)labels_${def_original}.do", replace
+(note: file C:\Users\nicol\Dropbox\Research Projects\Intergenerational/dofiles/(auto)labels_DEF_1990_2018.do not found)
+file C:\Users\nicol\Dropbox\Research Projects\Intergenerational/dofiles/(auto)labels_DEF_1990_2018.do saved
+
+. 
+. * Final report:
+. cls
+
+. describe, fullnames
+
+Contains data from DEF_1990_2018_NOGLOSAS.dta
+  obs:     2,549,800                          Defunciones 1990-2018 en Chile (DEIS/MINSAL) (sin glosas)
+ vars:            82                          7 Sep 2021 23:09
+ size: 1,455,935,800                          (_dta has notes)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ID_FALLECIDO    str40   %40s                  Identificador único y anónimo de la persona fallecida
+DIA_DEF         byte    %10.0g                Día de la fecha de defunción
+MES_DEF         byte    %10.0g                Mes de la fecha de defunción
+ANO_DEF         int     %ty                   Año de la fecha de defunción
+FECHA_DEF_SIF   int     %td                   DIA_DEF + MES_DEF + ANO_DEF. Fecha de defunción (SIF)
+SEXO            byte    %13.0g     SEXO       Código que identifica el sexo biológico
+DIA_NAC         byte    %10.0g                Día de la fecha de nacimiento del fallecido
+MES_NAC         byte    %10.0g                Mes de la fecha de nacimiento del fallecido
+ANO_NAC         int     %ty                   Año de la fecha de nacimiento del fallecido
+FECHA_NACIMIENTO_SIF
+                float   %td                   DIA_NAC + MES_NAC + ANO1_NAC + ANO2_NAC. Fecha de Nacimiento (SIF)
+EDAD_CANT       int     %10.0g              * Edad cantidad: es la cifra de la edad, esta depende de la unidad en que esté med
+EDAD_TIPO       byte    %13.0g     EDAD_TIPO
+                                              Tipo de edad : es la unidad en la que se mide la edad: años, meses, días, horas
+EST_CIVIL       byte    %17.0g     EST_CIVIL
+                                              Código del Estado Civil del fallecido
+CURSO_INS       byte    %10.0g                Último curso aprobado por la persona fallecida
+NIVEL_INS       byte    %18.0g     NIVEL_INS
+                                            * Código del nivel de instrucción del fallecido
+ACTIVIDAD       byte    %20.0g     ACTIVIDAD
+                                              Código para la condición de actividad
+OCUPACION       str1    %9s                   Código de la ocupación. El dato está condicionado al dato de la actividad.
+GLOSA_OCUPACION str68   %68s                * Glosa del código de ocupación, el cual depende de la variable ACTIVIDAD.
+CATEGORIA       str1    %9s                 * Código de la categoría ocupacional.
+GLOSA_CATEGORIA str28   %28s                  Glosa del código de la categoría
+ANO_INSCR       int     %ty                   Año de la fecha de inscripción de la defunción
+LOCAL_DEF       byte    %19.0g     LOCAL_DEF
+                                              Código del lugar ocurrencia de la defunción
+REG_RES         byte    %41.0g     REG_RES    Código de la región de residencia del fallecido
+SERV_RES        byte    %24.0g     SERV_RES   Código del Servicio de Salud de residencia del fallecido
+COMUNA          long    %20.0g     COMUNA     Código de la comuna de residencia del fallecido
+URBANO_RURAL    byte    %10.0g     URBANO_RURAL
+                                            * Residencia de la persona fallecida: Urbano/Rural
+DIAG1           int     %8.0g      _DIAG1   * Causa básica de defunción en caso de muertes por enfermedades.
+GLOSA_SUBCATEGORIA_DIAG1
+                int     %175.0g    _GLOSA_SUBCATEGORIA_DIAG1
+                                            * Glosa causa básica de defunción en caso de muertes por enfermedades.
+CODIGO_CATEGORIA_DIAG1
+                int     %8.0g      _CODIGO_CATEGORIA_DIAG1
+                                            * Código causa básica de defunción en caso de muertes por enfermedades.
+GLOSA_CATEGORIA_DIAG1
+                int     %159.0g    _GLOSA_CATEGORIA_DIAG1
+                                            * Glosa del código causa básica de defunción en caso de muertes por enfermedades.
+CODIGO_GRUPO_DIAG1
+                int     %8.0g      _CODIGO_GRUPO_DIAG1
+                                              Código grupo DIAG1 según CIE10
+GLOSA_GRUPO_DIAG1
+                int     %121.0g    _GLOSA_GRUPO_DIAG1
+                                              Glosa código grupo DIAG1 según CIE10
+CAPITULO_DIAG1  byte    %8.0g      _CAPITULO_DIAG1
+                                              Capitulo CIE10 según DIAG1
+GLOSA_CAPITULO_DIAG1
+                byte    %123.0g    _GLOSA_CAPITULO_DIAG1
+                                              Glosa capitulo CIE10 según DIAG1
+DIAG2           int     %8.0g      _DIAG2   * Causa externa de defunción.
+GLOSA_SUBCATEGORIA_DIAG2
+                int     %235.0g    _GLOSA_SUBCATEGORIA_DIAG2
+                                            * Glosa causa básica de defunción en caso de muertes por enfermedades.
+CODIGO_CATEGORIA_DIAG2
+                int     %8.0g      _CODIGO_CATEGORIA_DIAG2
+                                            * Código causa básica de defunción en caso de muertes por enfermedades.
+GLOSA_CATEGORIA_DIAG2
+                int     %191.0g    _GLOSA_CATEGORIA_DIAG2
+                                            * Glosa del código causa básica de defunción en caso de muertes por enfermedades.
+CODIGO_GRUPO_DIAG2
+                byte    %8.0g      _CODIGO_GRUPO_DIAG2
+                                              Código grupo DIAG2 según CIE10
+GLOSA_GRUPO_DIAG2
+                byte    %206.0g    _GLOSA_GRUPO_DIAG2
+                                              Glosa código grupo DIAG2 según CIE10
+CAPITULO_DIAG2  byte    %8.0g      _CAPITULO_DIAG2
+                                              Capitulo CIE10 según DIAG2
+GLOSA_CAPITULO_DIAG2
+                byte    %45.0g     _GLOSA_CAPITULO_DIAG2
+                                              Glosa capitulo CIE10 según DIAG2
+AT_MEDICA       byte    %10.0g     AT_MEDICA
+                                              Código para identificar si tuvo atención médica
+CAL_MEDICO      byte    %27.0g     CAL_MEDICO
+                                              Código que identifica la calidad de quién certifica la defunción
+CER_MES         byte    %10.0g                Mes de la certificación médica
+CER_ANO         int     %10.0g                Año de la certificación médica
+FUND_CAUSA      byte    %24.0g     FUND_CAUSA
+                                              Fundamento de la causa de muerte
+COD_MENOR       str1    %9s                   Código para identificar si el fallecido es menor de 1 año.
+GLOSA_COD_MENOR str16   %16s                  Glosa del código que identifica si el fallecido es un menor de 1 año
+PESO            int     %10.0g                Peso al nacer en gramos cuando se trata de muerte de menor de un año
+GESTACION       byte    %10.0g                Edad gestacional en semanas cuando se trata de muerte de menor de un año
+NUTRITIVO       byte    %23.0g     NUTRITIVO
+                                            * Estado nutritivo previo a la enfermedad (muerte de menor de un año)
+EDAD_MADRE      str2    %9s                   Edad de la madre en años cuando se trata de muerte de menor de un año
+EST_CIV_MADRE   byte    %10.0g     EST_CIV_MADRE
+                                              Estado civil de la madre cuando se trata de muerte de menor de un año
+ACTIV_MADRE     byte    %20.0g     ACTIV_MADRE
+                                              Actividad de la madre cuando se trata de muerte de menor de un año
+OCUPA_MADRE     str1    %9s                 * Código ocupación madre cuando se trata de muerte de menor de un año.
+GLOSA_OCUPA_MADRE
+                str68   %68s                * Glosa del ocupación madre cuando se trata de muerte de menor de un año
+CATEG_MADRE     str1    %9s                 * Código categoría ocupacional madre, por actividad, muerte de menor de un año.
+GLOSA_CATEG_MADRE
+                str28   %28s                * Glosa categoría ocupacional madre, por actividad, muerte de menor de un año.
+CURSO_MADRE     str1    %9s                 * Último curso de instrucción de la madre, muerte de menor de un año
+NIVEL_MADRE     byte    %18.0g     NIVEL_MADRE
+                                              Código del nivel de instrucción cuando se trata de muerte de menor de un año
+HIJ_VIVOS       byte    %10.0g                Número de hijos vivos cuando se trata de muerte de menor de un año
+HIJ_FALLECIDOS  byte    %10.0g                Número de hijos fallecidos cuando se trata de muerte de menor de un año
+HIJ_MORTINATOS  byte    %10.0g                Número de hijos mortinatos cuando se trata de muerte de menor de un año
+HIJ_TOTAL       byte    %10.0g                Número de Hijos total cuando se trata de muerte de menor de un año
+PARTO_ABORTO    byte    %10.0g     PARTO_ABORTO
+                                              Parto o Aborto cuando se trata de muerte de menor de un año
+DIA_PARTO       byte    %10.0g                Día del último parto o aborto cuando se trata de muerte de menor de un año
+MES_PARTO       byte    %10.0g                Mes del último parto o aborto cuando se trata de muerte de menor de un año
+ANO_PARTO       int     %ty                   Año del último parto o aborto cuando se trata de muerte de menor de un año
+FECHA_PARTO_SIF int     %td                   Fecha de nacimiento/parto cuando se trata de muerte de menor de un año (SIF)
+EDAD_PADRE      str2    %9s                   Edad del padre en años cuando se trata de muerte de menor de un año
+ACTIV_PADRE     byte    %20.0g     ACTIV_PADRE
+                                              Actividad del padre cuando se trata de muerte de menor de un año
+OCUPA_PADRE     str1    %9s                   Código de la ocupación del padre está condicionado al dato de la actividad
+GLOSA_OCUPA_PADRE
+                str68   %68s                  Texto ocupación del padre
+CATEG_PADRE     str1    %9s                 * Código de la categoría ocupacional del padre.
+GLOSA_CATEG_PADRE
+                str28   %28s                * Glosa código categoría ocupacional padre, por actividad, muerte menor de un año.
+CURSO_PADRE     str1    %9s                   Último curso de instrucción del padre.
+NIVEL_PADRE     byte    %18.0g     NIVEL_PADRE
+                                              Código del nivel de instrucción.
+CODIGO_TERMINO_DIAGNOSTICO_1
+                str24   %24s                  
+CODIGO_TERMINO_DIAGNOSTICO_2
+                str34   %34s                  
+CODIGO_TERMINO_DIAGNOSTICO_3
+                str32   %32s                  
+CODIGO_TERMINO_DIAGNOSTICO_4
+                str40   %40s                  
+                                            * indicated variables have notes
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Sorted by: 
+
+. notes _dta
+
+_dta:
+  1.  Last modified by: Nicolás A. Lillo Bustos (niclillo@fen.uchile.cl)
+  2.  Last modification timestamp:  7 Sep 2021 at 23:09:27
+  3.  Fuente: https://deis.minsal.cl/#datosabiertos
+
+. 
+. * Close log
+. log close _all
+      name:  DEF_CLEAN
+       log:  C:\Users\nicol\Dropbox\Research Projects\Intergenerational/statalogs/DEF_CLEAN_20210907.log
+  log type:  text
+ closed on:   7 Sep 2021, 23:09:29
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,673 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  EEHH_NEWVARS
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/EEHH_04_NEWVARS_20210909.log
+  log type:  text
+ opened on:   9 Sep 2021, 11:45:45
+
+. 
+. * Preamble:
+. cls
+
+. clear all
+
+. set more off
+
+. 
+. * Switch to source directory:
+. cd "$dtadir/DEIS"
+C:\Users\nicol\Dropbox\Research Projects\Intergenerational\data\dta\DEIS
+
+. 
+. * Load data:
+. use "${eehh_original}_NODUPS_NONAS.dta", clear
+(Egresos Hospitalarios 2001-2019 en Chile (DEIS/MINSAL), -duplicados/NAs)
+
+. 
+. ********************************************************************************
+. * DIAGNOSTICS:
+. * Number of missing discharge dates:
+. count if FECHA_EGRESO == .
+  96,685
+
+. 
+. ********************************************************************************
+. * CREATE NEW VARIABLES:
+. * Tag one observation by ID:
+. egen tag_idp = tag(ID_PACIENTE)
+
+. 
+. * Create fecha ingreso:
+. gen int fecha_ingreso = FECHA_EGRESO - DIAS_ESTADA + 1
+(96,685 missing values generated)
+
+. format fecha_ingreso %td
+
+. label var fecha_ingreso "Admission to hospital date (FECHA_EGRESO - DIAS_ESTADA + 1)"
+
+. 
+. * Sort and declare panel:
+. sort ID_PACIENTE fecha_ingreso
+
+. by ID_PACIENTE: gen int orden = _n
+
+. label var orden "Hospital visit order (by admission date)"
+
+. by ID_PACIENTE: gen int nvsts = _N
+
+. label var nvsts "Total number of hospital visits"
+
+. egen idp = group(ID_PACIENTE)
+
+. 
+. * Tag overlapping visits:
+. xtset idp orden
+       panel variable:  idp (unbalanced)
+        time variable:  orden, 1 to 988
+                delta:  1 unit
+
+. gen byte olap = fecha_ingreso < L1.FECHA_EGRESO if orden > 1
+(11,434,037 missing values generated)
+
+. replace olap = 0 if orden == 1
+(11,434,037 real changes made)
+
+. label var olap "Number of overlapping hospital visits"
+
+. 
+. * Create dummy variable for public/private hospital:
+. gen byte public_hosp = PERTENENCIA_SNSS == 2 if PERTENENCIA_SNSS != .
+
+. label var public_hosp "Private = 0 / Public = 1"
+
+. 
+. ********************************************************************************
+. * FIX ORIGINAL BIRTH DATE:
+. * Find inconsistencies between recorded birth date and discharge variables:
+. gen int ano_nac_aux = year(fecha_ingreso) - EDAD_A_OS
+(96,685 missing values generated)
+
+. gen int ano_nac_1 = year(FECHA_NACIMIENTO)
+(6,158,862 missing values generated)
+
+. gen int diff_ano_nac_aux1 = ano_nac_1 - ano_nac_aux
+(6,159,607 missing values generated)
+
+. gen byte fecha_nac_ok1 = abs(diff_ano_nac_aux1) <= 1 if diff_ano_nac_aux1 != . // error window = +- 1 year
+(6,159,607 missing values generated)
+
+. 
+. * Tabulate discharge year by status:
+. tab ANO_EGRESO fecha_nac_ok1, m
+
+       Año |          fecha_nac_ok1
+    Egreso |         0          1          . |     Total
+-----------+---------------------------------+----------
+      2001 |         0          0    827,096 |   827,096 
+      2002 |         0          0    993,068 |   993,068 
+      2003 |         0          0  1,356,444 | 1,356,444 
+      2004 |         0          0  1,266,343 | 1,266,343 
+      2005 |    50,445  1,061,638    352,692 | 1,464,775 
+      2006 |    38,975  1,163,950    156,722 | 1,359,647 
+      2007 |    29,650  1,269,566    105,108 | 1,404,324 
+      2008 |    23,877  1,388,348     95,003 | 1,507,228 
+      2009 |     4,629    626,988    986,741 | 1,618,358 
+      2010 |    12,633  1,530,991     20,200 | 1,563,824 
+      2011 |    22,434  1,580,515         15 | 1,602,964 
+      2012 |    12,073  1,615,797          5 | 1,627,875 
+      2013 |     7,046  1,632,543        160 | 1,639,749 
+      2014 |    14,038  1,615,396          3 | 1,629,437 
+      2015 |     1,892  1,653,654          2 | 1,655,548 
+      2016 |     1,760  1,618,499          2 | 1,620,261 
+      2017 |     1,451  1,612,403          1 | 1,613,855 
+      2018 |       624  1,633,960          2 | 1,634,586 
+      2019 |       858  1,609,212          0 | 1,610,070 
+-----------+---------------------------------+----------
+     Total |   222,385 21,613,460  6,159,607 |27,995,452 
+
+. 
+. * Determine if there is consensus in FECHA_NACIMIENTO, among correct and 
+. * non-missing values, for individuals that visited a hospital multiple times 
+. * between 2001 and 2019:
+. bys ID_PACIENTE: egen int max_FECHA_NACIMIENTO = max(cond(fecha_nac_ok1 == 1, FECHA_NACIMIENTO, .))
+(2473466 missing values generated)
+
+. bys ID_PACIENTE: egen int min_FECHA_NACIMIENTO = min(cond(fecha_nac_ok1 == 1, FECHA_NACIMIENTO, .))
+(2473466 missing values generated)
+
+. format %td max_FECHA_NACIMIENTO min_FECHA_NACIMIENTO
+
+. gen byte cons_FECHA_NACIMIENTO = max_FECHA_NACIMIENTO == min_FECHA_NACIMIENTO ///
+>         if max_FECHA_NACIMIENTO != . & min_FECHA_NACIMIENTO != .
+(2,473,466 missing values generated)
+
+. 
+. * Create new FECHA_NACIMIENTO based on original:
+. gen int FECHA_NACIMIENTO_fixed = FECHA_NACIMIENTO
+(6,158,862 missing values generated)
+
+. format %td FECHA_NACIMIENTO_fixed
+
+. 
+. * Fill in missing values with consensus correct date:
+. replace FECHA_NACIMIENTO_fixed = min_FECHA_NACIMIENTO ///
+>         if FECHA_NACIMIENTO_fixed == . /// only replace missing values
+>         & cons_FECHA_NACIMIENTO == 1 /// if there is a consensus correct date
+> 
+(3,370,520 real changes made)
+
+. * Recheck:
+. gen int ano_nac_2 = year(FECHA_NACIMIENTO_fixed)
+(2,788,342 missing values generated)
+
+. gen int diff_ano_nac_aux2 = ano_nac_2 - ano_nac_aux
+(2,830,570 missing values generated)
+
+. gen byte fecha_nac_ok2 = abs(diff_ano_nac_aux2) <= 1 if diff_ano_nac_aux2 != .
+(2,830,570 missing values generated)
+
+. 
+. * Tabulate discharge year by status:
+. tab ANO_EGRESO fecha_nac_ok2, m
+
+       Año |          fecha_nac_ok2
+    Egreso |         0          1          . |     Total
+-----------+---------------------------------+----------
+      2001 |    32,205    311,239    483,652 |   827,096 
+      2002 |    29,811    477,375    485,882 |   993,068 
+      2003 |    47,089    684,676    624,679 | 1,356,444 
+      2004 |    38,224    655,879    572,240 | 1,266,343 
+      2005 |    58,622  1,246,119    160,034 | 1,464,775 
+      2006 |    43,892  1,247,776     67,979 | 1,359,647 
+      2007 |    32,846  1,330,983     40,495 | 1,404,324 
+      2008 |    26,302  1,438,908     42,018 | 1,507,228 
+      2009 |    17,849  1,254,988    345,521 | 1,618,358 
+      2010 |    12,919  1,542,910      7,995 | 1,563,824 
+      2011 |    22,435  1,580,515         14 | 1,602,964 
+      2012 |    12,076  1,615,797          2 | 1,627,875 
+      2013 |     7,131  1,632,561         57 | 1,639,749 
+      2014 |    14,040  1,615,397          0 | 1,629,437 
+      2015 |     1,893  1,653,654          1 | 1,655,548 
+      2016 |     1,761  1,618,499          1 | 1,620,261 
+      2017 |     1,452  1,612,403          0 | 1,613,855 
+      2018 |       626  1,633,960          0 | 1,634,586 
+      2019 |       858  1,609,212          0 | 1,610,070 
+-----------+---------------------------------+----------
+     Total |   402,031 24,762,851  2,830,570 |27,995,452 
+
+. 
+. * Fill in incorrect non-missing values with consensus correct date:
+. replace FECHA_NACIMIENTO_fixed = min_FECHA_NACIMIENTO ///
+>         if FECHA_NACIMIENTO_fixed != . /// only replace non-missing values
+>         & cons_FECHA_NACIMIENTO == 1 /// if there is a consensus correct date
+>         & fecha_nac_ok2 == 0 /// and the original date is not ok
+> 
+(51,149 real changes made)
+
+. * Recheck:
+. gen int ano_nac_3 = year(FECHA_NACIMIENTO_fixed)
+(2,788,342 missing values generated)
+
+. gen int diff_ano_nac_aux3 = ano_nac_3 - ano_nac_aux
+(2,830,570 missing values generated)
+
+. gen byte fecha_nac_ok3 = abs(diff_ano_nac_aux3) <= 1 if diff_ano_nac_aux3 != .
+(2,830,570 missing values generated)
+
+. 
+. * Tabulate discharge year by status:
+. tab ANO_EGRESO fecha_nac_ok3, m
+
+       Año |          fecha_nac_ok3
+    Egreso |         0          1          . |     Total
+-----------+---------------------------------+----------
+      2001 |    32,205    311,239    483,652 |   827,096 
+      2002 |    29,811    477,375    485,882 |   993,068 
+      2003 |    47,089    684,676    624,679 | 1,356,444 
+      2004 |    38,224    655,879    572,240 | 1,266,343 
+      2005 |    50,111  1,254,630    160,034 | 1,464,775 
+      2006 |    35,748  1,255,920     67,979 | 1,359,647 
+      2007 |    25,835  1,337,994     40,495 | 1,404,324 
+      2008 |    20,424  1,444,786     42,018 | 1,507,228 
+      2009 |    16,273  1,256,564    345,521 | 1,618,358 
+      2010 |     9,989  1,545,840      7,995 | 1,563,824 
+      2011 |    20,516  1,582,434         14 | 1,602,964 
+      2012 |    10,228  1,617,645          2 | 1,627,875 
+      2013 |     5,880  1,633,812         57 | 1,639,749 
+      2014 |    12,382  1,617,055          0 | 1,629,437 
+      2015 |     1,835  1,653,712          1 | 1,655,548 
+      2016 |     1,682  1,618,578          1 | 1,620,261 
+      2017 |     1,411  1,612,444          0 | 1,613,855 
+      2018 |       601  1,633,985          0 | 1,634,586 
+      2019 |       832  1,609,238          0 | 1,610,070 
+-----------+---------------------------------+----------
+     Total |   361,076 24,803,806  2,830,570 |27,995,452 
+
+. 
+. * Check how many IDs have full ok birthdate:
+. bys ID_PACIENTE: egen byte min_fecha_nac_ok3 = min(fecha_nac_ok3)
+(2398357 missing values generated)
+
+. bys ID_PACIENTE: egen byte max_fecha_nac_ok3 = max(fecha_nac_ok3)
+(2398357 missing values generated)
+
+. tab min_fecha_nac_ok3 if tag_idp == 1, m
+
+min_fecha_n |
+     ac_ok3 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |    300,418        2.63        2.63
+          1 |  9,539,068       83.43       86.05
+          . |  1,594,551       13.95      100.00
+------------+-----------------------------------
+      Total | 11,434,037      100.00
+
+. 
+. ********************************************************************************
+. * Merge in birthdate from births database:
+. gen ID_RECIEN_NACIDO = ID_PACIENTE
+
+. merge m:1 ID_RECIEN_NACIDO using NAC_1992_2018_NOGLOSAS_NODUPS_NONAS.dta, ///
+>         keepusing(FECHA_NACIMIENTO_SIF) keep(master match) gen(mrg_NAC2EEHH)
+(label REGION_RESIDENCIA already defined)
+(label COMUNA_RESIDENCIA already defined)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                    22,339,041
+        from master                22,339,041  (mrg_NAC2EEHH==1)
+        from using                          0  (mrg_NAC2EEHH==2)
+
+    matched                         5,656,411  (mrg_NAC2EEHH==3)
+    -----------------------------------------
+
+. rename FECHA_NACIMIENTO_SIF NAC_FECHA_NACIMIENTO_SIF
+
+. compare FECHA_NACIMIENTO NAC_FECHA_NACIMIENTO_SIF
+
+                                        ---------- difference ----------
+                            count       minimum      average     maximum
+------------------------------------------------------------------------
+FECHA_N~O<NAC_FEC~F        107337        -42307    -2872.881          -1
+FECHA_N~O=NAC_FEC~F       4654896
+FECHA_N~O>NAC_FEC~F         93854             1     494.7726       10183
+                       ----------
+jointly defined           4856087        -42307     -53.9385       10183
+FECHA_N~O missing only     800323
+NAC_FEC~F missing only   16980503
+jointly missing           5358539
+                       ----------
+total                    27995452
+
+. compare FECHA_NACIMIENTO_fixed NAC_FECHA_NACIMIENTO_SIF
+
+                                        ---------- difference ----------
+                            count       minimum      average     maximum
+------------------------------------------------------------------------
+FECHA_N~d<NAC_FEC~F        111535        -42307    -2996.875          -1
+FECHA_N~d=NAC_FEC~F       5026030
+FECHA_N~d>NAC_FEC~F         98100             1     460.2993       10183
+                       ----------
+jointly defined           5235665        -42307    -55.21765       10183
+FECHA_N~d missing only     420745
+NAC_FEC~F missing only   19971445
+jointly missing           2367597
+                       ----------
+total                    27995452
+
+. 
+. * Check if merged in birth date is ok:
+. gen int ano_nac_4 = year(NAC_FECHA_NACIMIENTO_SIF)
+(22,339,042 missing values generated)
+
+. gen int diff_ano_nac_aux4 = ano_nac_4 - ano_nac_aux
+(22,348,085 missing values generated)
+
+. gen byte fecha_nac_ok4 = abs(diff_ano_nac_aux4) <= 1 if diff_ano_nac_aux4 != .
+(22,348,085 missing values generated)
+
+. 
+. * Tabulate discharge year by status:
+. tab ANO_EGRESO fecha_nac_ok4, m
+
+       Año |          fecha_nac_ok4
+    Egreso |         0          1          . |     Total
+-----------+---------------------------------+----------
+      2001 |    11,062     87,250    728,784 |   827,096 
+      2002 |    10,839    115,378    866,851 |   993,068 
+      2003 |     8,825    181,487  1,166,132 | 1,356,444 
+      2004 |    10,678    174,024  1,081,641 | 1,266,343 
+      2005 |     6,419    206,620  1,251,736 | 1,464,775 
+      2006 |    13,413    236,828  1,109,406 | 1,359,647 
+      2007 |     6,545    235,036  1,162,743 | 1,404,324 
+      2008 |     3,580    268,282  1,235,366 | 1,507,228 
+      2009 |     3,113    310,047  1,305,198 | 1,618,358 
+      2010 |     5,242    309,323  1,249,259 | 1,563,824 
+      2011 |     2,869    337,212  1,262,883 | 1,602,964 
+      2012 |     2,882    356,377  1,268,616 | 1,627,875 
+      2013 |     2,727    367,935  1,269,087 | 1,639,749 
+      2014 |     4,622    381,443  1,243,372 | 1,629,437 
+      2015 |     1,800    399,510  1,254,238 | 1,655,548 
+      2016 |     1,311    396,022  1,222,928 | 1,620,261 
+      2017 |     1,390    404,862  1,207,603 | 1,613,855 
+      2018 |     1,010    420,118  1,213,458 | 1,634,586 
+      2019 |       718    360,568  1,248,784 | 1,610,070 
+-----------+---------------------------------+----------
+     Total |    99,045  5,548,322 22,348,085 |27,995,452 
+
+. 
+. * Check how many IDs have full ok birthdate:
+. bys ID_PACIENTE: egen byte min_fecha_nac_ok4 = min(fecha_nac_ok4)
+(22342245 missing values generated)
+
+. bys ID_PACIENTE: egen byte max_fecha_nac_ok4 = max(fecha_nac_ok4)
+(22342245 missing values generated)
+
+. tab min_fecha_nac_ok4 if tag_idp == 1
+
+min_fecha_n |
+     ac_ok4 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |     76,628        2.62        2.62
+          1 |  2,845,281       97.38      100.00
+------------+-----------------------------------
+      Total |  2,921,909      100.00
+
+. 
+. ********************************************************************************
+. * Tag observations that appear to have the wrong ID:
+. gen byte mrg_NAC2EEHH_fixed = mrg_NAC2EEHH
+
+. label val mrg_NAC2EEHH_fixed _merge
+
+. 
+. * Replace as master only if birth date from births database is not ok, but there is at least one ok match for that ID:
+. replace mrg_NAC2EEHH_fixed = 1 if mrg_NAC2EEHH == 3 & fecha_nac_ok4 == 0 & max_fecha_nac_ok4 == 1
+(55,836 real changes made)
+
+. 
+. * Replace as master only if birth date from births database is later than discharge date:
+. replace mrg_NAC2EEHH_fixed = 1 if mrg_NAC2EEHH == 3 & NAC_FECHA_NACIMIENTO_SIF > FECHA_EGRESO & NAC_FECHA_NACIMIENTO_SIF != .
+(15,772 real changes made)
+
+. 
+. * Consolidate birthdate:
+. gen int fecha_nac_cons = NAC_FECHA_NACIMIENTO_SIF if mrg_NAC2EEHH_fixed == 3 // use births database birthdate first
+(22,410,650 missing values generated)
+
+. replace fecha_nac_cons = FECHA_NACIMIENTO_fixed if mrg_NAC2EEHH_fixed == 1 // use EEHH birth date (fixed) for master only obs
+(20,025,557 real changes made)
+
+. format fecha_nac_cons %td
+
+. label var fecha_nac_cons "Birth date (NAC to EEHH consensus)"
+
+. 
+. * Fill in missing values of fecha_nac_cons if there is consensus:
+. bys ID_PACIENTE: egen int min_fecha_nac_cons = min(fecha_nac_cons)
+(2018709 missing values generated)
+
+. bys ID_PACIENTE: egen int max_fecha_nac_cons = max(fecha_nac_cons)
+(2018709 missing values generated)
+
+. replace fecha_nac_cons = min_fecha_nac_cons ///
+>         if fecha_nac_cons == . ///
+>         & min_fecha_nac_cons == max_fecha_nac_cons ///
+>         & min_fecha_nac_cons != . ///
+>         & max_fecha_nac_cons != .
+(26,048 real changes made)
+
+. 
+. * Check if consolidated birth date is ok according to birth year:
+. gen int ano_nac_5 = year(fecha_nac_cons)
+(2,359,045 missing values generated)
+
+. gen int diff_ano_nac_aux5 = ano_nac_5 - ano_nac_aux
+(2,406,311 missing values generated)
+
+. gen byte fecha_nac_ok5 = abs(diff_ano_nac_aux5) <= 1 if diff_ano_nac_aux5 != .
+(2,406,311 missing values generated)
+
+. 
+. * Check how many IDs have full ok birthdate:
+. bys ID_PACIENTE: egen byte min_fecha_nac_ok5 = min(fecha_nac_ok5) if mrg_NAC2EEHH_fixed == 3
+(22413887 missing values generated)
+
+. bys ID_PACIENTE: egen byte max_fecha_nac_ok5 = max(fecha_nac_ok5) if mrg_NAC2EEHH_fixed == 3
+(22413887 missing values generated)
+
+. tab min_fecha_nac_ok5 if tag_idp == 1 & mrg_NAC2EEHH_fixed == 3, m
+
+min_fecha_n |
+     ac_ok5 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |     23,185        0.80        0.80
+          1 |  2,863,939       99.10       99.90
+          . |      2,890        0.10      100.00
+------------+-----------------------------------
+      Total |  2,890,014      100.00
+
+. 
+. * Tabulate discharge year by status:
+. tab ANO_EGRESO fecha_nac_ok5, m
+
+       Año |          fecha_nac_ok5
+    Egreso |         0          1          . |     Total
+-----------+---------------------------------+----------
+      2001 |    35,915    360,380    430,801 |   827,096 
+      2002 |    33,947    542,702    416,419 |   993,068 
+      2003 |    51,942    787,039    517,463 | 1,356,444 
+      2004 |    43,790    748,526    474,027 | 1,266,343 
+      2005 |    50,784  1,283,495    130,496 | 1,464,775 
+      2006 |    38,476  1,276,323     44,848 | 1,359,647 
+      2007 |    26,997  1,350,048     27,279 | 1,404,324 
+      2008 |    21,064  1,457,552     28,612 | 1,507,228 
+      2009 |    18,145  1,265,494    334,719 | 1,618,358 
+      2010 |    11,670  1,550,576      1,578 | 1,563,824 
+      2011 |    20,934  1,582,016         14 | 1,602,964 
+      2012 |    10,671  1,617,202          2 | 1,627,875 
+      2013 |     6,432  1,633,266         51 | 1,639,749 
+      2014 |    12,699  1,616,738          0 | 1,629,437 
+      2015 |     2,222  1,653,325          1 | 1,655,548 
+      2016 |     2,044  1,618,216          1 | 1,620,261 
+      2017 |     1,758  1,612,097          0 | 1,613,855 
+      2018 |       937  1,633,649          0 | 1,634,586 
+      2019 |     1,084  1,608,986          0 | 1,610,070 
+-----------+---------------------------------+----------
+     Total |   391,511 25,197,630  2,406,311 |27,995,452 
+
+. 
+. * Check if consolidated birth date is ok according to hospital admission:
+. gen ingreso_too_early = fecha_ingreso < fecha_nac_cons
+
+. bys ID_PACIENTE: egen num_ingreso_too_early = total(ingreso_too_early)
+
+. 
+. ********************************************************************************
+. * Categorizations by diagnosis
+. 
+. * Categorize diagnoses by chapter:
+. decode DIAG1, gen(_DIAG1)
+
+. gen cap_diag1 = "A00-B99" if substr(_DIAG1, 1, 1) == "A" | substr(_DIAG1, 1, 1) == "B"
+(27,248,722 missing values generated)
+
+. replace cap_diag1 = "C00-D48" if substr(_DIAG1, 1, 1) == "C"
+(1,253,542 real changes made)
+
+. replace cap_diag1 = "C00-D48" if substr(_DIAG1, 1, 1) == "D" & real(substr(_DIAG1, 2, 3)) < 500
+(731,518 real changes made)
+
+. replace cap_diag1 = "D50-D89" if substr(_DIAG1, 1, 1) == "D" & real(substr(_DIAG1, 2, 3)) >= 500
+(223,064 real changes made)
+
+. replace cap_diag1 = "E00-E90" if substr(_DIAG1, 1, 1) == "E"
+(666,414 real changes made)
+
+. replace cap_diag1 = "F00-E99" if substr(_DIAG1, 1, 1) == "F"
+(537,481 real changes made)
+
+. replace cap_diag1 = "G00-G99" if substr(_DIAG1, 1, 1) == "G"
+(431,833 real changes made)
+
+. replace cap_diag1 = "H00-H59" if substr(_DIAG1, 1, 1) == "H" & real(substr(_DIAG1, 2, 3)) < 600
+(364,958 real changes made)
+
+. replace cap_diag1 = "H60-H95" if substr(_DIAG1, 1, 1) == "H" & real(substr(_DIAG1, 2, 3)) >= 600
+(120,535 real changes made)
+
+. replace cap_diag1 = "I00-I99" if substr(_DIAG1, 1, 1) == "I"
+(1,835,597 real changes made)
+
+. replace cap_diag1 = "K00-K93" if substr(_DIAG1, 1, 1) == "K"
+(3,070,976 real changes made)
+
+. replace cap_diag1 = "L00-L99" if substr(_DIAG1, 1, 1) == "L"
+(1,317,515 real changes made)
+
+. replace cap_diag1 = "M00-M99" if substr(_DIAG1, 1, 1) == "M"
+(1,108,172 real changes made)
+
+. replace cap_diag1 = "N00-N99" if substr(_DIAG1, 1, 1) == "N"
+(2,154,601 real changes made)
+
+. replace cap_diag1 = "O00-O99" if substr(_DIAG1, 1, 1) == "O"
+(3,925,896 real changes made)
+
+. replace cap_diag1 = "P00-P96" if substr(_DIAG1, 1, 1) == "P"
+(2,034,087 real changes made)
+
+. replace cap_diag1 = "Q00-Q99" if substr(_DIAG1, 1, 1) == "Q"
+(499,408 real changes made)
+
+. replace cap_diag1 = "R00-R99" if substr(_DIAG1, 1, 1) == "R"
+(529,131 real changes made)
+
+. replace cap_diag1 = "S00-T98" if substr(_DIAG1, 1, 1) == "S" | substr(_DIAG1, 1, 1) == "T"
+(2,709,337 real changes made)
+
+. replace cap_diag1 = "V00-Y98" if substr(_DIAG1, 1, 1) == "V" | substr(_DIAG1, 1, 1) == "W" | substr(_DIAG1, 1, 1) == "X" | substr(_DIAG1, 1, 1) == "Y"
+(0 real changes made)
+
+. replace cap_diag1 = "Z00-Z99" if substr(_DIAG1, 1, 1) == "Z"
+(957,538 real changes made)
+
+. replace cap_diag1 = "U00-U99" if substr(_DIAG1, 1, 1) == "U"
+(0 real changes made)
+
+. drop _DIAG1
+
+. 
+. decode DIAG2, gen(_DIAG2)
+
+. gen cap_diag2 = "A00-B99" if substr(_DIAG2, 1, 1) == "A" | substr(_DIAG2, 1, 1) == "B"
+(27,995,452 missing values generated)
+
+. replace cap_diag2 = "C00-D48" if substr(_DIAG2, 1, 1) == "C"
+(0 real changes made)
+
+. replace cap_diag2 = "C00-D48" if substr(_DIAG2, 1, 1) == "D" & real(substr(_DIAG2, 2, 3)) < 500
+(0 real changes made)
+
+. replace cap_diag2 = "D50-D89" if substr(_DIAG2, 1, 1) == "D" & real(substr(_DIAG2, 2, 3)) >= 500
+(0 real changes made)
+
+. replace cap_diag2 = "E00-E90" if substr(_DIAG2, 1, 1) == "E"
+(0 real changes made)
+
+. replace cap_diag2 = "F00-E99" if substr(_DIAG2, 1, 1) == "F"
+(0 real changes made)
+
+. replace cap_diag2 = "G00-G99" if substr(_DIAG2, 1, 1) == "G"
+(0 real changes made)
+
+. replace cap_diag2 = "H00-H59" if substr(_DIAG2, 1, 1) == "H" & real(substr(_DIAG2, 2, 3)) < 600
+(0 real changes made)
+
+. replace cap_diag2 = "H60-H95" if substr(_DIAG2, 1, 1) == "H" & real(substr(_DIAG2, 2, 3)) >= 600
+(0 real changes made)
+
+. replace cap_diag2 = "I00-I99" if substr(_DIAG2, 1, 1) == "I"
+(0 real changes made)
+
+. replace cap_diag2 = "K00-K93" if substr(_DIAG2, 1, 1) == "K"
+(0 real changes made)
+
+. replace cap_diag2 = "L00-L99" if substr(_DIAG2, 1, 1) == "L"
+(0 real changes made)
+
+. replace cap_diag2 = "M00-M99" if substr(_DIAG2, 1, 1) == "M"
+(0 real changes made)
+
+. replace cap_diag2 = "N00-N99" if substr(_DIAG2, 1, 1) == "N"
+(0 real changes made)
+
+. replace cap_diag2 = "O00-O99" if substr(_DIAG2, 1, 1) == "O"
+(0 real changes made)
+
+. replace cap_diag2 = "P00-P96" if substr(_DIAG2, 1, 1) == "P"
+(0 real changes made)
+
+. replace cap_diag2 = "Q00-Q99" if substr(_DIAG2, 1, 1) == "Q"
+(0 real changes made)
+
+. replace cap_diag2 = "R00-R99" if substr(_DIAG2, 1, 1) == "R"
+(0 real changes made)
+
+. replace cap_diag2 = "S00-T98" if substr(_DIAG2, 1, 1) == "S" | substr(_DIAG2, 1, 1) == "T"
+(0 real changes made)
+
+. replace cap_diag2 = "V00-Y98" if substr(_DIAG2, 1, 1) == "V" | substr(_DIAG2, 1, 1) == "W" | substr(_DIAG2, 1, 1) == "X" | substr(_DIAG2, 1, 1) == "Y"
+variable cap_diag2 was str1 now str7
+(2,315,598 real changes made)
+
+. replace cap_diag2 = "Z00-Z99" if substr(_DIAG2, 1, 1) == "Z"
+(0 real changes made)
+
+. replace cap_diag2 = "U00-U99" if substr(_DIAG2, 1, 1) == "U"
+(0 real changes made)
+
+. drop _DIAG2
+
+. 
+. 
+. ********************************************************************************
+. 
+. * Get minimum and maximum EEHH year:
+. sum $eyear_var
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+  ANO_EGRESO | 27,995,452    2010.681    5.248028       2001       2019
+
+. scalar min_ano_eehh = r(min)
+
+. scalar max_ano_eehh = r(max)
+
+. 
+. * Compress, sort, label, sign, and save:
+. compress
+  variable ingreso_too_early was float now byte
+  variable num_ingreso_too_early was float now int
+  (139,977,260 bytes saved)
+
+. sort ID_PACIENTE orden
+
+. label data "EEHH `=min_ano_eehh'-`=max_ano_eehh' en Chile (DEIS/MINSAL), -duplicados/NAs, +nuevas variables"
+
+. notes drop _dta
+  (4 notes dropped)
+
+. notes: Last modified on $S_DATE at $S_TIME
+
+. save "${eehh_original}_NODUPS_NONAS_NEWVARS.dta", replace
+(note: file EEHH_2001_2019_NODUPS_NONAS_NEWVARS.dta not found)
+file EEHH_2001_2019_NODUPS_NONAS_NEWVARS.dta saved
+
+. 
+. * Close log:
+. log close _all
+      name:  EEHH_NEWVARS
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/EEHH_04_NEWVARS_20210909.log
+  log type:  text
+ closed on:   9 Sep 2021, 12:15:05
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------

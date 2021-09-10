@@ -1,0 +1,354 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  EEHH_06a_COLLAPSEBYP
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/EEHH_06a_COLLAPSEBYP_20210909.log
+  log type:  text
+ opened on:   9 Sep 2021, 13:11:51
+
+. 
+. * Preamble:
+. cls
+
+. clear all
+
+. set more off
+
+. 
+. * Switch to destination directory:
+. cd "$dtadir/DEIS"
+C:\Users\nicol\Dropbox\Research Projects\Intergenerational\data\dta\DEIS
+
+. 
+. ********************************************************************************
+. * Load data:
+. use "${eehh_original}_daysvars.dta", clear
+(EEHH 2001-2019 en Chile (DEIS/MINSAL), -duplicados/NAs, +nuevas variables, +dias)
+
+. 
+. * Get minimum and maximum EEHH year:
+. sum $eyear_var
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+  ANO_EGRESO | 27,995,452    2010.681    5.248028       2001       2019
+
+. scalar min_ano_eehh = r(min)
+
+. scalar max_ano_eehh = r(max)
+
+. 
+. * Keep only visits that have been correctly matched to births database:
+. keep if mrg_NAC2EEHH_fixed == 3
+(22,410,649 observations deleted)
+
+. 
+. * Keep individuals without any hospital admission before birth:
+. keep if num_ingreso_too_early == 0
+(15,247 observations deleted)
+
+. 
+. /* what to do with overlapping visits? */
+. 
+. ********************************************************************************
+. * Store variable labels:
+. foreach var of varlist days_* nvsts_* olap {
+  2.         local vlbl_`var' : variable label `var'
+  3. }
+
+. 
+. ********************************************************************************
+. * COLLAPSE LONG:
+. * Collapse by patient and public/private hospital:
+. collapse (sum) days_* nvsts_* olap, by(ID_PACIENTE fecha_nac_cons birthday?? fecha_month?? public_hosp)
+
+. 
+. * Relabel variables:
+. foreach var of varlist days_* nvsts_* olap {
+  2.         label var `var' "`vlbl_`var''"
+  3. }
+
+. 
+. 
+. * Compress, label, sign, and save:
+. compress
+  variable days_y01 was double now int
+  variable days_y02 was double now int
+  variable days_y03 was double now int
+  variable days_y04 was double now int
+  variable days_y05 was double now int
+  variable days_y06 was double now int
+  variable days_y07 was double now int
+  variable days_y08 was double now int
+  variable days_y09 was double now int
+  variable days_y10 was double now int
+  variable days_y11 was double now int
+  variable days_y12 was double now int
+  variable days_y13 was double now int
+  variable days_y14 was double now int
+  variable days_y15 was double now int
+  variable days_y16 was double now int
+  variable days_y17 was double now int
+  variable days_y18 was double now int
+  variable days_y19 was double now int
+  variable days_y20 was double now int
+  variable days_y21 was double now int
+  variable days_y22 was double now int
+  variable days_y23 was double now int
+  variable days_y24 was double now int
+  variable days_y25 was double now int
+  variable days_y26 was double now int
+  variable days_y27 was double now int
+  variable days_m01 was double now byte
+  variable days_m02 was double now int
+  variable days_m03 was double now int
+  variable days_m04 was double now int
+  variable days_m05 was double now byte
+  variable days_m06 was double now byte
+  variable days_m07 was double now byte
+  variable days_m08 was double now int
+  variable days_m09 was double now byte
+  variable days_m10 was double now byte
+  variable days_m11 was double now byte
+  variable days_m12 was double now byte
+  variable days_s00 was double now int
+  variable days_s05 was double now int
+  variable days_s10 was double now int
+  variable days_s15 was double now int
+  variable days_s20 was double now int
+  variable days_s25 was double now int
+  variable days_s30 was double now int
+  variable nvsts_y01 was double now byte
+  variable nvsts_y02 was double now int
+  variable nvsts_y03 was double now int
+  variable nvsts_y04 was double now int
+  variable nvsts_y05 was double now int
+  variable nvsts_y06 was double now int
+  variable nvsts_y07 was double now int
+  variable nvsts_y08 was double now int
+  variable nvsts_y09 was double now int
+  variable nvsts_y10 was double now byte
+  variable nvsts_y11 was double now int
+  variable nvsts_y12 was double now int
+  variable nvsts_y13 was double now byte
+  variable nvsts_y14 was double now byte
+  variable nvsts_y15 was double now int
+  variable nvsts_y16 was double now int
+  variable nvsts_y17 was double now int
+  variable nvsts_y18 was double now int
+  variable nvsts_y19 was double now byte
+  variable nvsts_y20 was double now byte
+  variable nvsts_y21 was double now byte
+  variable nvsts_y22 was double now byte
+  variable nvsts_y23 was double now byte
+  variable nvsts_y24 was double now byte
+  variable nvsts_y25 was double now byte
+  variable nvsts_y26 was double now byte
+  variable nvsts_y27 was double now byte
+  variable nvsts_m01 was double now byte
+  variable nvsts_m02 was double now byte
+  variable nvsts_m03 was double now byte
+  variable nvsts_m04 was double now byte
+  variable nvsts_m05 was double now byte
+  variable nvsts_m06 was double now byte
+  variable nvsts_m07 was double now byte
+  variable nvsts_m08 was double now byte
+  variable nvsts_m09 was double now byte
+  variable nvsts_m10 was double now byte
+  variable nvsts_m11 was double now byte
+  variable nvsts_m12 was double now byte
+  variable nvsts_s00 was double now byte
+  variable nvsts_s05 was double now byte
+  variable nvsts_s10 was double now byte
+  variable nvsts_s15 was double now byte
+  variable nvsts_s20 was double now byte
+  variable nvsts_s25 was double now byte
+  variable nvsts_s30 was double now byte
+  variable olap was double now byte
+  (1,855,215,612 bytes saved)
+
+. label data "Days hospitalized `=min_ano_eehh'-`=max_ano_eehh' by public/private hospital (long, from EEHH database)"
+note: label truncated to 80 characters
+
+. notes drop _dta
+  (1 note dropped)
+
+. notes: Last modified on $S_DATE at $S_TIME
+
+. save hospdays_by_public_long.dta, replace
+file hospdays_by_public_long.dta saved
+
+. 
+. ********************************************************************************
+. * RESHAPE WIDE:
+. gen hosptype = "priv" if public_hosp == 0
+(2,206,952 missing values generated)
+
+. replace hosptype = "publ" if public_hosp == 1
+(2,206,952 real changes made)
+
+. drop public_hosp
+
+. 
+. * Get variable names ready for reshape:
+. foreach var of varlist days_* nvsts_* olap {
+  2.         rename `var' `var'_
+  3. }
+
+. 
+. * Apply reshape:
+. reshape wide days_* nvsts_* olap_, i(ID_PACIENTE) j(hosptype) string
+(note: j = priv publ)
+
+Data                               long   ->   wide
+-----------------------------------------------------------------------------
+Number of obs.                  3.1e+06   -> 2.9e+06
+Number of variables                 135   ->     227
+j variable (2 values)          hosptype   ->   (dropped)
+xij variables:
+                              days_y01_   ->   days_y01_priv days_y01_publ
+                              days_y02_   ->   days_y02_priv days_y02_publ
+                              days_y03_   ->   days_y03_priv days_y03_publ
+                              days_y04_   ->   days_y04_priv days_y04_publ
+                              days_y05_   ->   days_y05_priv days_y05_publ
+                              days_y06_   ->   days_y06_priv days_y06_publ
+                              days_y07_   ->   days_y07_priv days_y07_publ
+                              days_y08_   ->   days_y08_priv days_y08_publ
+                              days_y09_   ->   days_y09_priv days_y09_publ
+                              days_y10_   ->   days_y10_priv days_y10_publ
+                              days_y11_   ->   days_y11_priv days_y11_publ
+                              days_y12_   ->   days_y12_priv days_y12_publ
+                              days_y13_   ->   days_y13_priv days_y13_publ
+                              days_y14_   ->   days_y14_priv days_y14_publ
+                              days_y15_   ->   days_y15_priv days_y15_publ
+                              days_y16_   ->   days_y16_priv days_y16_publ
+                              days_y17_   ->   days_y17_priv days_y17_publ
+                              days_y18_   ->   days_y18_priv days_y18_publ
+                              days_y19_   ->   days_y19_priv days_y19_publ
+                              days_y20_   ->   days_y20_priv days_y20_publ
+                              days_y21_   ->   days_y21_priv days_y21_publ
+                              days_y22_   ->   days_y22_priv days_y22_publ
+                              days_y23_   ->   days_y23_priv days_y23_publ
+                              days_y24_   ->   days_y24_priv days_y24_publ
+                              days_y25_   ->   days_y25_priv days_y25_publ
+                              days_y26_   ->   days_y26_priv days_y26_publ
+                              days_y27_   ->   days_y27_priv days_y27_publ
+                              days_m01_   ->   days_m01_priv days_m01_publ
+                              days_m02_   ->   days_m02_priv days_m02_publ
+                              days_m03_   ->   days_m03_priv days_m03_publ
+                              days_m04_   ->   days_m04_priv days_m04_publ
+                              days_m05_   ->   days_m05_priv days_m05_publ
+                              days_m06_   ->   days_m06_priv days_m06_publ
+                              days_m07_   ->   days_m07_priv days_m07_publ
+                              days_m08_   ->   days_m08_priv days_m08_publ
+                              days_m09_   ->   days_m09_priv days_m09_publ
+                              days_m10_   ->   days_m10_priv days_m10_publ
+                              days_m11_   ->   days_m11_priv days_m11_publ
+                              days_m12_   ->   days_m12_priv days_m12_publ
+                              days_s00_   ->   days_s00_priv days_s00_publ
+                              days_s05_   ->   days_s05_priv days_s05_publ
+                              days_s10_   ->   days_s10_priv days_s10_publ
+                              days_s15_   ->   days_s15_priv days_s15_publ
+                              days_s20_   ->   days_s20_priv days_s20_publ
+                              days_s25_   ->   days_s25_priv days_s25_publ
+                              days_s30_   ->   days_s30_priv days_s30_publ
+                             nvsts_y01_   ->   nvsts_y01_priv nvsts_y01_publ
+                             nvsts_y02_   ->   nvsts_y02_priv nvsts_y02_publ
+                             nvsts_y03_   ->   nvsts_y03_priv nvsts_y03_publ
+                             nvsts_y04_   ->   nvsts_y04_priv nvsts_y04_publ
+                             nvsts_y05_   ->   nvsts_y05_priv nvsts_y05_publ
+                             nvsts_y06_   ->   nvsts_y06_priv nvsts_y06_publ
+                             nvsts_y07_   ->   nvsts_y07_priv nvsts_y07_publ
+                             nvsts_y08_   ->   nvsts_y08_priv nvsts_y08_publ
+                             nvsts_y09_   ->   nvsts_y09_priv nvsts_y09_publ
+                             nvsts_y10_   ->   nvsts_y10_priv nvsts_y10_publ
+                             nvsts_y11_   ->   nvsts_y11_priv nvsts_y11_publ
+                             nvsts_y12_   ->   nvsts_y12_priv nvsts_y12_publ
+                             nvsts_y13_   ->   nvsts_y13_priv nvsts_y13_publ
+                             nvsts_y14_   ->   nvsts_y14_priv nvsts_y14_publ
+                             nvsts_y15_   ->   nvsts_y15_priv nvsts_y15_publ
+                             nvsts_y16_   ->   nvsts_y16_priv nvsts_y16_publ
+                             nvsts_y17_   ->   nvsts_y17_priv nvsts_y17_publ
+                             nvsts_y18_   ->   nvsts_y18_priv nvsts_y18_publ
+                             nvsts_y19_   ->   nvsts_y19_priv nvsts_y19_publ
+                             nvsts_y20_   ->   nvsts_y20_priv nvsts_y20_publ
+                             nvsts_y21_   ->   nvsts_y21_priv nvsts_y21_publ
+                             nvsts_y22_   ->   nvsts_y22_priv nvsts_y22_publ
+                             nvsts_y23_   ->   nvsts_y23_priv nvsts_y23_publ
+                             nvsts_y24_   ->   nvsts_y24_priv nvsts_y24_publ
+                             nvsts_y25_   ->   nvsts_y25_priv nvsts_y25_publ
+                             nvsts_y26_   ->   nvsts_y26_priv nvsts_y26_publ
+                             nvsts_y27_   ->   nvsts_y27_priv nvsts_y27_publ
+                             nvsts_m01_   ->   nvsts_m01_priv nvsts_m01_publ
+                             nvsts_m02_   ->   nvsts_m02_priv nvsts_m02_publ
+                             nvsts_m03_   ->   nvsts_m03_priv nvsts_m03_publ
+                             nvsts_m04_   ->   nvsts_m04_priv nvsts_m04_publ
+                             nvsts_m05_   ->   nvsts_m05_priv nvsts_m05_publ
+                             nvsts_m06_   ->   nvsts_m06_priv nvsts_m06_publ
+                             nvsts_m07_   ->   nvsts_m07_priv nvsts_m07_publ
+                             nvsts_m08_   ->   nvsts_m08_priv nvsts_m08_publ
+                             nvsts_m09_   ->   nvsts_m09_priv nvsts_m09_publ
+                             nvsts_m10_   ->   nvsts_m10_priv nvsts_m10_publ
+                             nvsts_m11_   ->   nvsts_m11_priv nvsts_m11_publ
+                             nvsts_m12_   ->   nvsts_m12_priv nvsts_m12_publ
+                             nvsts_s00_   ->   nvsts_s00_priv nvsts_s00_publ
+                             nvsts_s05_   ->   nvsts_s05_priv nvsts_s05_publ
+                             nvsts_s10_   ->   nvsts_s10_priv nvsts_s10_publ
+                             nvsts_s15_   ->   nvsts_s15_priv nvsts_s15_publ
+                             nvsts_s20_   ->   nvsts_s20_priv nvsts_s20_publ
+                             nvsts_s25_   ->   nvsts_s25_priv nvsts_s25_publ
+                             nvsts_s30_   ->   nvsts_s30_priv nvsts_s30_publ
+                                  olap_   ->   olap_priv olap_publ
+-----------------------------------------------------------------------------
+
+. 
+. * Reapply labels:
+. foreach var of varlist *_priv *_publ {
+  2.         local suffix = substr("`var'", -5, 5)
+  3.         local varroot = subinstr("`var'", "`suffix'", "", .)
+  4.         
+.         if "`suffix'" == "_priv" {
+  5.                 label var `var' "`vlbl_`varroot'': Private"
+  6.         }
+  7.         else if "`suffix'" == "_publ" {
+  8.                 label var `var' "`vlbl_`varroot'': Public"
+  9.         }
+ 10. }
+
+. 
+. * Compress, label, sign, and save:
+. compress
+  variable days_m02_priv was int now byte
+  variable days_m03_priv was int now byte
+  variable days_m04_priv was int now byte
+  variable days_m08_priv was int now byte
+  variable nvsts_y02_priv was int now byte
+  variable nvsts_y03_priv was int now byte
+  variable nvsts_y04_priv was int now byte
+  variable nvsts_y05_priv was int now byte
+  variable nvsts_y06_priv was int now byte
+  variable nvsts_y07_priv was int now byte
+  variable nvsts_y08_priv was int now byte
+  variable nvsts_y09_priv was int now byte
+  variable nvsts_y12_priv was int now byte
+  variable nvsts_y17_publ was int now byte
+  variable nvsts_y18_publ was int now byte
+  (43,621,935 bytes saved)
+
+. label data "Days hospitalized `=min_ano_eehh'-`=max_ano_eehh' by public/private hospital (wide, from EEHH database)"
+note: label truncated to 80 characters
+
+. notes drop _dta
+  (1 note dropped)
+
+. notes: Last modified on $S_DATE at $S_TIME
+
+. save hospdays_by_public_wide.dta, replace
+file hospdays_by_public_wide.dta saved
+
+. 
+. * Close log:
+. log close _all
+      name:  EEHH_06a_COLLAPSEBYP
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/EEHH_06a_COLLAPSEBYP_20210909.log
+  log type:  text
+ closed on:   9 Sep 2021, 13:21:52
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,202 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  MOTHER_BIRTHDATA
+       log:  C:\Users\nicol\Dropbox\Research Projects\Intergenerational/statalogs/MOTHER_BIRTHDATA_20210908.log
+  log type:  text
+ opened on:   8 Sep 2021, 12:01:01
+
+. 
+. clear all
+
+. set more off
+
+. 
+. * Preamble:
+. cls
+
+. clear all
+
+. set more off
+
+. 
+. * Switch to destination directory:
+. cd "$dtadir/DEIS"
+C:\Users\nicol\Dropbox\Research Projects\Intergenerational\data\dta\DEIS
+
+. 
+. * Load full birth data (including duplicates and NAs):
+. use "${nac_original}_NOGLOSAS.dta", clear
+(Nacimientos 1992-2018 en Chile (DEIS) / Sin Glosas)
+
+. 
+. * Save database minimum and maximum year:
+. sum $byear_var
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+     ANO_NAC |  6,679,532    2004.639    7.842644       1992       2018
+
+. scalar min_ano_nac = r(min)
+
+. scalar max_ano_nac = r(max)
+
+. 
+. * Get list of unique mother IDs, and save them as ID_RECIEN_NACIDO:
+. keep ID_MADRE
+
+. drop if ID_MADRE == "NA" | ID_MADRE == ""
+(2,471,784 observations deleted)
+
+. duplicates drop ID_MADRE, force
+
+Duplicates in terms of ID_MADRE
+
+(1,520,238 observations deleted)
+
+. rename ID_MADRE ID_RECIEN_NACIDO
+
+. label var ID_RECIEN_NACIDO "" // remove variable label
+
+. save "ID_RECIEN_NACIDO_of_unique_ID_MADRE.dta", replace
+file ID_RECIEN_NACIDO_of_unique_ID_MADRE.dta saved
+
+. 
+. * Load full birth data, excluding ID duplicates and NAs:
+. use "${nac_original}_NOGLOSAS_NODUPS_NONAS.dta", clear
+(Nacimientos 1992-2018 en Chile (DEIS/MINSAL), Sin Duplicados, Sin NAs)
+
+. 
+. * Merge in list of unique mother ID's:
+. merge 1:1 ID_RECIEN_NACIDO using "ID_RECIEN_NACIDO_of_unique_ID_MADRE.dta", keep(match) nogen
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                           340,344  
+    -----------------------------------------
+
+. 
+. * Rename father variables to grandfather:
+. foreach var of varlist *_PADRE {
+  2.         local varlbl : variable label `var'
+  3.         local nvar = subinstr("`var'", "_PADRE", "_ABUELO", .)
+  4.         rename `var' `nvar'
+  5.         label var `nvar' "Abuelo: `varlbl'"
+  6. }
+note: label truncated to 80 characters
+note: label truncated to 80 characters
+
+. 
+. * Rename mother variables to grandmother:
+. foreach var of varlist *_MADRE {
+  2.         local varlbl : variable label `var'
+  3.         local nvar = subinstr("`var'", "_MADRE", "_ABUELA", .)
+  4.         rename `var' `nvar'
+  5.         label var `nvar' "Abuela: `varlbl'"
+  6. }
+note: label truncated to 80 characters
+note: label truncated to 80 characters
+note: label truncated to 80 characters
+note: label truncated to 80 characters
+
+. 
+. ds *_ABUELO *_ABUELA ID_RECIEN_NACIDO, not
+SEXO          MES_NAC       FECHA_NACI~F  TIPO_ATEN     SEMANAS       TALLA         REGION_RES~A  URBANO_RURAL
+DIA_NAC       ANO_NAC       TIPO_PARTO    PARTO_LOCAL   PESO          COMUNA_RES~A  SERV_RES
+
+. foreach var of varlist `r(varlist)' {
+  2.         local varlbl : variable label `var'
+  3.         rename `var' `var'_MADRE
+  4.         label var `var'_MADRE "Madre: `varlbl'"
+  5. }
+note: label truncated to 80 characters
+
+. 
+. rename ID_RECIEN_NACIDO ID_MADRE
+
+. label var ID_MADRE "Identificador único y anónimo de la madre del recién nacido vivo"
+
+. 
+. 
+. * Compress, label, sign, and save mother birth data:
+. compress
+  variable PAIS_ORIGEN_ABUELA was str41 now str1
+  (13,613,760 bytes saved)
+
+. label data "Mother birth data (based on DEIS's Nacimientos `=min_ano_nac'-`=max_ano_nac')"
+
+. notes drop _dta
+  (3 notes dropped)
+
+. note: Last modified by: $id_user_full ($id_user_email)
+
+. note: Last modification timestamp: $S_DATE at $S_TIME
+
+. save "MOTHER_BIRTHDATA.dta", replace
+file MOTHER_BIRTHDATA.dta saved
+
+. 
+. ********************************************************************************
+. //// Merge mother's birth data back to main dataset ////
+> 
+. * Load full birth data (not including duplicates and NAs):
+. use "${nac_original}_NOGLOSAS_NODUPS_NONAS.dta", clear
+(Nacimientos 1992-2018 en Chile (DEIS/MINSAL), Sin Duplicados, Sin NAs)
+
+. 
+. * Perform merge:
+. merge m:1 ID_MADRE using "MOTHER_BIRTHDATA.dta", gen(mrg_mbdata2main)
+(label SEXO already defined)
+(label TIPO_PARTO already defined)
+(label TIPO_ATEN already defined)
+(label PARTO_LOCAL already defined)
+(label NIVEL_X already defined)
+(label EST_CIV_MADRE already defined)
+(label NACIONALIDAD_MADRE already defined)
+(label URBANO_RURAL already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label REGION_RESIDENCIA already defined)
+(label SERV_RES already defined)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                     6,182,627
+        from master                 6,182,624  (mrg_mbdata2main==1)
+        from using                          3  (mrg_mbdata2main==2)
+
+    matched                           435,014  (mrg_mbdata2main==3)
+    -----------------------------------------
+
+. 
+. * Drop mothers of duplicates:
+. drop if mrg_mbdata2main == 2
+(3 observations deleted)
+
+. 
+. * label merge variable:
+. label var mrg_mbdata2main "Merge m:1 ID_MADRE using MOTHER_BIRTHDATA.dta"
+
+. 
+. * Compress, label, sign, and save:
+. compress
+  (0 bytes saved)
+
+. label data "Nacimientos `=min_ano_nac'-`=max_ano_nac' en Chile (DEIS) / Sin Glosas / Con data madre"
+
+. notes drop _dta
+  (4 notes dropped)
+
+. note: Last modified by: $id_user_full ($id_user_email)
+
+. note: Last modification timestamp: $S_DATE at $S_TIME
+
+. save "${nac_original}_NOGLOSAS_NODUPS_NONAS_WITH_MBDATA.dta", replace
+file NAC_1992_2018_NOGLOSAS_NODUPS_NONAS_WITH_MBDATA.dta saved
+
+. 
+. * Close log
+. log close _all
+      name:  MOTHER_BIRTHDATA
+       log:  C:\Users\nicol\Dropbox\Research Projects\Intergenerational/statalogs/MOTHER_BIRTHDATA_20210908.log
+  log type:  text
+ closed on:   8 Sep 2021, 12:01:51
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,759 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  EEHH_05_DAYSVARS
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/EEHH_05_DAYSVARS_20210909.log
+  log type:  text
+ opened on:   9 Sep 2021, 12:17:57
+
+. 
+. * Preamble:
+. cls
+
+. clear all
+
+. set more off
+
+. 
+. * Switch to source directory:
+. cd "$dtadir/DEIS"
+C:\Users\nicol\Dropbox\Research Projects\Intergenerational\data\dta\DEIS
+
+. 
+. * Load data:
+. use "${eehh_original}_NODUPS_NONAS_NEWVARS.dta", clear
+(EEHH 2001-2019 en Chile (DEIS/MINSAL), -duplicados/NAs, +nuevas variables)
+
+. 
+. ********************************************************************************
+. * Extract some important scalars from database:
+. sum ANO_EGRESO
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+  ANO_EGRESO | 27,995,452    2010.681    5.248028       2001       2019
+
+. scalar dbyear1 = r(min)
+
+. scalar dbyearT = r(max)
+
+. 
+. * Max life year of analysis:
+. gen year_nac_cons = year(fecha_nac_cons)
+(2,359,045 missing values generated)
+
+. sum year_nac_cons if mrg_NAC2EEHH_fixed == 3
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+year_nac_c~s |  5,584,802    2003.153    7.461705       1992       2018
+
+. scalar max_window = dbyearT - r(min)
+
+. 
+. ********************************************************************************
+. ******** Number and days of hospitalization for years 1-15 after birth *********
+. 
+. ** Create variables for year 1
+. * Find date of first birthday:
+. display "Find date of first birthday:"
+Find date of first birthday:
+
+. gen int birthday01 = mdy(month(fecha_nac_cons), day(fecha_nac_cons), year(fecha_nac_cons) + 1)
+(2,373,050 missing values generated)
+
+. replace birthday01 = mdy(2, 28, year(fecha_nac_cons) + 1) if day(fecha_nac_cons) == 29 & month(fecha_nac_cons) == 2 & birthday01 == .
+(14,005 real changes made)
+
+. format birthday01 %td
+
+. label var birthday01 "Date of birthday 1 (w/ leap year fix)"
+
+. 
+. * Number of visits starting during year 1:
+. display "Number of visits starting during year 1:"
+Number of visits starting during year 1:
+
+. gen byte nvsts_y01 = fecha_ingreso >= fecha_nac_cons & fecha_ingreso < birthday01 
+
+. label var nvsts_y01 "Number of hospital visits, starting during year 1 after birth"
+
+. 
+. * Do not count visits if any of the critical dates are missing:
+. display "Do not count visits if any of the critical dates are missing:"
+Do not count visits if any of the critical dates are missing:
+
+. replace nvsts_y01 = . if birthday01 == . | fecha_ingreso == .
+(2,406,311 real changes made, 2,406,311 to missing)
+
+. 
+. * Do not count visits that begin before birth:
+. display "Do not count visits that begin before birth:"
+Do not count visits that begin before birth:
+
+. replace nvsts_y01 = . if fecha_ingreso < fecha_nac_cons
+(13,286 real changes made, 13,286 to missing)
+
+. 
+. /*
+> * Do not count visits for those born too early and year 1 is not fully covered by EEHH database:
+> display "Do not count visits for those born too early and year 1 is not fully covered by EEHH database:"
+> replace nvsts_y01 = . if year(fecha_nac_cons) <= dbyear1 - 1 
+> 
+> * Do not count visits for those born too late and haven't lived year 1 fully:
+> display "Do not count visits for those born too later and haven't lived year 1 fully:"
+> replace nvsts_y01 = . if birthday01 > mdy(12, 31, dbyearT)
+> */
+. 
+. * Days admitted in hospital during year 1:
+. display "Days admitted in hospital during year 1:"
+Days admitted in hospital during year 1:
+
+. gen int days_y01 = max(birthday01 - fecha_ingreso, 0) - max(birthday01 - FECHA_EGRESO, 0) if nvsts_y01 != .
+(2,419,597 missing values generated)
+
+. label var days_y01 "Days spent hospitalized, during year 1 after birth"
+
+. 
+. ** Create variables for years 2 to the maximum year range:
+. forval y = 2/`=max_window' {
+  2.         local yy = string(`y', "%02.0f")
+  3.         local xx = string(`=`y'-1', "%02.0f")
+  4.         
+.         * Find date of birthday `y':
+.         display "Find date of birthday `y':"
+  5.         gen int birthday`yy' = mdy(month(fecha_nac_cons), day(fecha_nac_cons), year(fecha_nac_cons) + `y')
+  6.         replace birthday`yy' = mdy(2, 28, year(fecha_nac_cons) + `y') if day(fecha_nac_cons) == 29 & month(fecha_nac_cons) == 2 & birthday`yy' == .
+  7.         format birthday`yy' %td
+  8.         label var birthday`yy' "Date of birthday `y' (w/ leap year fix)"
+  9.         
+.         * Calculate running sum of days:
+.         display "Calculate running sum of days:"
+ 10.         egen int aux_y`xx' = rowtotal(days_y??)
+ 11.         
+.         * Number of visits during year `y':
+.         display "Number of visits during year `y':"
+ 12.         gen byte nvsts_y`yy' = fecha_ingreso >= birthday`xx' & fecha_ingreso < birthday`yy'
+ 13.         label var nvsts_y`yy' "Number of hospital visits, starting during year `y' after birth"
+ 14.         
+.         * Do not count visits if any of the critical dates are missing:
+.         display "Do not count visits if any of the critical dates are missing:"
+ 15.         replace nvsts_y`yy' = . if birthday`yy' == . | fecha_ingreso == .
+ 16. 
+.         * Do not count visits that begin before birth:
+.         display "Do not count visits that begin before birth:"
+ 17.         replace nvsts_y`yy' = . if fecha_ingreso < fecha_nac_cons
+ 18.         
+.         /*
+>         * Do not count visits for those born too early and year `y' is not fully covered by EEHH database:
+>         display "Do not count visits for those born too early and year `y' is not fully covered by EEHH database:"
+>         replace nvsts_y`yy' = . if year(fecha_nac_cons) <= dbyear1 - `y'
+>         
+>         * Do not count visits for those born too late and haven't lived year `y' fully:
+>         display "Do not count visits for those born too later and haven't lived year `y' fully:"
+>         replace nvsts_y`yy' = . if birthday`yy' > mdy(12, 31, dbyearT)
+>         */
+.         
+.         * Days spent in hospital during year `y':
+.         display "Days spent in hospital during year `y':"
+ 19.         gen int days_y`yy' = max(birthday`yy' - fecha_ingreso, 0) - max(birthday`yy' - FECHA_EGRESO, 0) - aux_y`xx' if nvsts_y`yy' != .
+ 20.         label var days_y`yy' "Days spent hospitalized, during year `y' after birth"
+ 21. }
+Find date of birthday 2:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 2:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 2:
+(2,419,597 missing values generated)
+Find date of birthday 3:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 3:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 3:
+(2,419,597 missing values generated)
+Find date of birthday 4:
+(2,359,045 missing values generated)
+(0 real changes made)
+Calculate running sum of days:
+Number of visits during year 4:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 4:
+(2,419,597 missing values generated)
+Find date of birthday 5:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 5:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 5:
+(2,419,597 missing values generated)
+Find date of birthday 6:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 6:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 6:
+(2,419,597 missing values generated)
+Find date of birthday 7:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 7:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 7:
+(2,419,597 missing values generated)
+Find date of birthday 8:
+(2,359,045 missing values generated)
+(0 real changes made)
+Calculate running sum of days:
+Number of visits during year 8:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 8:
+(2,419,597 missing values generated)
+Find date of birthday 9:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 9:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 9:
+(2,419,597 missing values generated)
+Find date of birthday 10:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 10:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 10:
+(2,419,597 missing values generated)
+Find date of birthday 11:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 11:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 11:
+(2,419,597 missing values generated)
+Find date of birthday 12:
+(2,359,045 missing values generated)
+(0 real changes made)
+Calculate running sum of days:
+Number of visits during year 12:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 12:
+(2,419,597 missing values generated)
+Find date of birthday 13:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 13:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 13:
+(2,419,597 missing values generated)
+Find date of birthday 14:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 14:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 14:
+(2,419,597 missing values generated)
+Find date of birthday 15:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 15:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 15:
+(2,419,597 missing values generated)
+Find date of birthday 16:
+(2,359,045 missing values generated)
+(0 real changes made)
+Calculate running sum of days:
+Number of visits during year 16:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 16:
+(2,419,597 missing values generated)
+Find date of birthday 17:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 17:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 17:
+(2,419,597 missing values generated)
+Find date of birthday 18:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 18:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 18:
+(2,419,597 missing values generated)
+Find date of birthday 19:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 19:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 19:
+(2,419,597 missing values generated)
+Find date of birthday 20:
+(2,359,045 missing values generated)
+(0 real changes made)
+Calculate running sum of days:
+Number of visits during year 20:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 20:
+(2,419,597 missing values generated)
+Find date of birthday 21:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 21:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 21:
+(2,419,597 missing values generated)
+Find date of birthday 22:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 22:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 22:
+(2,419,597 missing values generated)
+Find date of birthday 23:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 23:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 23:
+(2,419,597 missing values generated)
+Find date of birthday 24:
+(2,359,045 missing values generated)
+(0 real changes made)
+Calculate running sum of days:
+Number of visits during year 24:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 24:
+(2,419,597 missing values generated)
+Find date of birthday 25:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 25:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 25:
+(2,419,597 missing values generated)
+Find date of birthday 26:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 26:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 26:
+(2,419,597 missing values generated)
+Find date of birthday 27:
+(2,373,050 missing values generated)
+(14,005 real changes made)
+Calculate running sum of days:
+Number of visits during year 27:
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during year 27:
+(2,419,597 missing values generated)
+
+. 
+. ********************************************************************************
+. ******* Number and days of hospitalization for months 1-12 after birth *********
+. 
+. * Create variables for month 1:
+. display "Create variables for month 1:"
+Create variables for month 1:
+
+. gen int fecha_month01 = fecha_nac_cons + round(1*365/12)
+(2,359,045 missing values generated)
+
+. format fecha_month01 %td
+
+. label var fecha_month01 "Date of month 1"
+
+. 
+. * Number of visits starting during month 1:
+. display "Number of visits starting during month 1:"
+Number of visits starting during month 1:
+
+. gen byte nvsts_m01 = fecha_ingreso >= fecha_nac_cons & fecha_ingreso < fecha_month01 
+
+. label var nvsts_m01 "Number of hospital visits, starting during month 1 after birth"
+
+. 
+. * Do not count visits if any of the critical dates are missing:
+. display "Do not count visits if any of the critical dates are missing:"
+Do not count visits if any of the critical dates are missing:
+
+. replace nvsts_m01 = . if fecha_month01 == . | fecha_ingreso == .
+(2,406,311 real changes made, 2,406,311 to missing)
+
+. 
+. * Do not count visits that begin before birth:
+. display "Do not count visits that begin before birth:"
+Do not count visits that begin before birth:
+
+. replace nvsts_m01 = . if fecha_ingreso < fecha_nac_cons
+(13,286 real changes made, 13,286 to missing)
+
+. 
+. /*
+> * Do not count visits for those born too early and month 1 is not fully covered by EEHH database:
+> display "Do not count visits for those born too early and month 1 is not fully covered by EEHH database:"
+> replace nvsts_m01 = . if mofd(fecha_nac_cons) <= mofd(mdy(1, 1, dbyear1)) - 1
+> 
+> * Do not count visits for those born too late and haven't lived month 1 fully:
+> display "Do not count visits for those born too late and haven't lived month 1 fully:"
+> replace nvsts_m01 = . if fecha_month01 > mdy(12, 31, dbyearT)
+> */
+. 
+. * Days admitted in hospital during month 1:
+. display "Days admitted in hospital during month 1:"
+Days admitted in hospital during month 1:
+
+. gen int days_m01 = max(fecha_month01 - fecha_ingreso, 0) - max(fecha_month01 - FECHA_EGRESO, 0) if nvsts_m01 != .
+(2,419,597 missing values generated)
+
+. label var days_m01 "Days spent hospitalized, during month 1 after birth"
+
+. 
+. * Create variables for months 2 to 12:
+. forval m = 2/12 {
+  2.         local mm = string(`m', "%02.0f")
+  3.         local ll = string(`=`m'-1', "%02.0f")
+  4.         
+.         * Find date of month `m':
+.         display "Find date of month `m':"
+  5.         gen int fecha_month`mm' = fecha_nac_cons + round(`m'*365/12)
+  6.         format fecha_month`mm' %td
+  7.         label var fecha_month`mm' "Date of month `m'"
+  8.         
+.         * Running sum of days:
+.         display "Find date of month `m':"
+  9.         egen int aux_m`ll' = rowtotal(days_m??)
+ 10.         
+.         * Number of visits during month `y':
+.         display "Number of visits during month `y':"
+ 11.         gen byte nvsts_m`mm' = fecha_ingreso >= fecha_month`ll' & fecha_ingreso < fecha_month`mm' 
+ 12.         label var nvsts_m`mm' "Number of hospital visits, month `m' after birth"
+ 13.         
+.         * Do not count visits if any of the critical dates are missing:
+.         display "Do not count visits if any of the critical dates are missing:"
+ 14.         replace nvsts_m`mm' = . if fecha_month`mm' == . | fecha_ingreso == .
+ 15.         
+.         * Do not count visits that begin before birth:
+.         display "Do not count visits that begin before birth:"
+ 16.         replace nvsts_m`mm' = . if fecha_ingreso < fecha_nac_cons
+ 17.         
+.         /*
+>         * Do not count visits for those born too early and month `m' is not fully covered by EEHH database:
+>         display "Do not count visits for those born too early and month `m' is not fully covered by EEHH database:"
+>         replace nvsts_m`mm' = . if mofd(fecha_nac_cons) <= mofd(mdy(1, 1, dbyear1)) - `m'
+>         
+>         * Do not count visits for those born too late and haven't lived month `m' fully:
+>         display "Do not count visits for those born too late and haven't lived month `m' fully:"
+>         replace nvsts_m`mm' = . if fecha_month`mm' > mdy(12, 31, dbyearT)
+>         */
+.         
+.         * Days spent in hospital during month `m':
+.         display "Days spent in hospital during month `m':"
+ 18.         gen int days_m`mm' = max(fecha_month`mm' - fecha_ingreso, 0) - max(fecha_month`mm' - FECHA_EGRESO, 0) - aux_m`ll' if nvsts_m`mm' != .
+ 19.         label var days_m`mm' "Days spent hospitalized, during month `m' after birth"
+ 20. }
+Find date of month 2:
+(2,359,045 missing values generated)
+Find date of month 2:
+Number of visits during month :
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during month 2:
+(2,419,597 missing values generated)
+Find date of month 3:
+(2,359,045 missing values generated)
+Find date of month 3:
+Number of visits during month :
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during month 3:
+(2,419,597 missing values generated)
+Find date of month 4:
+(2,359,045 missing values generated)
+Find date of month 4:
+Number of visits during month :
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during month 4:
+(2,419,597 missing values generated)
+Find date of month 5:
+(2,359,045 missing values generated)
+Find date of month 5:
+Number of visits during month :
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during month 5:
+(2,419,597 missing values generated)
+Find date of month 6:
+(2,359,045 missing values generated)
+Find date of month 6:
+Number of visits during month :
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during month 6:
+(2,419,597 missing values generated)
+Find date of month 7:
+(2,359,045 missing values generated)
+Find date of month 7:
+Number of visits during month :
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during month 7:
+(2,419,597 missing values generated)
+Find date of month 8:
+(2,359,045 missing values generated)
+Find date of month 8:
+Number of visits during month :
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during month 8:
+(2,419,597 missing values generated)
+Find date of month 9:
+(2,359,045 missing values generated)
+Find date of month 9:
+Number of visits during month :
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during month 9:
+(2,419,597 missing values generated)
+Find date of month 10:
+(2,359,045 missing values generated)
+Find date of month 10:
+Number of visits during month :
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during month 10:
+(2,419,597 missing values generated)
+Find date of month 11:
+(2,359,045 missing values generated)
+Find date of month 11:
+Number of visits during month :
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during month 11:
+(2,419,597 missing values generated)
+Find date of month 12:
+(2,359,045 missing values generated)
+Find date of month 12:
+Number of visits during month :
+Do not count visits if any of the critical dates are missing:
+(2,406,311 real changes made, 2,406,311 to missing)
+Do not count visits that begin before birth:
+(13,286 real changes made, 13,286 to missing)
+Days spent in hospital during month 12:
+(2,419,597 missing values generated)
+
+. 
+. ********************************************************************************
+. ******* Number and days of hospitalization by cutoff days after birth **********
+. ***************** Bharadwaj, Loken, and Neilson (2013) *************************
+. 
+. * Calculate difference in days between birth and hospital admittance:
+. gen int diff = fecha_ingreso - fecha_nac_cons if fecha_ingreso != . & fecha_nac_cons != .
+(2,406,311 missing values generated)
+
+. replace diff = . if fecha_ingreso - fecha_nac_cons < 0
+(13,286 real changes made, 13,286 to missing)
+
+. 
+. * Create variables for every 5 days until 30 days after birth:
+. forval d = 0(5)30 {
+  2.         local dd = string(`d', "%02.0f")
+  3.         
+.         * Number of visits starting within `d' days after birth:
+.         gen nvsts_s`dd' = diff <= `d' if diff >= 0 & diff != .
+  4.         label var nvsts_s`dd' "Number of hospital visits, starting within `d' days after birth"
+  5.         
+.         * Days spent hospitalized, for hospitalizations starting within `d' days after birth:
+.         gen days_s`dd' = DIAS_ESTADA if nvsts_s`dd' == 1
+  6.         label var days_s`dd' "Days spent hospitalized, starting within `d' days after birth"
+  7. }
+(2,688,779 missing values generated)
+(27,987,561 missing values generated)
+(2,688,779 missing values generated)
+(27,655,710 missing values generated)
+(2,688,779 missing values generated)
+(27,587,182 missing values generated)
+(2,688,779 missing values generated)
+(27,554,682 missing values generated)
+(2,688,779 missing values generated)
+(27,528,886 missing values generated)
+(2,688,779 missing values generated)
+(27,503,896 missing values generated)
+(2,688,779 missing values generated)
+(27,479,421 missing values generated)
+
+. 
+. ********************************************************************************
+. 
+. * Compress, sort, label, sign, and save:
+. compress
+  variable year_nac_cons was float now int
+  variable days_m01 was int now byte
+  variable aux_m01 was int now byte
+  variable days_m02 was int now byte
+  variable aux_m02 was int now byte
+  variable days_m03 was int now byte
+  variable aux_m03 was int now byte
+  variable days_m04 was int now byte
+  variable days_m05 was int now byte
+  variable days_m06 was int now byte
+  variable days_m07 was int now byte
+  variable days_m08 was int now byte
+  variable days_m09 was int now byte
+  variable days_m10 was int now byte
+  variable days_m11 was int now byte
+  variable days_m12 was int now byte
+  variable nvsts_s00 was float now byte
+  variable days_s00 was float now int
+  variable nvsts_s05 was float now byte
+  variable days_s05 was float now int
+  variable nvsts_s10 was float now byte
+  variable days_s10 was float now int
+  variable nvsts_s15 was float now byte
+  variable days_s15 was float now int
+  variable nvsts_s20 was float now byte
+  variable days_s20 was float now int
+  variable nvsts_s25 was float now byte
+  variable days_s25 was float now int
+  variable nvsts_s30 was float now byte
+  variable days_s30 was float now int
+  (1,455,763,504 bytes saved)
+
+. sort ID_PACIENTE orden
+
+. label data "EEHH `=dbyear1'-`=dbyearT' en Chile (DEIS/MINSAL), -duplicados/NAs, +nuevas variables, +dias"
+
+. notes drop _dta
+  (1 note dropped)
+
+. notes: Last modified on $S_DATE at $S_TIME
+
+. save "${eehh_original}_daysvars.dta", replace
+(note: file EEHH_2001_2019_daysvars.dta not found)
+file EEHH_2001_2019_daysvars.dta saved
+
+. 
+. * Close log:
+. log close _all
+      name:  EEHH_05_DAYSVARS
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/EEHH_05_DAYSVARS_20210909.log
+  log type:  text
+ closed on:   9 Sep 2021, 12:54:47
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------

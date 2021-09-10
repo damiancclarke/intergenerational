@@ -1,0 +1,135 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  MERGE_DEF2NAC
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/MERGE_01_DEF2NAC_20210909.log
+  log type:  text
+ opened on:   9 Sep 2021, 22:27:20
+
+. 
+. * Preamble:
+. cls
+
+. clear all
+
+. set more off
+
+. 
+. * Switch to destination directory:
+. cd "$dtadir/DEIS"
+C:\Users\nicol\Dropbox\Research Projects\Intergenerational\data\dta\DEIS
+
+. 
+. * Load birth data (no duplicates) with mother birth variables:
+. use "${nac_original}_NOGLOSAS_NODUPS_NONAS_WITH_MBDATA_MOSTATS.dta", clear
+(Nacimientos 92-18 Chile (DEIS) -Glosas +bdata madre +outcomes maternidad)
+
+. 
+. * Save database minimum and maximum year:
+. sum $byear_var
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+     ANO_NAC |  6,617,638    2004.668    7.873035       1992       2018
+
+. scalar min_ano_nac = r(min)
+
+. scalar max_ano_nac = r(max)
+
+. 
+. * Copy ID variable:
+. gen ID_FALLECIDO = ID_RECIEN_NACIDO
+
+. 
+. * Add prefix to birth data variable names:
+. foreach var of varlist * {
+  2.         if "`var'" != "ID_FALLECIDO" & "`var'" != "ID_RECIEN_NACIDO" {
+  3.                 rename `var' NAC_`var'
+  4.         }
+  5. }
+
+. 
+. * Merge with deaths data (also without duplicates and w/o NAs):
+. merge 1:1 ID_FALLECIDO ///
+>         using "${def_original}_NOGLOSAS_NODUPS_NONAS.dta", ///
+>         gen(mrg_DEF2NAC)
+(label EST_CIV_MADRE already defined)
+(label URBANO_RURAL already defined)
+(label SERV_RES already defined)
+(label SEXO already defined)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                     8,996,758
+        from master                 6,533,797  (mrg_DEF2NAC==1)
+        from using                  2,462,961  (mrg_DEF2NAC==2)
+
+    matched                            83,841  (mrg_DEF2NAC==3)
+    -----------------------------------------
+
+. 
+. label var mrg_DEF2NAC "Merge 1:1 ID_FALLECIDO/RECIEN_NACIDO"
+
+. 
+. * Get minimum and maximum death years:
+. sum $dyear_var
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+     ANO_DEF |  2,546,802    2004.949    8.398819       1990       2018
+
+. scalar min_ano_def = r(min)
+
+. scalar max_ano_def = r(max)     
+
+. 
+. * Drop unmatched deaths:
+. drop if mrg_DEF2NAC == 2 & COD_MENOR != "1"
+(2,452,224 observations deleted)
+
+. 
+. * Rename death data variable data:
+. ds NAC_* ID_* mrg_DEF2NAC, not
+DIA_DEF       FECHA_NACI~F  GLOSA_OCUP~N  URBANO_RURAL  GLOSA_CAPI~1  GLOSA_CAPI~2  PESO          CATEG_MADRE   PARTO_ABORTO  GLOS~A_PADRE  CODIGO_TER~4
+MES_DEF       EDAD_CANT     CATEGORIA     DIAG1         DIAG2         AT_MEDICA     GESTACION     GLOS~G_MADRE  DIA_PARTO     CATEG_PADRE
+ANO_DEF       EDAD_TIPO     GLOSA_CATE~A  GLOSA_SUBC~1  GLOSA_SUBC~2  CAL_MEDICO    NUTRITIVO     CURSO_MADRE   MES_PARTO     GLOS~G_PADRE
+FECHA_DEF_~F  EST_CIVIL     ANO_INSCR     CODIGO_CAT~1  CODIGO_CAT~2  CER_MES       EDAD_MADRE    NIVEL_MADRE   ANO_PARTO     CURSO_PADRE
+SEXO          CURSO_INS     LOCAL_DEF     GLOSA_CATE~1  GLOSA_CATE~2  CER_ANO       EST_CIV_MA~E  HIJ_VIVOS     FECHA_PART~F  NIVEL_PADRE
+DIA_NAC       NIVEL_INS     REG_RES       CODIGO_GRU~1  CODIGO_GRU~2  FUND_CAUSA    ACTIV_MADRE   HIJ_FALLEC~S  EDAD_PADRE    CODIGO_TER~1
+MES_NAC       ACTIVIDAD     SERV_RES      GLOSA_GRUP~1  GLOSA_GRUP~2  COD_MENOR     OCUPA_MADRE   HIJ_MORTIN~S  ACTIV_PADRE   CODIGO_TER~2
+ANO_NAC       OCUPACION     COMUNA        CAPITULO_D~1  CAPITULO_D~2  GLOSA_COD_~R  GLOS~A_MADRE  HIJ_TOTAL     OCUPA_PADRE   CODIGO_TER~3
+
+. foreach var of varlist `r(varlist)' {
+  2.         rename `var' DEF_`var'
+  3. }
+
+. 
+. 
+. * Save merged dataset:
+. compress
+  variable DEF_FECHA_NACIMIENTO_SIF was float now int
+  variable DEF_COMUNA was long now int
+  variable DEF_CODIGO_TERMINO_DIAGNOSTICO_1 was str24 now str19
+  variable DEF_CODIGO_TERMINO_DIAGNOSTICO_2 was str34 now str19
+  variable DEF_CODIGO_TERMINO_DIAGNOSTICO_3 was str32 now str15
+  variable DEF_CODIGO_TERMINO_DIAGNOSTICO_4 was str40 now str29
+  (344,675,500 bytes saved)
+
+. label data "`=min_ano_def'-`=max_ano_def' deaths merged to `=min_ano_nac'-`=max_ano_nac' births"
+
+. notes drop _dta
+  (4 notes dropped)
+
+. note: Last modified by: $id_user_full ($id_user_email)
+
+. note: Last modification timestamp: $S_DATE at $S_TIME
+
+. save MERGED_DEF2NAC.dta, replace
+file MERGED_DEF2NAC.dta saved
+
+. 
+. * Close log:
+. log close _all
+      name:  MERGE_DEF2NAC
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/MERGE_01_DEF2NAC_20210909.log
+  log type:  text
+ closed on:   9 Sep 2021, 22:28:36
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
