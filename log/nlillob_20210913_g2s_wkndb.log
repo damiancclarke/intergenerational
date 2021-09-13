@@ -1,0 +1,1867 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  masterlog
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/nlillob_20210913_g2s_wkndb.log
+  log type:  text
+ opened on:  13 Sep 2021, 19:10:21
+
+. 
+. * Set graph options:
+. global gphoptns scheme(lean2) ///
+>                                 ytitle("Share of births during a Saturday or Sunday (2nd generation)") ///
+>                                 xtitle("Mother's birth weight in grams (1st generation)") ///
+>                                 legend(off)
+
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> * Change to directory:
+. cd "$dtadir/DEIS"
+C:\Users\nicol\Dropbox\Research Projects\Intergenerational\data\dta\DEIS
+
+. 
+. * Load data:
+. use "${lastworkdata}.dta", clear
+(Working dataset 13 Sep 2021)
+
+. 
+. * Append counterfactual mothers:
+. append using COUNTERFACTUAL_MOTHERS.dta, gen(app_deadmom)
+(note: variable NAC_PAIS_ORIGEN_ABUELA was str1, now str40 to accommodate using data's values)
+(label SEXO already defined)
+(label TIPO_PARTO already defined)
+(label TIPO_ATEN already defined)
+(label PARTO_LOCAL already defined)
+(label NIVEL_X already defined)
+(label EST_CIV_MADRE already defined)
+(label NACIONALIDAD_MADRE already defined)
+(label URBANO_RURAL already defined)
+(label COMUNA_RESIDENCIA already defined)
+(label REGION_RESIDENCIA already defined)
+(label SERV_RES already defined)
+
+. 
+. * Fill in missing variables for dead mothers:
+. replace sem32m = 1 if NAC_SEMANAS_MADRE >=32 & app_deadmom == 1
+(17,201 real changes made)
+
+. replace sem32m = 0 if NAC_SEMANAS_MADRE <=31 & app_deadmom == 1
+(9,079 real changes made)
+
+. replace round100m = 1 if mod(NAC_PESO_MADRE, 100) == 0 & mod(NAC_PESO_MADRE, 100) != . & app_deadmom == 1
+(4,795 real changes made)
+
+. replace round100m = 0 if mod(NAC_PESO_MADRE, 100) != 0 & mod(NAC_PESO_MADRE, 100) != . & app_deadmom == 1
+(21,159 real changes made)
+
+. 
+. * Base sample for second generation:
+. /* 
+> -> children for whom we have mother's birth data: NAC_mrg_mbdata2main == 3
+> -> children of mothers who were between 15 and 45 years old at time of birth: 
+>                 NAC_EDAD_MADRE >= 15 & NAC_EDAD_MADRE <= 45
+> -> children born from 2007 onwards (only 12 births between 2001-2006 given above
+>  constraints): NAC_ANO_NAC >= 2007
+> */
+. gen g2smpl = NAC_mrg_mbdata2main == 3 ///
+>         & NAC_EDAD_MADRE >= 15 & NAC_EDAD_MADRE <= 45 ///
+>         & NAC_ANO_NAC >= 2007
+
+. 
+. * Show birth years for cohorts in sample:
+. tab NAC_ANO_NAC g2smpl
+
+ Año de la |
+  fecha de |        g2smpl
+nacimiento |         0          1 |     Total
+-----------+----------------------+----------
+      1992 |   278,981          0 |   278,981 
+      1993 |   275,773          0 |   275,773 
+      1994 |   273,757          0 |   273,757 
+      1995 |   265,901          0 |   265,901 
+      1996 |   264,777          0 |   264,777 
+      1997 |   259,975          0 |   259,975 
+      1998 |   257,103          0 |   257,103 
+      1999 |   250,407          0 |   250,407 
+      2000 |   248,869          0 |   248,869 
+      2001 |   215,709          0 |   215,709 
+      2002 |   212,096          0 |   212,096 
+      2003 |   230,470          0 |   230,470 
+      2004 |   230,348          0 |   230,348 
+      2005 |   230,827          0 |   230,827 
+      2006 |   231,378          0 |   231,378 
+      2007 |   239,470      1,097 |   240,567 
+      2008 |   241,602      4,963 |   246,565 
+      2009 |   241,057     11,161 |   252,218 
+      2010 |   232,187     18,444 |   250,631 
+      2011 |   219,686     27,661 |   247,347 
+      2012 |   207,187     36,437 |   243,624 
+      2013 |   198,500     43,498 |   241,998 
+      2014 |   199,359     51,636 |   250,995 
+      2015 |   189,062     55,604 |   244,666 
+      2016 |   175,287     56,456 |   231,743 
+      2017 |   161,442     57,741 |   219,183 
+      2018 |   160,845     60,885 |   221,730 
+-----------+----------------------+----------
+     Total | 6,192,055    425,583 | 6,617,638 
+
+. 
+. * Show birth years for the MOTHERS in the sample:
+. tab NAC_ANO_NAC_MADRE g2smpl if birth_order_by_mother_u == 1
+
+    Madre: |
+ Año de la |
+  fecha de |        g2smpl
+nacimiento |         0          1 |     Total
+-----------+----------------------+----------
+      1992 |       789     64,821 |    65,610 
+      1993 |       908     58,448 |    59,356 
+      1994 |       904     52,622 |    53,526 
+      1995 |       933     44,175 |    45,108 
+      1996 |       850     36,726 |    37,576 
+      1997 |       876     28,430 |    29,306 
+      1998 |       861     20,568 |    21,429 
+      1999 |       846     12,856 |    13,702 
+      2000 |       720      7,282 |     8,002 
+      2001 |       578      3,338 |     3,916 
+      2002 |       485      1,395 |     1,880 
+      2003 |       347        317 |       664 
+      2004 |       230          0 |       230 
+      2005 |        33          0 |        33 
+      2006 |         3          0 |         3 
+-----------+----------------------+----------
+     Total |     9,363    330,978 |   340,341 
+
+. 
+. * Summarize dependent variable by birth year, restricted to sample:
+. tabstat $mydepvar if g2smpl == 1, by(NAC_ANO_NAC) s(N mean min max)
+
+Summary for variables: wkndbirth
+     by categories of: NAC_ANO_NAC (Año de la fecha de nacimiento)
+
+NAC_ANO~C |         N      mean       min       max
+----------+----------------------------------------
+     2007 |      1097  .2670921         0         1
+     2008 |      4963   .247834         0         1
+     2009 |     11161  .2480065         0         1
+     2010 |     18444  .2555303         0         1
+     2011 |     27661  .2451827         0         1
+     2012 |     36437  .2501853         0         1
+     2013 |     43498  .2410456         0         1
+     2014 |     51636    .24022         0         1
+     2015 |     55604  .2378966         0         1
+     2016 |     56456   .235564         0         1
+     2017 |     57741  .2329194         0         1
+     2018 |     60885  .2284306         0         1
+----------+----------------------------------------
+    Total |    425583  .2389076         0         1
+---------------------------------------------------
+
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> * Create 20 gram bins according to mother's birth weight:
+. gen int bin20gm = 20*floor(NAC_PESO_MADRE/20)
+(6,184,170 missing values generated)
+
+. 
+. * Create dummy for surviving year 1 (using the mean and point estimate of the
+. * "first stage"):
+. gen survivor = rbinomial(1, 1-(0.144-0.0290)) if app_deadmom == 1
+(6,617,638 missing values generated)
+
+. 
+. * Create dummy for ever having a child (to calculate fertility rates by birth year):
+. gen g1_ever_had_child_0118 = NAC_nbirths !=. & NAC_nbirths > 0 if NAC_SEXO == 2
+(3,403,044 missing values generated)
+
+. 
+. * Create empty variable which will equal 1 if we will impute a birth to a dead girl:
+. gen imputed_child = .
+(6,643,918 missing values generated)
+
+. 
+. * Get birth years of non dead girls that had a child:
+. levelsof NAC_ANO_NAC if g1_ever_had_child_0118 == 1 & muerte_1a == 0, local(yearlist)
+1992 1993 1994 1995 1996 1997 1998 1999 2000 2001 2002 2003 2004 2005 2006
+
+. 
+. * Loop over years...
+. foreach yyyy of local yearlist {
+  2.         * Calculate share of women that ever had a child by birth year:
+.         sum g1_ever_had_child_0118 if muerte_1a == 0 & NAC_ANO_NAC == `yyyy'
+  3.         
+.         * Replace empty variable:
+.         replace imputed_child = rbinomial(1, r(mean)) if survivor == 1 & NAC_ANO_NAC_MADRE == `yyyy'
+  4. }
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+g1_ever~0118 |    134,535    .4874419    .4998441          0          1
+(1,583 real changes made)
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+g1_ever~0118 |    132,961    .4461459    .4970931          0          1
+(1,384 real changes made)
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+g1_ever~0118 |    132,514     .403746    .4906496          0          1
+(1,332 real changes made)
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+g1_ever~0118 |    128,619    .3504537    .4771139          0          1
+(1,165 real changes made)
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+g1_ever~0118 |    127,760    .2940122    .4555992          0          1
+(1,168 real changes made)
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+g1_ever~0118 |    125,344    .2337088    .4231908          0          1
+(1,055 real changes made)
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+g1_ever~0118 |    124,649    .1718345    .3772381          0          1
+(1,071 real changes made)
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+g1_ever~0118 |    121,168    .1129836    .3165741          0          1
+(989 real changes made)
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+g1_ever~0118 |    120,048      .06664    .2493986          0          1
+(953 real changes made)
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+g1_ever~0118 |    107,144    .0365489    .1876525          0          1
+(571 real changes made)
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+g1_ever~0118 |    104,962    .0179112    .1326296          0          1
+(565 real changes made)
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+g1_ever~0118 |    111,950    .0059312     .076786          0          1
+(759 real changes made)
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+g1_ever~0118 |    112,042    .0020528    .0452615          0          1
+(769 real changes made)
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+g1_ever~0118 |    111,467    .0002961    .0172037          0          1
+(736 real changes made)
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+g1_ever~0118 |    112,349    .0000267    .0051674          0          1
+(738 real changes made)
+
+. 
+. * Summarize birth years of the mothers:
+. sum NAC_ANO_NAC_MADRE if g2smpl == 1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+NAC_ANO_NA~E |    425,583    1994.504     2.24029       1992       2003
+
+. 
+. * Define imputed sample:
+. gen imputed_sample = imputed_child == 1 & NAC_PESO_MADRE > 1500 & sem32m == 1 ///
+>         & NAC_ANO_NAC_MADRE >= r(min) & NAC_ANO_NAC_MADRE <= r(max)
+
+. 
+. * Drop unused observations to speed things up:
+. keep if g2smpl == 1 | imputed_sample == 1
+(6,216,029 observations deleted)
+
+. compress
+  variable DEF_EDAD_CANT was int now byte
+  variable EEHH_nvsts_y07 was int now byte
+  variable EEHH_nvsts_y09 was int now byte
+  variable EEHH_nvsts_y11 was int now byte
+  variable EEHH_nvsts_y12 was int now byte
+  variable EEHH_nvsts_y15 was int now byte
+  variable EEHH_nvsts_y16 was int now byte
+  variable EEHH_nvsts_y17 was int now byte
+  variable EEHH_days_y10 was int now byte
+  variable EEHH_days_y11 was int now byte
+  variable EEHH_days_y12 was int now byte
+  variable EEHH_days_y13 was int now byte
+  variable EEHH_days_y14 was int now byte
+  variable EEHH_days_y15 was int now byte
+  variable EEHH_days_y16 was int now byte
+  variable EEHH_days_y17 was int now byte
+  variable EEHH_days_y18 was int now byte
+  variable EEHH_days_y19 was int now byte
+  variable EEHH_days_y20 was int now byte
+  variable EEHH_days_y21 was int now byte
+  variable EEHH_days_y22 was int now byte
+  variable EEHH_days_y23 was int now byte
+  variable EEHH_days_y24 was int now byte
+  variable EEHH_days_y25 was int now byte
+  variable EEHH_days_y26 was int now byte
+  variable EEHH_days_y27 was int now byte
+  variable EEHH_days_s00 was int now byte
+  variable EEHH_days_y10_priv was int now byte
+  variable EEHH_days_y11_priv was int now byte
+  variable EEHH_days_y12_priv was int now byte
+  variable EEHH_days_y13_priv was int now byte
+  variable EEHH_days_y14_priv was int now byte
+  variable EEHH_days_y15_priv was int now byte
+  variable EEHH_days_y16_priv was int now byte
+  variable EEHH_days_y17_priv was int now byte
+  variable EEHH_days_y18_priv was int now byte
+  variable EEHH_days_y19_priv was int now byte
+  variable EEHH_days_y20_priv was int now byte
+  variable EEHH_days_y21_priv was int now byte
+  variable EEHH_days_y22_priv was int now byte
+  variable EEHH_days_y23_priv was int now byte
+  variable EEHH_days_y24_priv was int now byte
+  variable EEHH_days_y25_priv was int now byte
+  variable EEHH_days_y26_priv was int now byte
+  variable EEHH_days_s00_priv was int now byte
+  variable EEHH_nvsts_y11_priv was int now byte
+  variable EEHH_nvsts_y15_priv was int now byte
+  variable EEHH_nvsts_y16_priv was int now byte
+  variable EEHH_nvsts_y17_priv was int now byte
+  variable EEHH_days_y10_publ was int now byte
+  variable EEHH_days_y11_publ was int now byte
+  variable EEHH_days_y12_publ was int now byte
+  variable EEHH_days_y13_publ was int now byte
+  variable EEHH_days_y14_publ was int now byte
+  variable EEHH_days_y15_publ was int now byte
+  variable EEHH_days_y16_publ was int now byte
+  variable EEHH_days_y17_publ was int now byte
+  variable EEHH_days_y18_publ was int now byte
+  variable EEHH_days_y19_publ was int now byte
+  variable EEHH_days_y20_publ was int now byte
+  variable EEHH_days_y21_publ was int now byte
+  variable EEHH_days_y22_publ was int now byte
+  variable EEHH_days_y23_publ was int now byte
+  variable EEHH_days_y24_publ was int now byte
+  variable EEHH_days_y25_publ was int now byte
+  variable EEHH_days_y26_publ was int now byte
+  variable EEHH_days_y27_publ was int now byte
+  variable EEHH_days_s00_publ was int now byte
+  variable EEHH_nvsts_y07_publ was int now byte
+  variable EEHH_nvsts_y09_publ was int now byte
+  variable EEHH_nvsts_y11_publ was int now byte
+  variable EEHH_nvsts_y12_publ was int now byte
+  variable EEHH_nvsts_y15_publ was int now byte
+  variable EEHH_nvsts_y16_publ was int now byte
+  variable hospvsts_by_09 was int now byte
+  variable hospvsts_by_10 was int now byte
+  variable hospvsts_by_11 was int now byte
+  variable hospdays_by_12 was int now byte
+  variable hospvsts_by_12 was int now byte
+  variable hospdays2_by_12 was int now byte
+  variable hospdays_by_13 was int now byte
+  variable hospvsts_by_13 was int now byte
+  variable hospdays2_by_13 was int now byte
+  variable hospdays_by_14 was int now byte
+  variable hospvsts_by_14 was int now byte
+  variable hospdays2_by_14 was int now byte
+  variable hospdays_by_15 was int now byte
+  variable hospvsts_by_15 was int now byte
+  variable hospdays2_by_15 was int now byte
+  variable hospdays_by_16 was int now byte
+  variable hospvsts_by_16 was int now byte
+  variable hospdays2_by_16 was int now byte
+  variable hospdays_by_17 was int now byte
+  variable hospvsts_by_17 was int now byte
+  variable hospdays2_by_17 was int now byte
+  variable hospdays_by_18 was int now byte
+  variable hospvsts_by_18 was int now byte
+  variable hospdays2_by_18 was int now byte
+  variable hospdays_by_19 was int now byte
+  variable hospvsts_by_19 was int now byte
+  variable hospdays2_by_19 was int now byte
+  variable hospdays_by_20 was int now byte
+  variable hospvsts_by_20 was int now byte
+  variable hospdays2_by_20 was int now byte
+  variable hospdays_by_21 was int now byte
+  variable hospvsts_by_21 was int now byte
+  variable hospdays2_by_21 was int now byte
+  variable hospdays_by_22 was int now byte
+  variable hospvsts_by_22 was int now byte
+  variable hospdays2_by_22 was int now byte
+  variable hospdays_by_23 was int now byte
+  variable hospvsts_by_23 was int now byte
+  variable hospdays2_by_23 was int now byte
+  variable hospdays_by_24 was int now byte
+  variable hospvsts_by_24 was int now byte
+  variable hospdays2_by_24 was int now byte
+  variable hospdays_by_25 was int now byte
+  variable hospvsts_by_25 was int now byte
+  variable hospdays2_by_25 was int now byte
+  variable hospdays_by_26 was int now byte
+  variable hospvsts_by_26 was int now byte
+  variable hospdays2_by_26 was int now byte
+  variable hospdays_by_27 was int now byte
+  variable hospdays2_by_27 was int now byte
+  variable g2smpl was float now byte
+  variable survivor was float now byte
+  variable g1_ever_had_child_0118 was float now byte
+  variable imputed_child was float now byte
+  variable imputed_sample was float now byte
+  variable NAC_PAIS_ORIGEN_MADRE was str41 now str40
+  variable NAC_PAIS_ORIGEN_ABUELA was str40 now str1
+  variable DEF_GLOSA_OCUPACION was str68 now str27
+  variable DEF_CODIGO_TERMINO_DIAGNOSTICO_1 was str19 now str16
+  variable DEF_CODIGO_TERMINO_DIAGNOSTICO_2 was str19 now str16
+  variable DEF_CODIGO_TERMINO_DIAGNOSTICO_4 was str29 now str24
+  (98,842,359 bytes saved)
+
+. 
+. * Display quantiles of the dependent variable by mother's birth weight bin:
+. tabstat ${mydepvar} if g2smpl == 1 & sem32m == 1 & app_deadmom == 0, ///
+>         by(bin20gm) s(N mean min p10 p25 p50 p75 p90 max)
+
+Summary for variables: wkndbirth
+     by categories of: bin20gm 
+
+ bin20gm |         N      mean       min       p10       p25       p50       p75       p90       max
+---------+------------------------------------------------------------------------------------------
+     240 |         1         0         0         0         0         0         0         0         0
+     280 |         1         0         0         0         0         0         0         0         0
+     300 |         5        .4         0         0         0         0         1         1         1
+     320 |         1         0         0         0         0         0         0         0         0
+     340 |         3  .3333333         0         0         0         0         1         1         1
+     360 |         3  .3333333         0         0         0         0         1         1         1
+     380 |         2         0         0         0         0         0         0         0         0
+     400 |         5        .4         0         0         0         0         1         1         1
+     420 |         1         0         0         0         0         0         0         0         0
+     540 |         2         0         0         0         0         0         0         0         0
+     560 |         1         0         0         0         0         0         0         0         0
+     640 |         3         0         0         0         0         0         0         0         0
+     660 |         1         0         0         0         0         0         0         0         0
+     680 |         1         0         0         0         0         0         0         0         0
+     700 |         2         0         0         0         0         0         0         0         0
+     740 |         1         0         0         0         0         0         0         0         0
+     780 |         2         0         0         0         0         0         0         0         0
+     800 |         4        .5         0         0         0        .5         1         1         1
+     820 |         1         0         0         0         0         0         0         0         0
+     840 |         2         0         0         0         0         0         0         0         0
+     860 |         4       .25         0         0         0         0        .5         1         1
+     880 |         3  .6666667         0         0         0         1         1         1         1
+     900 |         8      .125         0         0         0         0         0         1         1
+     920 |         2         0         0         0         0         0         0         0         0
+     940 |         2        .5         0         0         0        .5         1         1         1
+     960 |         3         0         0         0         0         0         0         0         0
+     980 |         4       .25         0         0         0         0        .5         1         1
+    1000 |         6         0         0         0         0         0         0         0         0
+    1020 |         2         0         0         0         0         0         0         0         0
+    1040 |        12       .25         0         0         0         0        .5         1         1
+    1060 |         1         0         0         0         0         0         0         0         0
+    1080 |         1         0         0         0         0         0         0         0         0
+    1100 |         8      .125         0         0         0         0         0         1         1
+    1120 |        10        .4         0         0         0         0         1         1         1
+    1140 |        11  .2727273         0         0         0         0         1         1         1
+    1160 |        12  .3333333         0         0         0         0         1         1         1
+    1180 |         2         1         1         1         1         1         1         1         1
+    1200 |        16      .125         0         0         0         0         0         1         1
+    1220 |        18  .2777778         0         0         0         0         1         1         1
+    1240 |        12  .3333333         0         0         0         0         1         1         1
+    1260 |         9  .4444444         0         0         0         0         1         1         1
+    1280 |        18  .3333333         0         0         0         0         1         1         1
+    1300 |        31  .2903226         0         0         0         0         1         1         1
+    1320 |        23   .173913         0         0         0         0         0         1         1
+    1340 |        21  .4285714         0         0         0         0         1         1         1
+    1360 |        19  .1578947         0         0         0         0         0         1         1
+    1380 |        17  .1176471         0         0         0         0         0         1         1
+    1400 |        65  .4153846         0         0         0         0         1         1         1
+    1420 |        32    .15625         0         0         0         0         0         1         1
+    1440 |        54  .3333333         0         0         0         0         1         1         1
+    1460 |        30  .3333333         0         0         0         0         1         1         1
+    1480 |        34  .2941176         0         0         0         0         1         1         1
+    1500 |        59  .1525424         0         0         0         0         0         1         1
+    1520 |        42  .2380952         0         0         0         0         0         1         1
+    1540 |        59  .1355932         0         0         0         0         0         1         1
+    1560 |        52  .2692308         0         0         0         0         1         1         1
+    1580 |        43   .255814         0         0         0         0         1         1         1
+    1600 |        94  .2978723         0         0         0         0         1         1         1
+    1620 |        64    .21875         0         0         0         0         0         1         1
+    1640 |        77  .1818182         0         0         0         0         0         1         1
+    1660 |        45  .3333333         0         0         0         0         1         1         1
+    1680 |        55  .2909091         0         0         0         0         1         1         1
+    1700 |       122   .147541         0         0         0         0         0         1         1
+    1720 |        85  .3529412         0         0         0         0         1         1         1
+    1740 |       139  .1654676         0         0         0         0         0         1         1
+    1760 |       100       .38         0         0         0         0         1         1         1
+    1780 |       103   .223301         0         0         0         0         0         1         1
+    1800 |       193  .2124352         0         0         0         0         0         1         1
+    1820 |       105   .152381         0         0         0         0         0         1         1
+    1840 |       188  .1914894         0         0         0         0         0         1         1
+    1860 |        96  .2395833         0         0         0         0         0         1         1
+    1880 |       131   .221374         0         0         0         0         0         1         1
+    1900 |       232  .2586207         0         0         0         0         1         1         1
+    1920 |       123  .2439024         0         0         0         0         0         1         1
+    1940 |       282  .2269504         0         0         0         0         0         1         1
+    1960 |       144  .2083333         0         0         0         0         0         1         1
+    1980 |       171  .2807018         0         0         0         0         1         1         1
+    2000 |       404  .2425743         0         0         0         0         0         1         1
+    2020 |       232  .2025862         0         0         0         0         0         1         1
+    2040 |       348  .2442529         0         0         0         0         0         1         1
+    2060 |       244  .2540984         0         0         0         0         1         1         1
+    2080 |       220  .2727273         0         0         0         0         1         1         1
+    2100 |       464  .1853448         0         0         0         0         0         1         1
+    2120 |       306   .248366         0         0         0         0         0         1         1
+    2140 |       434  .2258065         0         0         0         0         0         1         1
+    2160 |       265  .2377358         0         0         0         0         0         1         1
+    2180 |       302  .2483444         0         0         0         0         0         1         1
+    2200 |       668   .252994         0         0         0         0         1         1         1
+    2220 |       443  .2505643         0         0         0         0         1         1         1
+    2240 |       623  .2648475         0         0         0         0         1         1         1
+    2260 |       385  .2415584         0         0         0         0         0         1         1
+    2280 |       387  .2041344         0         0         0         0         0         1         1
+    2300 |       891  .2379349         0         0         0         0         0         1         1
+    2320 |       556  .2302158         0         0         0         0         0         1         1
+    2340 |       818  .2567237         0         0         0         0         1         1         1
+    2360 |       584  .2140411         0         0         0         0         0         1         1
+    2380 |       578  .2404844         0         0         0         0         0         1         1
+    2400 |      1427  .2382621         0         0         0         0         0         1         1
+    2420 |       755  .2622517         0         0         0         0         1         1         1
+    2440 |      1329  .2513168         0         0         0         0         1         1         1
+    2460 |       881  .2417707         0         0         0         0         0         1         1
+    2480 |       854  .2423888         0         0         0         0         0         1         1
+    2500 |      2237   .245865         0         0         0         0         0         1         1
+    2520 |      1104  .2436594         0         0         0         0         0         1         1
+    2540 |      1809  .2421227         0         0         0         0         0         1         1
+    2560 |      1256  .2619427         0         0         0         0         1         1         1
+    2580 |      1242  .2399356         0         0         0         0         0         1         1
+    2600 |      2948   .245251         0         0         0         0         0         1         1
+    2620 |      1766  .2497169         0         0         0         0         0         1         1
+    2640 |      2886  .2487872         0         0         0         0         0         1         1
+    2660 |      1608  .2506219         0         0         0         0         1         1         1
+    2680 |      1786    .25028         0         0         0         0         1         1         1
+    2700 |      4174  .2470053         0         0         0         0         0         1         1
+    2720 |      2365  .2389006         0         0         0         0         0         1         1
+    2740 |      3801  .2480926         0         0         0         0         0         1         1
+    2760 |      2297   .253374         0         0         0         0         1         1         1
+    2780 |      2313  .2429745         0         0         0         0         0         1         1
+    2800 |      5728  .2325419         0         0         0         0         0         1         1
+    2820 |      3194  .2310582         0         0         0         0         0         1         1
+    2840 |      5118   .233685         0         0         0         0         0         1         1
+    2860 |      3185    .24427         0         0         0         0         0         1         1
+    2880 |      3002  .2421719         0         0         0         0         0         1         1
+    2900 |      7423  .2261889         0         0         0         0         0         1         1
+    2920 |      3856  .2432573         0         0         0         0         0         1         1
+    2940 |      6465  .2406806         0         0         0         0         0         1         1
+    2960 |      3787  .2437285         0         0         0         0         0         1         1
+    2980 |      3974  .2445898         0         0         0         0         0         1         1
+    3000 |     11847  .2420022         0         0         0         0         0         1         1
+    3020 |      4945  .2364004         0         0         0         0         0         1         1
+    3040 |      8024  .2461366         0         0         0         0         0         1         1
+    3060 |      4832  .2427566         0         0         0         0         0         1         1
+    3080 |      4673  .2300449         0         0         0         0         0         1         1
+    3100 |     11066  .2337791         0         0         0         0         0         1         1
+    3120 |      5760  .2399306         0         0         0         0         0         1         1
+    3140 |      8957  .2462878         0         0         0         0         0         1         1
+    3160 |      4821  .2395769         0         0         0         0         0         1         1
+    3180 |      5164  .2381875         0         0         0         0         0         1         1
+    3200 |     12036  .2481722         0         0         0         0         0         1         1
+    3220 |      6079  .2508636         0         0         0         0         1         1         1
+    3240 |      9975   .238797         0         0         0         0         0         1         1
+    3260 |      5504  .2476381         0         0         0         0         0         1         1
+    3280 |      5091  .2366922         0         0         0         0         0         1         1
+    3300 |     11786  .2349398         0         0         0         0         0         1         1
+    3320 |      6073  .2418903         0         0         0         0         0         1         1
+    3340 |      9493  .2306963         0         0         0         0         0         1         1
+    3360 |      5439  .2373598         0         0         0         0         0         1         1
+    3380 |      5032  .2432432         0         0         0         0         0         1         1
+    3400 |     11432  .2408153         0         0         0         0         0         1         1
+    3420 |      6003  .2412127         0         0         0         0         0         1         1
+    3440 |      9174  .2314149         0         0         0         0         0         1         1
+    3460 |      5021   .233818         0         0         0         0         0         1         1
+    3480 |      4782  .2306566         0         0         0         0         0         1         1
+    3500 |     11472   .241196         0         0         0         0         0         1         1
+    3520 |      5110  .2387476         0         0         0         0         0         1         1
+    3540 |      8018  .2377151         0         0         0         0         0         1         1
+    3560 |      4496  .2419929         0         0         0         0         0         1         1
+    3580 |      3960  .2361111         0         0         0         0         0         1         1
+    3600 |      9030  .2384275         0         0         0         0         0         1         1
+    3620 |      4509  .2499446         0         0         0         0         0         1         1
+    3640 |      7104  .2304336         0         0         0         0         0         1         1
+    3660 |      3590  .2275766         0         0         0         0         0         1         1
+    3680 |      3465  .2458874         0         0         0         0         0         1         1
+    3700 |      7351  .2281322         0         0         0         0         0         1         1
+    3720 |      3641  .2394946         0         0         0         0         0         1         1
+    3740 |      5618  .2367391         0         0         0         0         0         1         1
+    3760 |      2849  .2449982         0         0         0         0         0         1         1
+    3780 |      2685  .2402235         0         0         0         0         0         1         1
+    3800 |      6095  .2385562         0         0         0         0         0         1         1
+    3820 |      2766  .2270427         0         0         0         0         0         1         1
+    3840 |      4249  .2412332         0         0         0         0         0         1         1
+    3860 |      2320     .2375         0         0         0         0         0         1         1
+    3880 |      2081  .2335416         0         0         0         0         0         1         1
+    3900 |      4604  .2252389         0         0         0         0         0         1         1
+    3920 |      2048  .2358398         0         0         0         0         0         1         1
+    3940 |      3126  .2319258         0         0         0         0         0         1         1
+    3960 |      1728  .2349537         0         0         0         0         0         1         1
+    3980 |      1693   .232723         0         0         0         0         0         1         1
+    4000 |      3910  .2424552         0         0         0         0         0         1         1
+    4020 |      1613  .2634842         0         0         0         0         1         1         1
+    4040 |      2159  .2403891         0         0         0         0         0         1         1
+    4060 |      1139  .2510975         0         0         0         0         1         1         1
+    4080 |      1029  .2439261         0         0         0         0         0         1         1
+    4100 |      2368  .2208615         0         0         0         0         0         1         1
+    4120 |      1145  .2323144         0         0         0         0         0         1         1
+    4140 |      1488  .2150538         0         0         0         0         0         1         1
+    4160 |       755  .2264901         0         0         0         0         0         1         1
+    4180 |       670   .241791         0         0         0         0         0         1         1
+    4200 |      1590  .2320755         0         0         0         0         0         1         1
+    4220 |       726  .2506887         0         0         0         0         1         1         1
+    4240 |      1010  .2346535         0         0         0         0         0         1         1
+    4260 |       595  .2218487         0         0         0         0         0         1         1
+    4280 |       470  .2212766         0         0         0         0         0         1         1
+    4300 |      1013  .2290227         0         0         0         0         0         1         1
+    4320 |       473  .2241015         0         0         0         0         0         1         1
+    4340 |       697  .2223816         0         0         0         0         0         1         1
+    4360 |       341  .2199413         0         0         0         0         0         1         1
+    4380 |       332  .1807229         0         0         0         0         0         1         1
+    4400 |       671  .2175857         0         0         0         0         0         1         1
+    4420 |       275       .28         0         0         0         0         1         1         1
+    4440 |       434  .2419355         0         0         0         0         0         1         1
+    4460 |       237  .2616034         0         0         0         0         1         1         1
+    4480 |       189  .2433862         0         0         0         0         0         1         1
+    4500 |       480  .2479167         0         0         0         0         0         1         1
+    4520 |       205  .2439024         0         0         0         0         0         1         1
+    4540 |       300        .2         0         0         0         0         0         1         1
+    4560 |       162  .2962963         0         0         0         0         1         1         1
+    4580 |       122  .2786885         0         0         0         0         1         1         1
+    4600 |       274   .229927         0         0         0         0         0         1         1
+    4620 |       128       .25         0         0         0         0        .5         1         1
+    4640 |       185  .2594595         0         0         0         0         1         1         1
+    4660 |       103  .1941748         0         0         0         0         0         1         1
+    4680 |        85        .2         0         0         0         0         0         1         1
+    4700 |       198  .2474747         0         0         0         0         0         1         1
+    4720 |        85  .2823529         0         0         0         0         1         1         1
+    4740 |       116  .2931034         0         0         0         0         1         1         1
+    4760 |        50       .16         0         0         0         0         0         1         1
+    4780 |        37  .0810811         0         0         0         0         0         0         1
+    4800 |       104  .2115385         0         0         0         0         0         1         1
+    4820 |        55  .2909091         0         0         0         0         1         1         1
+    4840 |        73  .2328767         0         0         0         0         0         1         1
+    4860 |        40       .25         0         0         0         0        .5         1         1
+    4880 |        51  .2745098         0         0         0         0         1         1         1
+    4900 |        50       .18         0         0         0         0         0         1         1
+    4920 |        33  .3939394         0         0         0         0         1         1         1
+    4940 |        60       .25         0         0         0         0        .5         1         1
+    4960 |        19  .3684211         0         0         0         0         1         1         1
+    4980 |        20       .25         0         0         0         0        .5         1         1
+    5000 |        64    .21875         0         0         0         0         0         1         1
+    5020 |        26  .3846154         0         0         0         0         1         1         1
+    5040 |        34  .2352941         0         0         0         0         0         1         1
+    5060 |        13  .3076923         0         0         0         0         1         1         1
+    5080 |        14  .4285714         0         0         0         0         1         1         1
+    5100 |        31  .1935484         0         0         0         0         0         1         1
+    5120 |        16     .3125         0         0         0         0         1         1         1
+    5140 |        12  .0833333         0         0         0         0         0         0         1
+    5160 |         6        .5         0         0         0        .5         1         1         1
+    5180 |        11  .1818182         0         0         0         0         0         1         1
+    5200 |        18  .0555556         0         0         0         0         0         0         1
+    5220 |         4       .25         0         0         0         0        .5         1         1
+    5240 |         7  .2857143         0         0         0         0         1         1         1
+    5260 |        10        .2         0         0         0         0         0         1         1
+    5280 |         8        .5         0         0         0        .5         1         1         1
+    5300 |        14  .4285714         0         0         0         0         1         1         1
+    5320 |        11         0         0         0         0         0         0         0         0
+    5340 |         1         0         0         0         0         0         0         0         0
+    5380 |         2         0         0         0         0         0         0         0         0
+    5400 |         8       .25         0         0         0         0        .5         1         1
+    5420 |         4       .25         0         0         0         0        .5         1         1
+    5440 |         3         1         1         1         1         1         1         1         1
+    5480 |         3         0         0         0         0         0         0         0         0
+    5500 |         7  .4285714         0         0         0         0         1         1         1
+    5520 |         1         0         0         0         0         0         0         0         0
+    5540 |         2         0         0         0         0         0         0         0         0
+    5580 |         1         0         0         0         0         0         0         0         0
+    5600 |         1         0         0         0         0         0         0         0         0
+    5620 |         1         0         0         0         0         0         0         0         0
+    5640 |         6  .1666667         0         0         0         0         0         1         1
+    5660 |         1         0         0         0         0         0         0         0         0
+    5680 |         1         1         1         1         1         1         1         1         1
+    5700 |         1         0         0         0         0         0         0         0         0
+    5720 |         2        .5         0         0         0        .5         1         1         1
+    5740 |         6  .3333333         0         0         0         0         1         1         1
+    5760 |         3  .3333333         0         0         0         0         1         1         1
+    5800 |         1         1         1         1         1         1         1         1         1
+    5820 |         2        .5         0         0         0        .5         1         1         1
+    5940 |         2         0         0         0         0         0         0         0         0
+    6000 |         1         0         0         0         0         0         0         0         0
+    6040 |         1         1         1         1         1         1         1         1         1
+    6060 |         3         0         0         0         0         0         0         0         0
+    6140 |         1         0         0         0         0         0         0         0         0
+    6300 |         1         0         0         0         0         0         0         0         0
+    6320 |         1         0         0         0         0         0         0         0         0
+    6440 |         2         0         0         0         0         0         0         0         0
+    6480 |         1         1         1         1         1         1         1         1         1
+---------+------------------------------------------------------------------------------------------
+   Total |    422408  .2389538         0         0         0         0         0         1         1
+----------------------------------------------------------------------------------------------------
+
+. 
+. * Impute dependent variable for imputed children of dead mothers:
+. forval p = 10(10)90 {
+  2.         bys bin20gm: egen ${mydepvar}_p`p' = pctile(cond(g2smpl == 1 & sem32m == 1 & app_deadmom == 0, ${mydepvar}, .)), p(`p')
+  3.         gen ${mydepvar}_imp`p' = ${mydepvar} if app_deadmom == 0
+  4.         replace ${mydepvar}_imp`p' = ${mydepvar}_p`p' if app_deadmom == 1
+  5. }       
+(8 missing values generated)
+(2,306 missing values generated)
+(2,306 real changes made)
+(8 missing values generated)
+(2,306 missing values generated)
+(2,306 real changes made)
+(8 missing values generated)
+(2,306 missing values generated)
+(2,306 real changes made)
+(8 missing values generated)
+(2,306 missing values generated)
+(2,306 real changes made)
+(8 missing values generated)
+(2,306 missing values generated)
+(2,306 real changes made)
+(8 missing values generated)
+(2,306 missing values generated)
+(2,306 real changes made)
+(8 missing values generated)
+(2,306 missing values generated)
+(2,306 real changes made)
+(8 missing values generated)
+(2,306 missing values generated)
+(2,306 real changes made)
+(8 missing values generated)
+(2,306 missing values generated)
+(2,306 real changes made)
+
+.         
+. ////////////////////////////////////////////////////////////////////////////////
+> 
+. * Over 32 weeks gestation (of the mother):
+. rdbwselect $mydepvar NAC_PESO_MADRE if g2smpl == 1 & sem32m == 1, c(1500)
+Mass points detected in the running variable.
+
+Bandwidth estimators for sharp RD local polynomial regression.
+
+       Cutoff c =  | Left of c  Right of c            Number of obs =     422408
+-------------------+----------------------            Kernel        = Triangular
+     Number of obs |       532      421876            VCE method    =         NN
+Min of NAC_PESO_MADRE |   240.000 1500.000
+Max of NAC_PESO_MADRE |  1495.000 6480.000
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+        Unique obs |       105        1398
+
+Outcome: wkndbirth. Running variable: NAC_PESO_MADRE.
+--------------------------------------------------------------------------------
+                   |         BW est. (h)          |        BW bias (b)
+            Method | Left of c         Right of c | Left of c        Right of c
+-------------------+------------------------------+-----------------------------
+             mserd |   298.421            298.421 |   521.654           521.654
+--------------------------------------------------------------------------------
+Estimates adjusted for mass points in the running variable.
+
+. scalar RBW_o32 = e(h_mserd)
+
+. scalar LBW_o32 = e(h_mserd)
+
+. scalar maxwt_o32 = 1500 + RBW_o32
+
+. scalar minwt_o32 = 1500 - LBW_o32
+
+. gen optbw_o32 = NAC_PESO_MADRE >= minwt_o32 & NAC_PESO_MADRE <= maxwt_o32 
+
+. 
+. * Baseline:
+. * graph:
+. rdplot $mydepvar NAC_PESO_MADRE ///
+>         if optbw_o32 == 1 & g2smpl == 1 & sem32m == 1, ///
+>         c(1500) nbins(10) p(2) ///
+>         graph_options(${gphoptns} name(${abbrev}_o32_optbw_10bins, replace))
+Mass points detected in the running variable.
+
+RD Plot with RD plot with manually set number of bins.
+
+      Cutoff c = 1500 | Left of c  Right of c        Number of obs  =       1525
+----------------------+----------------------        Kernel         =    Uniform
+        Number of obs |       386        1139
+   Eff. Number of obs |       386        1139
+  Order poly. fit (p) |         2           2
+     BW poly. fit (h) |   290.000     295.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: wkndbirth. Running variable: NAC_PESO_MADRE.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |        10          10
+   Average bin length |    29.000      29.500
+    Median bin length |    29.000      29.500
+----------------------+----------------------
+    IMSE-optimal bins |         5           5
+  Mimicking Var. bins |        30          29
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |     2.000       2.000
+    WIMSE var. weight |     0.111       0.111
+    WIMSE bias weight |     0.889       0.889
+---------------------------------------------
+
+
+. 
+. * robust rd estimation:
+. rdrobust $mydepvar NAC_PESO_MADRE if g2smpl == 1 & sem32m==1, c(1500) scalepar(-1) all
+Mass points detected in the running variable.
+
+Sharp RD estimates using local polynomial regression.
+
+   Cutoff c = 1500 | Left of c  Right of c            Number of obs =     422408
+-------------------+----------------------            BW type       =      mserd
+     Number of obs |       532      421876            Kernel        = Triangular
+Eff. Number of obs |       386        1139            VCE method    =         NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |   298.421     298.421
+       BW bias (b) |   521.654     521.654
+         rho (h/b) |     0.572       0.572
+        Unique obs |       105        1398
+
+Outcome: wkndbirth. Running variable: NAC_PESO_MADRE.
+--------------------------------------------------------------------------------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Interval]
+-------------------+------------------------------------------------------------
+      Conventional |  .11624     .05465   2.1269   0.033    .009124      .223353
+    Bias-corrected |  .11746     .05465   2.1494   0.032     .01035      .224579
+            Robust |  .11746     .06529   1.7992   0.072   -.010493      .245422
+--------------------------------------------------------------------------------
+Scale parameter: -1
+Estimates adjusted for mass points in the running variable.
+
+. est store ${abbrev}_o32_optbw
+
+. estadd scalar Hopt = e(h_l)
+
+added scalar:
+               e(Hopt) =  298.42075
+
+. estadd scalar Nl  = e(N_h_l)
+
+added scalar:
+                 e(Nl) =  386
+
+. estadd scalar Nr  = e(N_h_r)
+
+added scalar:
+                 e(Nr) =  1139
+
+. local ef = e(N_h_l)+e(N_h_r)
+
+. estadd scalar effopt = `ef'
+
+added scalar:
+             e(effopt) =  1525
+
+. sum $mydepvar if optbw_o32 == 1 & (g2smpl == 1 | app_deadmom == 1) & sem32m == 1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+   wkndbirth |      1,525    .2537705    .4353106          0          1
+
+. estadd scalar dvmean = r(mean)
+
+added scalar:
+             e(dvmean) =  .25377049
+
+. 
+. * Imputing percentile birth weight of a hypothetical child for dead potential mothers:
+. forval p = 10(10)90 {
+  2.         * graph:
+.         rdplot ${mydepvar}_imp`p' NAC_PESO_MADRE ///
+>         if optbw_o32 == 1 & (g2smpl == 1 | app_deadmom == 1) & sem32m == 1, ///
+>         c(1500) nbins(10) p(2) ///
+>         graph_options(${gphoptns} name(${abbrev}i`p'_o32_optbw_10bins, replace))
+  3.         
+.         * robust rd estimation:
+.         rdrobust ${mydepvar}_imp`p' NAC_PESO_MADRE if (g2smpl == 1 | app_deadmom == 1) & sem32m==1 , c(1500) scalepar(-1) all
+  4.         est store ${abbrev}i`p'_o32_optbw
+  5.         estadd scalar Hopt = e(h_l)
+  6.         estadd scalar Nl  = e(N_h_l)
+  7.         estadd scalar Nr  = e(N_h_r)
+  8.         local ef = e(N_h_l)+e(N_h_r)
+  9.         estadd scalar effopt = `ef'
+ 10.         sum ${mydepvar}_imp`p' if optbw_o32 == 1 & (g2smpl == 1 | app_deadmom == 1) & sem32m == 1 & ${mydepvar}_imp`p' != . & NAC_PESO_MADRE != . & abs(NAC_PESO_
+> MADRE - 1500) <= e(h_l)
+ 11.         estadd scalar dvmean = r(mean)
+ 12.         
+.         count if (g2smpl == 1 | app_deadmom == 1) & sem32m == 1 & ${mydepvar}_imp`p' != . & NAC_PESO_MADRE != . & abs(NAC_PESO_MADRE - 1500) <= e(h_l) & NAC_PESO_MA
+> DRE < 1500 & app_deadmom == 1
+ 13.         estadd scalar N_l_i = r(N)
+ 14.         
+.         count if (g2smpl == 1 | app_deadmom == 1) & sem32m == 1 & ${mydepvar}_imp`p' != . & NAC_PESO_MADRE != . & abs(NAC_PESO_MADRE - 1500) <= e(h_l) & NAC_PESO_MA
+> DRE >= 1500 & app_deadmom == 1
+ 15.         estadd scalar N_r_i = r(N)
+ 16. }
+Mass points detected in the running variable.
+
+RD Plot with RD plot with manually set number of bins.
+
+      Cutoff c = 1500 | Left of c  Right of c        Number of obs  =       1636
+----------------------+----------------------        Kernel         =    Uniform
+        Number of obs |       386        1250
+   Eff. Number of obs |       386        1250
+  Order poly. fit (p) |         2           2
+     BW poly. fit (h) |   290.000     295.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: wkndbirth_imp10. Running variable: NAC_PESO_MADRE.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |        10          10
+   Average bin length |    29.000      29.500
+    Median bin length |    29.000      29.500
+----------------------+----------------------
+    IMSE-optimal bins |         5           5
+  Mimicking Var. bins |        31          31
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |     2.000       2.000
+    WIMSE var. weight |     0.111       0.111
+    WIMSE bias weight |     0.889       0.889
+---------------------------------------------
+
+Mass points detected in the running variable.
+
+Sharp RD estimates using local polynomial regression.
+
+   Cutoff c = 1500 | Left of c  Right of c            Number of obs =     424655
+-------------------+----------------------            BW type       =      mserd
+     Number of obs |       532      424123            Kernel        = Triangular
+Eff. Number of obs |       386        1247            VCE method    =         NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |   294.899     294.899
+       BW bias (b) |   519.433     519.433
+         rho (h/b) |     0.568       0.568
+        Unique obs |       105        1417
+
+Outcome: wkndbirth_imp10. Running variable: NAC_PESO_MADRE.
+--------------------------------------------------------------------------------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Interval]
+-------------------+------------------------------------------------------------
+      Conventional |  .13963     .05378   2.5963   0.009    .034225      .245042
+    Bias-corrected |  .14078     .05378   2.6177   0.009    .035372      .246189
+            Robust |  .14078     .06436   2.1874   0.029    .014638      .266923
+--------------------------------------------------------------------------------
+Scale parameter: -1
+Estimates adjusted for mass points in the running variable.
+
+added scalar:
+               e(Hopt) =  294.89916
+
+added scalar:
+                 e(Nl) =  386
+
+added scalar:
+                 e(Nr) =  1247
+
+added scalar:
+             e(effopt) =  1633
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+wkndbir~mp10 |      1,633    .2363748    .4249851          0          1
+
+added scalar:
+             e(dvmean) =  .23637477
+  0
+
+added scalar:
+              e(N_l_i) =  0
+  111
+
+added scalar:
+              e(N_r_i) =  111
+Mass points detected in the running variable.
+
+RD Plot with RD plot with manually set number of bins.
+
+      Cutoff c = 1500 | Left of c  Right of c        Number of obs  =       1636
+----------------------+----------------------        Kernel         =    Uniform
+        Number of obs |       386        1250
+   Eff. Number of obs |       386        1250
+  Order poly. fit (p) |         2           2
+     BW poly. fit (h) |   290.000     295.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: wkndbirth_imp20. Running variable: NAC_PESO_MADRE.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |        10          10
+   Average bin length |    29.000      29.500
+    Median bin length |    29.000      29.500
+----------------------+----------------------
+    IMSE-optimal bins |         5           5
+  Mimicking Var. bins |        31          31
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |     2.000       2.000
+    WIMSE var. weight |     0.111       0.111
+    WIMSE bias weight |     0.889       0.889
+---------------------------------------------
+
+Mass points detected in the running variable.
+
+Sharp RD estimates using local polynomial regression.
+
+   Cutoff c = 1500 | Left of c  Right of c            Number of obs =     424655
+-------------------+----------------------            BW type       =      mserd
+     Number of obs |       532      424123            Kernel        = Triangular
+Eff. Number of obs |       386        1247            VCE method    =         NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |   294.899     294.899
+       BW bias (b) |   519.433     519.433
+         rho (h/b) |     0.568       0.568
+        Unique obs |       105        1417
+
+Outcome: wkndbirth_imp20. Running variable: NAC_PESO_MADRE.
+--------------------------------------------------------------------------------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Interval]
+-------------------+------------------------------------------------------------
+      Conventional |  .13963     .05378   2.5963   0.009    .034225      .245042
+    Bias-corrected |  .14078     .05378   2.6177   0.009    .035372      .246189
+            Robust |  .14078     .06436   2.1874   0.029    .014638      .266923
+--------------------------------------------------------------------------------
+Scale parameter: -1
+Estimates adjusted for mass points in the running variable.
+
+added scalar:
+               e(Hopt) =  294.89916
+
+added scalar:
+                 e(Nl) =  386
+
+added scalar:
+                 e(Nr) =  1247
+
+added scalar:
+             e(effopt) =  1633
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+wkndbir~mp20 |      1,633    .2363748    .4249851          0          1
+
+added scalar:
+             e(dvmean) =  .23637477
+  0
+
+added scalar:
+              e(N_l_i) =  0
+  111
+
+added scalar:
+              e(N_r_i) =  111
+Mass points detected in the running variable.
+
+RD Plot with RD plot with manually set number of bins.
+
+      Cutoff c = 1500 | Left of c  Right of c        Number of obs  =       1636
+----------------------+----------------------        Kernel         =    Uniform
+        Number of obs |       386        1250
+   Eff. Number of obs |       386        1250
+  Order poly. fit (p) |         2           2
+     BW poly. fit (h) |   290.000     295.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: wkndbirth_imp30. Running variable: NAC_PESO_MADRE.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |        10          10
+   Average bin length |    29.000      29.500
+    Median bin length |    29.000      29.500
+----------------------+----------------------
+    IMSE-optimal bins |         5           5
+  Mimicking Var. bins |        31          31
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |     2.000       2.000
+    WIMSE var. weight |     0.111       0.111
+    WIMSE bias weight |     0.889       0.889
+---------------------------------------------
+
+Mass points detected in the running variable.
+
+Sharp RD estimates using local polynomial regression.
+
+   Cutoff c = 1500 | Left of c  Right of c            Number of obs =     424655
+-------------------+----------------------            BW type       =      mserd
+     Number of obs |       532      424123            Kernel        = Triangular
+Eff. Number of obs |       386        1247            VCE method    =         NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |   294.899     294.899
+       BW bias (b) |   519.433     519.433
+         rho (h/b) |     0.568       0.568
+        Unique obs |       105        1417
+
+Outcome: wkndbirth_imp30. Running variable: NAC_PESO_MADRE.
+--------------------------------------------------------------------------------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Interval]
+-------------------+------------------------------------------------------------
+      Conventional |  .13963     .05378   2.5963   0.009    .034225      .245042
+    Bias-corrected |  .14078     .05378   2.6177   0.009    .035372      .246189
+            Robust |  .14078     .06436   2.1874   0.029    .014638      .266923
+--------------------------------------------------------------------------------
+Scale parameter: -1
+Estimates adjusted for mass points in the running variable.
+
+added scalar:
+               e(Hopt) =  294.89916
+
+added scalar:
+                 e(Nl) =  386
+
+added scalar:
+                 e(Nr) =  1247
+
+added scalar:
+             e(effopt) =  1633
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+wkndbir~mp30 |      1,633    .2363748    .4249851          0          1
+
+added scalar:
+             e(dvmean) =  .23637477
+  0
+
+added scalar:
+              e(N_l_i) =  0
+  111
+
+added scalar:
+              e(N_r_i) =  111
+Mass points detected in the running variable.
+
+RD Plot with RD plot with manually set number of bins.
+
+      Cutoff c = 1500 | Left of c  Right of c        Number of obs  =       1636
+----------------------+----------------------        Kernel         =    Uniform
+        Number of obs |       386        1250
+   Eff. Number of obs |       386        1250
+  Order poly. fit (p) |         2           2
+     BW poly. fit (h) |   290.000     295.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: wkndbirth_imp40. Running variable: NAC_PESO_MADRE.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |        10          10
+   Average bin length |    29.000      29.500
+    Median bin length |    29.000      29.500
+----------------------+----------------------
+    IMSE-optimal bins |         5           5
+  Mimicking Var. bins |        31          31
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |     2.000       2.000
+    WIMSE var. weight |     0.111       0.111
+    WIMSE bias weight |     0.889       0.889
+---------------------------------------------
+
+Mass points detected in the running variable.
+
+Sharp RD estimates using local polynomial regression.
+
+   Cutoff c = 1500 | Left of c  Right of c            Number of obs =     424655
+-------------------+----------------------            BW type       =      mserd
+     Number of obs |       532      424123            Kernel        = Triangular
+Eff. Number of obs |       386        1247            VCE method    =         NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |   294.899     294.899
+       BW bias (b) |   519.433     519.433
+         rho (h/b) |     0.568       0.568
+        Unique obs |       105        1417
+
+Outcome: wkndbirth_imp40. Running variable: NAC_PESO_MADRE.
+--------------------------------------------------------------------------------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Interval]
+-------------------+------------------------------------------------------------
+      Conventional |  .13963     .05378   2.5963   0.009    .034225      .245042
+    Bias-corrected |  .14078     .05378   2.6177   0.009    .035372      .246189
+            Robust |  .14078     .06436   2.1874   0.029    .014638      .266923
+--------------------------------------------------------------------------------
+Scale parameter: -1
+Estimates adjusted for mass points in the running variable.
+
+added scalar:
+               e(Hopt) =  294.89916
+
+added scalar:
+                 e(Nl) =  386
+
+added scalar:
+                 e(Nr) =  1247
+
+added scalar:
+             e(effopt) =  1633
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+wkndbir~mp40 |      1,633    .2363748    .4249851          0          1
+
+added scalar:
+             e(dvmean) =  .23637477
+  0
+
+added scalar:
+              e(N_l_i) =  0
+  111
+
+added scalar:
+              e(N_r_i) =  111
+Mass points detected in the running variable.
+
+RD Plot with RD plot with manually set number of bins.
+
+      Cutoff c = 1500 | Left of c  Right of c        Number of obs  =       1636
+----------------------+----------------------        Kernel         =    Uniform
+        Number of obs |       386        1250
+   Eff. Number of obs |       386        1250
+  Order poly. fit (p) |         2           2
+     BW poly. fit (h) |   290.000     295.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: wkndbirth_imp50. Running variable: NAC_PESO_MADRE.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |        10          10
+   Average bin length |    29.000      29.500
+    Median bin length |    29.000      29.500
+----------------------+----------------------
+    IMSE-optimal bins |         5           5
+  Mimicking Var. bins |        31          31
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |     2.000       2.000
+    WIMSE var. weight |     0.111       0.111
+    WIMSE bias weight |     0.889       0.889
+---------------------------------------------
+
+Mass points detected in the running variable.
+
+Sharp RD estimates using local polynomial regression.
+
+   Cutoff c = 1500 | Left of c  Right of c            Number of obs =     424655
+-------------------+----------------------            BW type       =      mserd
+     Number of obs |       532      424123            Kernel        = Triangular
+Eff. Number of obs |       386        1247            VCE method    =         NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |   294.899     294.899
+       BW bias (b) |   519.433     519.433
+         rho (h/b) |     0.568       0.568
+        Unique obs |       105        1417
+
+Outcome: wkndbirth_imp50. Running variable: NAC_PESO_MADRE.
+--------------------------------------------------------------------------------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Interval]
+-------------------+------------------------------------------------------------
+      Conventional |  .13963     .05378   2.5963   0.009    .034225      .245042
+    Bias-corrected |  .14078     .05378   2.6177   0.009    .035372      .246189
+            Robust |  .14078     .06436   2.1874   0.029    .014638      .266923
+--------------------------------------------------------------------------------
+Scale parameter: -1
+Estimates adjusted for mass points in the running variable.
+
+added scalar:
+               e(Hopt) =  294.89916
+
+added scalar:
+                 e(Nl) =  386
+
+added scalar:
+                 e(Nr) =  1247
+
+added scalar:
+             e(effopt) =  1633
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+wkndbir~mp50 |      1,633    .2363748    .4249851          0          1
+
+added scalar:
+             e(dvmean) =  .23637477
+  0
+
+added scalar:
+              e(N_l_i) =  0
+  111
+
+added scalar:
+              e(N_r_i) =  111
+Mass points detected in the running variable.
+
+RD Plot with RD plot with manually set number of bins.
+
+      Cutoff c = 1500 | Left of c  Right of c        Number of obs  =       1636
+----------------------+----------------------        Kernel         =    Uniform
+        Number of obs |       386        1250
+   Eff. Number of obs |       386        1250
+  Order poly. fit (p) |         2           2
+     BW poly. fit (h) |   290.000     295.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: wkndbirth_imp60. Running variable: NAC_PESO_MADRE.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |        10          10
+   Average bin length |    29.000      29.500
+    Median bin length |    29.000      29.500
+----------------------+----------------------
+    IMSE-optimal bins |         5           5
+  Mimicking Var. bins |        31          31
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |     2.000       2.000
+    WIMSE var. weight |     0.111       0.111
+    WIMSE bias weight |     0.889       0.889
+---------------------------------------------
+
+Mass points detected in the running variable.
+
+Sharp RD estimates using local polynomial regression.
+
+   Cutoff c = 1500 | Left of c  Right of c            Number of obs =     424655
+-------------------+----------------------            BW type       =      mserd
+     Number of obs |       532      424123            Kernel        = Triangular
+Eff. Number of obs |       386        1247            VCE method    =         NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |   294.899     294.899
+       BW bias (b) |   519.433     519.433
+         rho (h/b) |     0.568       0.568
+        Unique obs |       105        1417
+
+Outcome: wkndbirth_imp60. Running variable: NAC_PESO_MADRE.
+--------------------------------------------------------------------------------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Interval]
+-------------------+------------------------------------------------------------
+      Conventional |  .13963     .05378   2.5963   0.009    .034225      .245042
+    Bias-corrected |  .14078     .05378   2.6177   0.009    .035372      .246189
+            Robust |  .14078     .06436   2.1874   0.029    .014638      .266923
+--------------------------------------------------------------------------------
+Scale parameter: -1
+Estimates adjusted for mass points in the running variable.
+
+added scalar:
+               e(Hopt) =  294.89916
+
+added scalar:
+                 e(Nl) =  386
+
+added scalar:
+                 e(Nr) =  1247
+
+added scalar:
+             e(effopt) =  1633
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+wkndbir~mp60 |      1,633    .2363748    .4249851          0          1
+
+added scalar:
+             e(dvmean) =  .23637477
+  0
+
+added scalar:
+              e(N_l_i) =  0
+  111
+
+added scalar:
+              e(N_r_i) =  111
+Mass points detected in the running variable.
+
+RD Plot with RD plot with manually set number of bins.
+
+      Cutoff c = 1500 | Left of c  Right of c        Number of obs  =       1636
+----------------------+----------------------        Kernel         =    Uniform
+        Number of obs |       386        1250
+   Eff. Number of obs |       386        1250
+  Order poly. fit (p) |         2           2
+     BW poly. fit (h) |   290.000     295.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: wkndbirth_imp70. Running variable: NAC_PESO_MADRE.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |        10          10
+   Average bin length |    29.000      29.500
+    Median bin length |    29.000      29.500
+----------------------+----------------------
+    IMSE-optimal bins |         5           5
+  Mimicking Var. bins |        31          31
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |     2.000       2.000
+    WIMSE var. weight |     0.111       0.111
+    WIMSE bias weight |     0.889       0.889
+---------------------------------------------
+
+Mass points detected in the running variable.
+
+Sharp RD estimates using local polynomial regression.
+
+   Cutoff c = 1500 | Left of c  Right of c            Number of obs =     424655
+-------------------+----------------------            BW type       =      mserd
+     Number of obs |       532      424123            Kernel        = Triangular
+Eff. Number of obs |       386        1247            VCE method    =         NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |   293.094     293.094
+       BW bias (b) |   519.473     519.473
+         rho (h/b) |     0.564       0.564
+        Unique obs |       105        1417
+
+Outcome: wkndbirth_imp70. Running variable: NAC_PESO_MADRE.
+--------------------------------------------------------------------------------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Interval]
+-------------------+------------------------------------------------------------
+      Conventional |  .14579     .05393   2.7035   0.007    .040095      .251492
+    Bias-corrected |  .15093     .05393   2.7988   0.005    .045236      .256633
+            Robust |  .15093     .06443   2.3425   0.019    .024648      .277221
+--------------------------------------------------------------------------------
+Scale parameter: -1
+Estimates adjusted for mass points in the running variable.
+
+added scalar:
+               e(Hopt) =  293.09443
+
+added scalar:
+                 e(Nl) =  386
+
+added scalar:
+                 e(Nr) =  1247
+
+added scalar:
+             e(effopt) =  1633
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+wkndbir~mp70 |      1,633    .2480098    .4319898          0          1
+
+added scalar:
+             e(dvmean) =  .2480098
+  0
+
+added scalar:
+              e(N_l_i) =  0
+  111
+
+added scalar:
+              e(N_r_i) =  111
+Mass points detected in the running variable.
+
+RD Plot with RD plot with manually set number of bins.
+
+      Cutoff c = 1500 | Left of c  Right of c        Number of obs  =       1636
+----------------------+----------------------        Kernel         =    Uniform
+        Number of obs |       386        1250
+   Eff. Number of obs |       386        1250
+  Order poly. fit (p) |         2           2
+     BW poly. fit (h) |   290.000     295.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: wkndbirth_imp80. Running variable: NAC_PESO_MADRE.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |        10          10
+   Average bin length |    29.000      29.500
+    Median bin length |    29.000      29.500
+----------------------+----------------------
+    IMSE-optimal bins |         5           6
+  Mimicking Var. bins |        31          30
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |     2.000       1.667
+    WIMSE var. weight |     0.111       0.178
+    WIMSE bias weight |     0.889       0.822
+---------------------------------------------
+
+Mass points detected in the running variable.
+
+Sharp RD estimates using local polynomial regression.
+
+   Cutoff c = 1500 | Left of c  Right of c            Number of obs =     424655
+-------------------+----------------------            BW type       =      mserd
+     Number of obs |       532      424123            Kernel        = Triangular
+Eff. Number of obs |       386        1250            VCE method    =         NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |   296.814     296.814
+       BW bias (b) |   520.626     520.626
+         rho (h/b) |     0.570       0.570
+        Unique obs |       105        1417
+
+Outcome: wkndbirth_imp80. Running variable: NAC_PESO_MADRE.
+--------------------------------------------------------------------------------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Interval]
+-------------------+------------------------------------------------------------
+      Conventional |  .06257     .05481   1.1415   0.254   -.044861      .170004
+    Bias-corrected |  .05959     .05481   1.0871   0.277   -.047847      .167017
+            Robust |  .05959     .06545   0.9103   0.363   -.068703      .187873
+--------------------------------------------------------------------------------
+Scale parameter: -1
+Estimates adjusted for mass points in the running variable.
+
+added scalar:
+               e(Hopt) =  296.8141
+
+added scalar:
+                 e(Nl) =  386
+
+added scalar:
+                 e(Nr) =  1250
+
+added scalar:
+             e(effopt) =  1636
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+wkndbir~mp80 |      1,636    .2762836    .4472955          0          1
+
+added scalar:
+             e(dvmean) =  .27628362
+  0
+
+added scalar:
+              e(N_l_i) =  0
+  111
+
+added scalar:
+              e(N_r_i) =  111
+Mass points detected in the running variable.
+
+RD Plot with RD plot with manually set number of bins.
+
+      Cutoff c = 1500 | Left of c  Right of c        Number of obs  =       1636
+----------------------+----------------------        Kernel         =    Uniform
+        Number of obs |       386        1250
+   Eff. Number of obs |       386        1250
+  Order poly. fit (p) |         2           2
+     BW poly. fit (h) |   290.000     295.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: wkndbirth_imp90. Running variable: NAC_PESO_MADRE.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |        10          10
+   Average bin length |    29.000      29.500
+    Median bin length |    29.000      29.500
+----------------------+----------------------
+    IMSE-optimal bins |         5           7
+  Mimicking Var. bins |        31          30
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |     2.000       1.429
+    WIMSE var. weight |     0.111       0.255
+    WIMSE bias weight |     0.889       0.745
+---------------------------------------------
+
+Mass points detected in the running variable.
+
+Sharp RD estimates using local polynomial regression.
+
+   Cutoff c = 1500 | Left of c  Right of c            Number of obs =     424655
+-------------------+----------------------            BW type       =      mserd
+     Number of obs |       532      424123            Kernel        = Triangular
+Eff. Number of obs |       386        1250            VCE method    =         NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |   299.792     299.792
+       BW bias (b) |   521.759     521.759
+         rho (h/b) |     0.575       0.575
+        Unique obs |       105        1417
+
+Outcome: wkndbirth_imp90. Running variable: NAC_PESO_MADRE.
+--------------------------------------------------------------------------------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Interval]
+-------------------+------------------------------------------------------------
+      Conventional |  .02341      .0555   0.4219   0.673   -.085356       .13218
+    Bias-corrected |  .02401      .0555   0.4327   0.665   -.084756      .132781
+            Robust |  .02401     .06624   0.3625   0.717   -.105812      .153837
+--------------------------------------------------------------------------------
+Scale parameter: -1
+Estimates adjusted for mass points in the running variable.
+
+added scalar:
+               e(Hopt) =  299.79195
+
+added scalar:
+                 e(Nl) =  386
+
+added scalar:
+                 e(Nr) =  1250
+
+added scalar:
+             e(effopt) =  1636
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+wkndbir~mp90 |      1,636     .304401     .460294          0          1
+
+added scalar:
+             e(dvmean) =  .30440098
+  0
+
+added scalar:
+              e(N_l_i) =  0
+  111
+
+added scalar:
+              e(N_r_i) =  111
+
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> * OUTPUTS:
+. 
+. ********************************************************************************
+. * Export graphs as .gph:
+. graph dir
+    g2s_wkndb_o32_optbw_10bins     g2s_wkndbi20_o32_optbw_10bins  g2s_wkndbi40_o32_optbw_10bins  g2s_wkndbi60_o32_optbw_10bins  g2s_wkndbi80_o32_optbw_10bins
+    g2s_wkndbi10_o32_optbw_10bins  g2s_wkndbi30_o32_optbw_10bins  g2s_wkndbi50_o32_optbw_10bins  g2s_wkndbi70_o32_optbw_10bins  g2s_wkndbi90_o32_optbw_10bins
+
+. foreach g in `r(list)' {
+  2.         graph save `g' "$figsdir/`g'.gph", replace
+  3. }
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndb_o32_optbw_10bins.gph not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndb_o32_optbw_10bins.gph saved)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi10_o32_optbw_10bins.gph not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi10_o32_optbw_10bins.gph saved)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi20_o32_optbw_10bins.gph not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi20_o32_optbw_10bins.gph saved)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi30_o32_optbw_10bins.gph not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi30_o32_optbw_10bins.gph saved)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi40_o32_optbw_10bins.gph not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi40_o32_optbw_10bins.gph saved)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi50_o32_optbw_10bins.gph not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi50_o32_optbw_10bins.gph saved)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi60_o32_optbw_10bins.gph not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi60_o32_optbw_10bins.gph saved)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi70_o32_optbw_10bins.gph not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi70_o32_optbw_10bins.gph saved)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi80_o32_optbw_10bins.gph not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi80_o32_optbw_10bins.gph saved)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi90_o32_optbw_10bins.gph not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi90_o32_optbw_10bins.gph saved)
+
+. 
+. * Export graphs as .eps:
+. graph dir
+    g2s_wkndb_o32_optbw_10bins     g2s_wkndbi20_o32_optbw_10bins  g2s_wkndbi40_o32_optbw_10bins  g2s_wkndbi60_o32_optbw_10bins  g2s_wkndbi80_o32_optbw_10bins
+    g2s_wkndbi10_o32_optbw_10bins  g2s_wkndbi30_o32_optbw_10bins  g2s_wkndbi50_o32_optbw_10bins  g2s_wkndbi70_o32_optbw_10bins  g2s_wkndbi90_o32_optbw_10bins
+
+. foreach g in `r(list)' {
+  2.         graph export "$figsdir/`g'.eps", replace name(`g')
+  3. }
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndb_o32_optbw_10bins.eps not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndb_o32_optbw_10bins.eps written in EPS format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi10_o32_optbw_10bins.eps not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi10_o32_optbw_10bins.eps written in EPS format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi20_o32_optbw_10bins.eps not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi20_o32_optbw_10bins.eps written in EPS format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi30_o32_optbw_10bins.eps not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi30_o32_optbw_10bins.eps written in EPS format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi40_o32_optbw_10bins.eps not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi40_o32_optbw_10bins.eps written in EPS format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi50_o32_optbw_10bins.eps not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi50_o32_optbw_10bins.eps written in EPS format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi60_o32_optbw_10bins.eps not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi60_o32_optbw_10bins.eps written in EPS format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi70_o32_optbw_10bins.eps not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi70_o32_optbw_10bins.eps written in EPS format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi80_o32_optbw_10bins.eps not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi80_o32_optbw_10bins.eps written in EPS format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi90_o32_optbw_10bins.eps not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi90_o32_optbw_10bins.eps written in EPS format)
+
+. 
+. * Export graphs as .png:
+. graph dir
+    g2s_wkndb_o32_optbw_10bins     g2s_wkndbi20_o32_optbw_10bins  g2s_wkndbi40_o32_optbw_10bins  g2s_wkndbi60_o32_optbw_10bins  g2s_wkndbi80_o32_optbw_10bins
+    g2s_wkndbi10_o32_optbw_10bins  g2s_wkndbi30_o32_optbw_10bins  g2s_wkndbi50_o32_optbw_10bins  g2s_wkndbi70_o32_optbw_10bins  g2s_wkndbi90_o32_optbw_10bins
+
+. foreach g in `r(list)' {
+  2.         graph export "$figsdir/`g'.png", replace name(`g')
+  3. }
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndb_o32_optbw_10bins.png not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndb_o32_optbw_10bins.png written in PNG format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi10_o32_optbw_10bins.png not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi10_o32_optbw_10bins.png written in PNG format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi20_o32_optbw_10bins.png not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi20_o32_optbw_10bins.png written in PNG format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi30_o32_optbw_10bins.png not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi30_o32_optbw_10bins.png written in PNG format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi40_o32_optbw_10bins.png not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi40_o32_optbw_10bins.png written in PNG format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi50_o32_optbw_10bins.png not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi50_o32_optbw_10bins.png written in PNG format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi60_o32_optbw_10bins.png not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi60_o32_optbw_10bins.png written in PNG format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi70_o32_optbw_10bins.png not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi70_o32_optbw_10bins.png written in PNG format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi80_o32_optbw_10bins.png not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi80_o32_optbw_10bins.png written in PNG format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi90_o32_optbw_10bins.png not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2s_wkndbi90_o32_optbw_10bins.png written in PNG format)
+
+. 
+. ********************************************************************************
+. * Export results as .ster files:
+. 
+. estimates dir
+
+-------------------------------------------------------
+        name | command      depvar       npar  title 
+-------------+-----------------------------------------
+g2s_wkndb_~w | rdrobust     wkndbirth       3  
+g2s_wkndbi~w | rdrobust     wkndbir~mp10    3  
+g2s_wkndbi~w | rdrobust     wkndbir~mp20    3  
+g2s_wkndbi~w | rdrobust     wkndbir~mp30    3  
+g2s_wkndbi~w | rdrobust     wkndbir~mp40    3  
+g2s_wkndbi~w | rdrobust     wkndbir~mp50    3  
+g2s_wkndbi~w | rdrobust     wkndbir~mp60    3  
+g2s_wkndbi~w | rdrobust     wkndbir~mp70    3  
+g2s_wkndbi~w | rdrobust     wkndbir~mp80    3  
+g2s_wkndbi~w | rdrobust     wkndbir~mp90    3  
+-------------------------------------------------------
+
+. foreach result in `r(names)' {
+  2.         estimates restore `result'
+  3.         estimates save "$estdir/`result'", replace
+  4. }
+(results g2s_wkndb_o32_optbw are active now)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndb_o32_optbw.ster not found)
+file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndb_o32_optbw.ster saved
+(results g2s_wkndbi10_o32_optbw are active now)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndbi10_o32_optbw.ster not found)
+file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndbi10_o32_optbw.ster saved
+(results g2s_wkndbi20_o32_optbw are active now)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndbi20_o32_optbw.ster not found)
+file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndbi20_o32_optbw.ster saved
+(results g2s_wkndbi30_o32_optbw are active now)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndbi30_o32_optbw.ster not found)
+file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndbi30_o32_optbw.ster saved
+(results g2s_wkndbi40_o32_optbw are active now)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndbi40_o32_optbw.ster not found)
+file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndbi40_o32_optbw.ster saved
+(results g2s_wkndbi50_o32_optbw are active now)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndbi50_o32_optbw.ster not found)
+file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndbi50_o32_optbw.ster saved
+(results g2s_wkndbi60_o32_optbw are active now)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndbi60_o32_optbw.ster not found)
+file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndbi60_o32_optbw.ster saved
+(results g2s_wkndbi70_o32_optbw are active now)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndbi70_o32_optbw.ster not found)
+file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndbi70_o32_optbw.ster saved
+(results g2s_wkndbi80_o32_optbw are active now)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndbi80_o32_optbw.ster not found)
+file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndbi80_o32_optbw.ster saved
+(results g2s_wkndbi90_o32_optbw are active now)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndbi90_o32_optbw.ster not found)
+file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2s_wkndbi90_o32_optbw.ster saved
+
+. 
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> * Prepare tables:
+. local ests ${abbrev}_o32_optbw ${abbrev}i??_o32_optbw
+
+. 
+. * Display results:
+. esttab `ests', ///
+>         cells(b(fmt(%-9.4f) star) se(fmt(%-9.4f) par([ ]) )) label ///
+>         nonotes nogaps collabels(none) modelwidth(10) ///
+>         stats(dvmean N Hopt effopt Nl Nr N_l_i N_r_i, fmt(%05.3f %12.0gc %5.1f %9.0gc %9.0gc %9.0gc %9.0gc %9.0gc) ///
+>    label("Mean of Dep. Var." "Observations" "Optimal Bandwidth" ///
+>       "Effective Observations" "Observations (left)" "Observations (right)" ///
+>                         "Imputed Obs. (left)" "Imputed Obs. (right)")) ///
+>         starlevel("*" 0.1 "**" 0.05 "***" 0.01) ///
+>         mtitles("Baseline" "10th" "20th" "30th" "40th" "Median" "60th" "70th" "80th" "90th")
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+                            (1)           (2)           (3)           (4)           (5)           (6)           (7)           (8)           (9)          (10)   
+                       Baseline          10th          20th          30th          40th        Median          60th          70th          80th          90th   
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+Conventional             0.1162**      0.1396***     0.1396***     0.1396***     0.1396***     0.1396***     0.1396***     0.1458***     0.0626        0.0234   
+                       [0.0547]      [0.0538]      [0.0538]      [0.0538]      [0.0538]      [0.0538]      [0.0538]      [0.0539]      [0.0548]      [0.0555]   
+Bias-corrected           0.1175**      0.1408***     0.1408***     0.1408***     0.1408***     0.1408***     0.1408***     0.1509***     0.0596        0.0240   
+                       [0.0547]      [0.0538]      [0.0538]      [0.0538]      [0.0538]      [0.0538]      [0.0538]      [0.0539]      [0.0548]      [0.0555]   
+Robust                   0.1175*       0.1408**      0.1408**      0.1408**      0.1408**      0.1408**      0.1408**      0.1509**      0.0596        0.0240   
+                       [0.0653]      [0.0644]      [0.0644]      [0.0644]      [0.0644]      [0.0644]      [0.0644]      [0.0644]      [0.0655]      [0.0662]   
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+Mean of Dep. Var.         0.254         0.236         0.236         0.236         0.236         0.236         0.236         0.248         0.276         0.304   
+Observations            422,408       424,655       424,655       424,655       424,655       424,655       424,655       424,655       424,655       424,655   
+Optimal Bandwidth         298.4         294.9         294.9         294.9         294.9         294.9         294.9         293.1         296.8         299.8   
+Effective Observat~s      1,525         1,633         1,633         1,633         1,633         1,633         1,633         1,633         1,636         1,636   
+Observations (left)         386           386           386           386           386           386           386           386           386           386   
+Observations (right)      1,139         1,247         1,247         1,247         1,247         1,247         1,247         1,247         1,250         1,250   
+Imputed Obs. (left)                         0             0             0             0             0             0             0             0             0   
+Imputed Obs. (right)                      111           111           111           111           111           111           111           111           111   
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+. 
+.         
+. /* 
+> */
+. 
+. 
+. ********************************************************************************
+. * Export results:
+. local texfilename = `"${id_user_prefix}_`=subinstr("${S_DATE}", " ", "", .)'_${abbrev}_selection"'
+
+. #delimit ;
+delimiter now ;
+. esttab `ests' using "$tbldir/`texfilename'.tex",
+> replace booktabs cells(b(fmt(%-9.4f) star) se(fmt(%-9.4f) par([ ]) )) label
+> stats(dvmean N Hopt effopt Nl Nr, fmt(%05.3f %12.0gc %5.1f %9.0gc %9.0gc %9.0gc) 
+>    label("Mean of Dep. Var." "Observations" "Optimal Bandwidth" 
+>       "Effective Observations" "Observations (left)" "Observations (right)"))
+> nonotes nogaps nonumbers style(tex) fragment noline keep(Robust)
+> mtitles("Baseline" "10th" "20th" "30th" "40th" "Median" "60th" "70th" "80th" "90th")
+> collabels(none) starlevel("*" 0.1 "**" 0.05 "***" 0.01);
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/textables/nlillob_13Sep2021_g2s_wkndb_selection.tex not found)
+(output written to C:/Users/nicol/Dropbox/Research Projects/Intergenerational/textables/nlillob_13Sep2021_g2s_wkndb_selection.tex)
+
+. #delimit cr
+delimiter now cr
+. 
+. * close log:
+. log close _all
+      name:  masterlog
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/nlillob_20210913_g2s_wkndb.log
+  log type:  text
+ closed on:  13 Sep 2021, 19:13:07
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------

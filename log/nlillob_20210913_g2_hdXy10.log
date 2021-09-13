@@ -1,0 +1,437 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  masterlog
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/nlillob_20210913_g2_hdXy10.log
+  log type:  text
+ opened on:  13 Sep 2021, 15:50:22
+
+. 
+. * Set graph options:
+. global gphoptns scheme(lean2) ///
+>                                 ytitle("Child's days hospitalized by age 10 (2nd generation)") ///
+>                                 xtitle("Mother's birthweight in grams (1st generation)") ///
+>                                 legend(off) ylabel(0(10)30)
+
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> * Change to directory:
+. cd "$dtadir/DEIS"
+C:\Users\nicol\Dropbox\Research Projects\Intergenerational\data\dta\DEIS
+
+. 
+. * Load data:
+. use "${lastworkdata}.dta", clear
+(Working dataset 10 Sep 2021)
+
+. 
+. * Base sample for second generation:
+. /* 
+> -> children for whom we have mother's birth data:  NAC_mrg_mbdata2main == 3
+> -> children of mothers who were between 15 and 45 years old at time of birth: 
+>                 NAC_EDAD_MADRE >= 15 & NAC_EDAD_MADRE <= 45
+> -> children born from 2007 onwards (only 12 births between 2001-2006 given above
+>  constraints): NAC_ANO_NAC >= 2007
+> */
+. gen g2smpl = NAC_mrg_mbdata2main == 3 ///
+>         & NAC_EDAD_MADRE >= 15 & NAC_EDAD_MADRE <= 45 ///
+>         & NAC_ANO_NAC >= 2007
+
+. 
+. * Show birth years for cohorts in sample:
+. tab NAC_ANO_NAC g2smpl
+
+ Año de la |
+  fecha de |        g2smpl
+nacimiento |         0          1 |     Total
+-----------+----------------------+----------
+      1992 |   278,981          0 |   278,981 
+      1993 |   275,773          0 |   275,773 
+      1994 |   273,757          0 |   273,757 
+      1995 |   265,901          0 |   265,901 
+      1996 |   264,777          0 |   264,777 
+      1997 |   259,975          0 |   259,975 
+      1998 |   257,103          0 |   257,103 
+      1999 |   250,407          0 |   250,407 
+      2000 |   248,869          0 |   248,869 
+      2001 |   215,709          0 |   215,709 
+      2002 |   212,096          0 |   212,096 
+      2003 |   230,470          0 |   230,470 
+      2004 |   230,348          0 |   230,348 
+      2005 |   230,827          0 |   230,827 
+      2006 |   231,378          0 |   231,378 
+      2007 |   239,470      1,097 |   240,567 
+      2008 |   241,602      4,963 |   246,565 
+      2009 |   241,057     11,161 |   252,218 
+      2010 |   232,187     18,444 |   250,631 
+      2011 |   219,686     27,661 |   247,347 
+      2012 |   207,187     36,437 |   243,624 
+      2013 |   198,500     43,498 |   241,998 
+      2014 |   199,359     51,636 |   250,995 
+      2015 |   189,062     55,604 |   244,666 
+      2016 |   175,287     56,456 |   231,743 
+      2017 |   161,442     57,741 |   219,183 
+      2018 |   160,845     60,885 |   221,730 
+-----------+----------------------+----------
+     Total | 6,192,055    425,583 | 6,617,638 
+
+. 
+. * Show birth years for the MOTHERS in the sample:
+. tab NAC_ANO_NAC_MADRE g2smpl if birth_order_by_mother_u == 1
+
+    Madre: |
+ Año de la |
+  fecha de |        g2smpl
+nacimiento |         0          1 |     Total
+-----------+----------------------+----------
+      1992 |       789     64,821 |    65,610 
+      1993 |       908     58,448 |    59,356 
+      1994 |       904     52,622 |    53,526 
+      1995 |       933     44,175 |    45,108 
+      1996 |       850     36,726 |    37,576 
+      1997 |       876     28,430 |    29,306 
+      1998 |       861     20,568 |    21,429 
+      1999 |       846     12,856 |    13,702 
+      2000 |       720      7,282 |     8,002 
+      2001 |       578      3,338 |     3,916 
+      2002 |       485      1,395 |     1,880 
+      2003 |       347        317 |       664 
+      2004 |       230          0 |       230 
+      2005 |        33          0 |        33 
+      2006 |         3          0 |         3 
+-----------+----------------------+----------
+     Total |     9,363    330,978 |   340,341 
+
+. 
+. * Summarize dependent variable by birth year, restricted to sample:
+. tabstat $mydepvar if g2smpl == 1, by(NAC_ANO_NAC) s(N mean min max)
+
+Summary for variables: hospdays_by_10
+     by categories of: NAC_ANO_NAC (Año de la fecha de nacimiento)
+
+NAC_ANO~C |         N      mean       min       max
+----------+----------------------------------------
+     2007 |       513  7.136452         0       131
+     2008 |      2257  7.759858         0      1160
+     2009 |        13  1.923077         0         6
+     2010 |         0         .         .         .
+     2011 |         0         .         .         .
+     2012 |         0         .         .         .
+     2013 |         0         .         .         .
+     2014 |         0         .         .         .
+     2015 |         0         .         .         .
+     2016 |         0         .         .         .
+     2017 |         0         .         .         .
+     2018 |         0         .         .         .
+----------+----------------------------------------
+    Total |      2783  7.617679         0      1160
+---------------------------------------------------
+
+. 
+. * Drop unused observations to speed things up:
+. keep if g2smpl == 1
+(6,192,055 observations deleted)
+
+. compress
+  variable DEF_EDAD_CANT was int now byte
+  variable EEHH_nvsts_y07 was int now byte
+  variable EEHH_nvsts_y09 was int now byte
+  variable EEHH_nvsts_y11 was int now byte
+  variable EEHH_nvsts_y12 was int now byte
+  variable EEHH_nvsts_y15 was int now byte
+  variable EEHH_nvsts_y16 was int now byte
+  variable EEHH_nvsts_y17 was int now byte
+  variable EEHH_days_y10 was int now byte
+  variable EEHH_days_y11 was int now byte
+  variable EEHH_days_y12 was int now byte
+  variable EEHH_days_y13 was int now byte
+  variable EEHH_days_y14 was int now byte
+  variable EEHH_days_y15 was int now byte
+  variable EEHH_days_y16 was int now byte
+  variable EEHH_days_y17 was int now byte
+  variable EEHH_days_y18 was int now byte
+  variable EEHH_days_y19 was int now byte
+  variable EEHH_days_y20 was int now byte
+  variable EEHH_days_y21 was int now byte
+  variable EEHH_days_y22 was int now byte
+  variable EEHH_days_y23 was int now byte
+  variable EEHH_days_y24 was int now byte
+  variable EEHH_days_y25 was int now byte
+  variable EEHH_days_y26 was int now byte
+  variable EEHH_days_y27 was int now byte
+  variable EEHH_days_s00 was int now byte
+  variable EEHH_days_y10_priv was int now byte
+  variable EEHH_days_y11_priv was int now byte
+  variable EEHH_days_y12_priv was int now byte
+  variable EEHH_days_y13_priv was int now byte
+  variable EEHH_days_y14_priv was int now byte
+  variable EEHH_days_y15_priv was int now byte
+  variable EEHH_days_y16_priv was int now byte
+  variable EEHH_days_y17_priv was int now byte
+  variable EEHH_days_y18_priv was int now byte
+  variable EEHH_days_y19_priv was int now byte
+  variable EEHH_days_y20_priv was int now byte
+  variable EEHH_days_y21_priv was int now byte
+  variable EEHH_days_y22_priv was int now byte
+  variable EEHH_days_y23_priv was int now byte
+  variable EEHH_days_y24_priv was int now byte
+  variable EEHH_days_y25_priv was int now byte
+  variable EEHH_days_y26_priv was int now byte
+  variable EEHH_days_s00_priv was int now byte
+  variable EEHH_nvsts_y11_priv was int now byte
+  variable EEHH_nvsts_y15_priv was int now byte
+  variable EEHH_nvsts_y16_priv was int now byte
+  variable EEHH_nvsts_y17_priv was int now byte
+  variable EEHH_days_y10_publ was int now byte
+  variable EEHH_days_y11_publ was int now byte
+  variable EEHH_days_y12_publ was int now byte
+  variable EEHH_days_y13_publ was int now byte
+  variable EEHH_days_y14_publ was int now byte
+  variable EEHH_days_y15_publ was int now byte
+  variable EEHH_days_y16_publ was int now byte
+  variable EEHH_days_y17_publ was int now byte
+  variable EEHH_days_y18_publ was int now byte
+  variable EEHH_days_y19_publ was int now byte
+  variable EEHH_days_y20_publ was int now byte
+  variable EEHH_days_y21_publ was int now byte
+  variable EEHH_days_y22_publ was int now byte
+  variable EEHH_days_y23_publ was int now byte
+  variable EEHH_days_y24_publ was int now byte
+  variable EEHH_days_y25_publ was int now byte
+  variable EEHH_days_y26_publ was int now byte
+  variable EEHH_days_y27_publ was int now byte
+  variable EEHH_days_s00_publ was int now byte
+  variable EEHH_nvsts_y07_publ was int now byte
+  variable EEHH_nvsts_y09_publ was int now byte
+  variable EEHH_nvsts_y11_publ was int now byte
+  variable EEHH_nvsts_y12_publ was int now byte
+  variable EEHH_nvsts_y15_publ was int now byte
+  variable EEHH_nvsts_y16_publ was int now byte
+  variable hospvsts_by_09 was int now byte
+  variable hospvsts_by_10 was int now byte
+  variable hospvsts_by_11 was int now byte
+  variable hospdays_by_12 was int now byte
+  variable hospvsts_by_12 was int now byte
+  variable hospdays2_by_12 was int now byte
+  variable hospdays_by_13 was int now byte
+  variable hospvsts_by_13 was int now byte
+  variable hospdays2_by_13 was int now byte
+  variable hospdays_by_14 was int now byte
+  variable hospvsts_by_14 was int now byte
+  variable hospdays2_by_14 was int now byte
+  variable hospdays_by_15 was int now byte
+  variable hospvsts_by_15 was int now byte
+  variable hospdays2_by_15 was int now byte
+  variable hospdays_by_16 was int now byte
+  variable hospvsts_by_16 was int now byte
+  variable hospdays2_by_16 was int now byte
+  variable hospdays_by_17 was int now byte
+  variable hospvsts_by_17 was int now byte
+  variable hospdays2_by_17 was int now byte
+  variable hospdays_by_18 was int now byte
+  variable hospvsts_by_18 was int now byte
+  variable hospdays2_by_18 was int now byte
+  variable hospdays_by_19 was int now byte
+  variable hospvsts_by_19 was int now byte
+  variable hospdays2_by_19 was int now byte
+  variable hospdays_by_20 was int now byte
+  variable hospvsts_by_20 was int now byte
+  variable hospdays2_by_20 was int now byte
+  variable hospdays_by_21 was int now byte
+  variable hospvsts_by_21 was int now byte
+  variable hospdays2_by_21 was int now byte
+  variable hospdays_by_22 was int now byte
+  variable hospvsts_by_22 was int now byte
+  variable hospdays2_by_22 was int now byte
+  variable hospdays_by_23 was int now byte
+  variable hospvsts_by_23 was int now byte
+  variable hospdays2_by_23 was int now byte
+  variable hospdays_by_24 was int now byte
+  variable hospvsts_by_24 was int now byte
+  variable hospdays2_by_24 was int now byte
+  variable hospdays_by_25 was int now byte
+  variable hospvsts_by_25 was int now byte
+  variable hospdays2_by_25 was int now byte
+  variable hospdays_by_26 was int now byte
+  variable hospvsts_by_26 was int now byte
+  variable hospdays2_by_26 was int now byte
+  variable hospdays_by_27 was int now byte
+  variable hospdays2_by_27 was int now byte
+  variable g2smpl was float now byte
+  variable NAC_PAIS_ORIGEN_MADRE was str41 now str40
+  variable DEF_GLOSA_OCUPACION was str68 now str27
+  variable DEF_CODIGO_TERMINO_DIAGNOSTICO_1 was str19 now str16
+  variable DEF_CODIGO_TERMINO_DIAGNOSTICO_2 was str19 now str16
+  variable DEF_CODIGO_TERMINO_DIAGNOSTICO_4 was str29 now str24
+  (76,604,940 bytes saved)
+
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> **** RDPLOT GRAPHS ****
+. 
+. ********************************************************************************
+. * Over 32 weeks gestation (of the mother):
+. rdbwselect $mydepvar NAC_PESO_MADRE if g2smpl == 1 & sem32m == 1, c(1500)
+Mass points detected in the running variable.
+
+Bandwidth estimators for sharp RD local polynomial regression.
+
+       Cutoff c =  | Left of c  Right of c            Number of obs =       2767
+-------------------+----------------------            Kernel        = Triangular
+     Number of obs |         5        2762            VCE method    =         NN
+Min of NAC_PESO_MADRE |   334.000 1560.000
+Max of NAC_PESO_MADRE |  1450.000 5400.000
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+        Unique obs |         5         286
+
+Outcome: hospdays_by_10. Running variable: NAC_PESO_MADRE.
+--------------------------------------------------------------------------------
+                   |         BW est. (h)          |        BW bias (b)
+            Method | Left of c         Right of c | Left of c        Right of c
+-------------------+------------------------------+-----------------------------
+             mserd |   415.057            415.057 |  1025.335          1025.335
+--------------------------------------------------------------------------------
+Estimates adjusted for mass points in the running variable.
+
+. scalar RBW_o32 = e(h_mserd)
+
+. scalar LBW_o32 = e(h_mserd)
+
+. scalar maxwt_o32 = 1500 + RBW_o32
+
+. scalar minwt_o32 = 1500 - LBW_o32
+
+. gen optbw_o32 = NAC_PESO_MADRE >= minwt_o32 & NAC_PESO_MADRE <= maxwt_o32
+
+. 
+. /*
+> NOT ENOUGH OBSERVATIONS LEFT OF CUTOFF TO RUN RDPLOT
+> 
+> rdplot $mydepvar NAC_PESO_MADRE ///
+>         if optbw_o32 == 1 & g2smpl == 1 & sem32m == 1, ///
+>         c(1500) nbins(10) p(2) ///
+>         graph_options(${gphoptns} name(${abbrev}_o32_optbw_10bins, replace))
+>                                         
+> rdplot $mydepvar NAC_PESO_MADRE ///
+>         if optbw_o32 == 1 & g2smpl == 1 & sem32m == 1, ///
+>         c(1500) nbins(20) p(2) ///
+>         graph_options(${gphoptns} name(${abbrev}_o32_optbw_20bins, replace))
+>                                         
+> rdplot $mydepvar NAC_PESO_MADRE ///
+>         if optbw_o32 == 1 & g2smpl == 1 & sem32m == 1, ///
+>         c(1500) p(2) ///
+>         graph_options(${gphoptns} name(${abbrev}_o32_optbw_optbins, replace))
+> */
+. ********************************************************************************
+. * Under 32 weeks gestation (of the mother):
+. /* (Note: Not enough observations to perform calculations 
+> rdbwselect $mydepvar NAC_PESO_MADRE if g2smpl == 1 & sem32m == 0, c(1500)
+> scalar RBW_u32 = e(h_mserd)
+> scalar LBW_u32 = e(h_mserd)
+> scalar maxwt_u32 = 1500 + RBW_o32
+> scalar minwt_u32 = 1500 - LBW_o32
+> gen optbw_u32 = NAC_PESO_MADRE >= minwt_u32 & NAC_PESO_MADRE <= maxwt_u32
+> */
+. 
+. /*
+> NOT ENOUGH OBSERVATIONS LEFT OF CUTOFF TO RUN RDPLOT
+> 
+> rdplot $mydepvar NAC_PESO_MADRE ///
+>         if optbw_u32 == 1 & g2smpl == 1 & sem32m == 0, ///
+>         c(1500) nbins(10) p(2) ///
+>         graph_options(${gphoptns} name(${abbrev}_u32_optbw_10bins, replace))
+>                                         
+> rdplot $mydepvar NAC_PESO_MADRE ///
+>         if optbw_u32 == 1 & g2smpl == 1 & sem32m == 0, ///
+>         c(1500) nbins(20) p(2) ///
+>         graph_options(${gphoptns} name(${abbrev}_u32_optbw_20bins, replace))
+>                                         
+> rdplot $mydepvar NAC_PESO_MADRE ///
+>         if optbw_u32 == 1 & g2smpl == 1 & sem32m == 0, ///
+>         c(1500) p(2) ///
+>         graph_options(${gphoptns} name(${abbrev}_u32_optbw_optbins, replace))
+> */
+. ////////////////////////////////////////////////////////////////////////////////
+> 
+. * REGRESSIONS:
+. ********************************************************************************
+. * Over 32 weeks gestation (of the mother):
+. * No controls:
+. rdrobust $mydepvar NAC_PESO_MADRE if g2smpl == 1 & sem32m==1, c(1500) scalepar(-1) all
+Mass points detected in the running variable.
+Not enough observations to perform calculations
+--Break--
+r(1);
+
+end of do-file
+
+--Break--
+r(1);
+
+. rdbwselect $mydepvar NAC_PESO_MADRE if g2smpl == 1 & sem32m == 0, c(1500)
+Not enough observations to perform calculations
+r(2001);
+
+. rdbwselect $mydepvar NAC_PESO_MADRE if g2smpl == 1 & sem32m == 1, c(1500)
+Mass points detected in the running variable.
+
+Bandwidth estimators for sharp RD local polynomial regression.
+
+       Cutoff c =  | Left of c  Right of c            Number of obs =       2767
+-------------------+----------------------            Kernel        = Triangular
+     Number of obs |         5        2762            VCE method    =         NN
+Min of NAC_PESO_MADRE |   334.000 1560.000
+Max of NAC_PESO_MADRE |  1450.000 5400.000
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+        Unique obs |         5         286
+
+Outcome: hospdays_by_10. Running variable: NAC_PESO_MADRE.
+--------------------------------------------------------------------------------
+                   |         BW est. (h)          |        BW bias (b)
+            Method | Left of c         Right of c | Left of c        Right of c
+-------------------+------------------------------+-----------------------------
+             mserd |   415.057            415.057 |  1025.335          1025.335
+--------------------------------------------------------------------------------
+Estimates adjusted for mass points in the running variable.
+
+. d hosp*_by_01
+
+              storage   display    value
+variable name   type    format     label      variable label
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+hospdays_by_01  int     %9.0g                 Days in hospital by age 1
+hospvsts_by_01  byte    %9.0g                 Hospital admissions by age 1
+hospdays2_by_01 int     %9.0g               * Days in hospital by age 1
+
+. do "C:\Users\nicol\Dropbox\Research Projects\Intergenerational\dofiles\Analysis\analysisGen2hvXy01.do"
+
+. * Create date tag:
+. local today = date("$S_DATE", "DMY")
+
+. local datetag = string(year(`today'), "%02.0f") ///
+>                           + string(month(`today'), "%02.0f") ///
+>                           + string(day(`today'), "%02.0f")
+
+. 
+. * Preamble:
+. clear all
+
+. set more off
+
+. set scheme s1mono 
+
+. graph set window fontface "Times New Roman"
+
+. 
+. * Declare dependent variable:
+. global mydepvar hospvsts_by_01
+
+. 
+. * Declare abbrev:
+. global abbrev g2_hvXy01
+
+. 
+. * Start log:
+. local logfilename = "${id_user_prefix}_`datetag'_${abbrev}"
+
+. capture log close _all
