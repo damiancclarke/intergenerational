@@ -1,0 +1,991 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  masterlog
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/nlillob_20210913_g2_wkndb2.log
+  log type:  text
+ opened on:  13 Sep 2021, 16:55:55
+
+. 
+. * Set graph options:
+. global gphoptns scheme(lean2) ///
+>                                 ytitle("Share of births between Friday and Sunday (2nd generation)") ///
+>                                 xtitle("Mother's birthweight in grams (1st generation)") ///
+>                                 legend(off)
+
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> * Change to directory:
+. cd "$dtadir/DEIS"
+C:\Users\nicol\Dropbox\Research Projects\Intergenerational\data\dta\DEIS
+
+. 
+. * Load data:
+. use "${lastworkdata}.dta", clear
+(Working dataset 13 Sep 2021)
+
+. 
+. * Base sample for second generation:
+. /* 
+> -> children for whom we have mother's birth data:  NAC_mrg_mbdata2main == 3
+> -> children of mothers who were between 15 and 45 years old at time of birth: 
+>                 NAC_EDAD_MADRE >= 15 & NAC_EDAD_MADRE <= 45
+> -> children born from 2007 onwards (only 12 births between 2001-2006 given above
+>  constraints): NAC_ANO_NAC >= 2007
+> */
+. gen g2smpl = NAC_mrg_mbdata2main == 3 ///
+>         & NAC_EDAD_MADRE >= 15 & NAC_EDAD_MADRE <= 45 ///
+>         & NAC_ANO_NAC >= 2007
+
+. 
+. * Show birth years for cohorts in sample:
+. tab NAC_ANO_NAC g2smpl
+
+ Año de la |
+  fecha de |        g2smpl
+nacimiento |         0          1 |     Total
+-----------+----------------------+----------
+      1992 |   278,981          0 |   278,981 
+      1993 |   275,773          0 |   275,773 
+      1994 |   273,757          0 |   273,757 
+      1995 |   265,901          0 |   265,901 
+      1996 |   264,777          0 |   264,777 
+      1997 |   259,975          0 |   259,975 
+      1998 |   257,103          0 |   257,103 
+      1999 |   250,407          0 |   250,407 
+      2000 |   248,869          0 |   248,869 
+      2001 |   215,709          0 |   215,709 
+      2002 |   212,096          0 |   212,096 
+      2003 |   230,470          0 |   230,470 
+      2004 |   230,348          0 |   230,348 
+      2005 |   230,827          0 |   230,827 
+      2006 |   231,378          0 |   231,378 
+      2007 |   239,470      1,097 |   240,567 
+      2008 |   241,602      4,963 |   246,565 
+      2009 |   241,057     11,161 |   252,218 
+      2010 |   232,187     18,444 |   250,631 
+      2011 |   219,686     27,661 |   247,347 
+      2012 |   207,187     36,437 |   243,624 
+      2013 |   198,500     43,498 |   241,998 
+      2014 |   199,359     51,636 |   250,995 
+      2015 |   189,062     55,604 |   244,666 
+      2016 |   175,287     56,456 |   231,743 
+      2017 |   161,442     57,741 |   219,183 
+      2018 |   160,845     60,885 |   221,730 
+-----------+----------------------+----------
+     Total | 6,192,055    425,583 | 6,617,638 
+
+. 
+. * Show birth years for the MOTHERS in the sample:
+. tab NAC_ANO_NAC_MADRE g2smpl if birth_order_by_mother_u == 1
+
+    Madre: |
+ Año de la |
+  fecha de |        g2smpl
+nacimiento |         0          1 |     Total
+-----------+----------------------+----------
+      1992 |       789     64,821 |    65,610 
+      1993 |       908     58,448 |    59,356 
+      1994 |       904     52,622 |    53,526 
+      1995 |       933     44,175 |    45,108 
+      1996 |       850     36,726 |    37,576 
+      1997 |       876     28,430 |    29,306 
+      1998 |       861     20,568 |    21,429 
+      1999 |       846     12,856 |    13,702 
+      2000 |       720      7,282 |     8,002 
+      2001 |       578      3,338 |     3,916 
+      2002 |       485      1,395 |     1,880 
+      2003 |       347        317 |       664 
+      2004 |       230          0 |       230 
+      2005 |        33          0 |        33 
+      2006 |         3          0 |         3 
+-----------+----------------------+----------
+     Total |     9,363    330,978 |   340,341 
+
+. 
+. * Summarize dependent variable by birth year, restricted to sample:
+. tabstat $mydepvar if g2smpl == 1, by(NAC_ANO_NAC) s(N mean min max)
+
+Summary for variables: wkndbirth2
+     by categories of: NAC_ANO_NAC (Año de la fecha de nacimiento)
+
+NAC_ANO~C |         N      mean       min       max
+----------+----------------------------------------
+     2007 |      1097  .4047402         0         1
+     2008 |      4963  .3900866         0         1
+     2009 |     11161  .3936027         0         1
+     2010 |     18444  .4092388         0         1
+     2011 |     27661  .3947435         0         1
+     2012 |     36437  .4060159         0         1
+     2013 |     43498  .3936043         0         1
+     2014 |     51636  .3901929         0         1
+     2015 |     55604  .3873642         0         1
+     2016 |     56456  .3876647         0         1
+     2017 |     57741  .3879219         0         1
+     2018 |     60885   .384791         0         1
+----------+----------------------------------------
+    Total |    425583  .3913573         0         1
+---------------------------------------------------
+
+. 
+. * Drop unused observations to speed things up:
+. keep if g2smpl == 1
+(6,192,055 observations deleted)
+
+. compress
+  variable DEF_EDAD_CANT was int now byte
+  variable EEHH_nvsts_y07 was int now byte
+  variable EEHH_nvsts_y09 was int now byte
+  variable EEHH_nvsts_y11 was int now byte
+  variable EEHH_nvsts_y12 was int now byte
+  variable EEHH_nvsts_y15 was int now byte
+  variable EEHH_nvsts_y16 was int now byte
+  variable EEHH_nvsts_y17 was int now byte
+  variable EEHH_days_y10 was int now byte
+  variable EEHH_days_y11 was int now byte
+  variable EEHH_days_y12 was int now byte
+  variable EEHH_days_y13 was int now byte
+  variable EEHH_days_y14 was int now byte
+  variable EEHH_days_y15 was int now byte
+  variable EEHH_days_y16 was int now byte
+  variable EEHH_days_y17 was int now byte
+  variable EEHH_days_y18 was int now byte
+  variable EEHH_days_y19 was int now byte
+  variable EEHH_days_y20 was int now byte
+  variable EEHH_days_y21 was int now byte
+  variable EEHH_days_y22 was int now byte
+  variable EEHH_days_y23 was int now byte
+  variable EEHH_days_y24 was int now byte
+  variable EEHH_days_y25 was int now byte
+  variable EEHH_days_y26 was int now byte
+  variable EEHH_days_y27 was int now byte
+  variable EEHH_days_s00 was int now byte
+  variable EEHH_days_y10_priv was int now byte
+  variable EEHH_days_y11_priv was int now byte
+  variable EEHH_days_y12_priv was int now byte
+  variable EEHH_days_y13_priv was int now byte
+  variable EEHH_days_y14_priv was int now byte
+  variable EEHH_days_y15_priv was int now byte
+  variable EEHH_days_y16_priv was int now byte
+  variable EEHH_days_y17_priv was int now byte
+  variable EEHH_days_y18_priv was int now byte
+  variable EEHH_days_y19_priv was int now byte
+  variable EEHH_days_y20_priv was int now byte
+  variable EEHH_days_y21_priv was int now byte
+  variable EEHH_days_y22_priv was int now byte
+  variable EEHH_days_y23_priv was int now byte
+  variable EEHH_days_y24_priv was int now byte
+  variable EEHH_days_y25_priv was int now byte
+  variable EEHH_days_y26_priv was int now byte
+  variable EEHH_days_s00_priv was int now byte
+  variable EEHH_nvsts_y11_priv was int now byte
+  variable EEHH_nvsts_y15_priv was int now byte
+  variable EEHH_nvsts_y16_priv was int now byte
+  variable EEHH_nvsts_y17_priv was int now byte
+  variable EEHH_days_y10_publ was int now byte
+  variable EEHH_days_y11_publ was int now byte
+  variable EEHH_days_y12_publ was int now byte
+  variable EEHH_days_y13_publ was int now byte
+  variable EEHH_days_y14_publ was int now byte
+  variable EEHH_days_y15_publ was int now byte
+  variable EEHH_days_y16_publ was int now byte
+  variable EEHH_days_y17_publ was int now byte
+  variable EEHH_days_y18_publ was int now byte
+  variable EEHH_days_y19_publ was int now byte
+  variable EEHH_days_y20_publ was int now byte
+  variable EEHH_days_y21_publ was int now byte
+  variable EEHH_days_y22_publ was int now byte
+  variable EEHH_days_y23_publ was int now byte
+  variable EEHH_days_y24_publ was int now byte
+  variable EEHH_days_y25_publ was int now byte
+  variable EEHH_days_y26_publ was int now byte
+  variable EEHH_days_y27_publ was int now byte
+  variable EEHH_days_s00_publ was int now byte
+  variable EEHH_nvsts_y07_publ was int now byte
+  variable EEHH_nvsts_y09_publ was int now byte
+  variable EEHH_nvsts_y11_publ was int now byte
+  variable EEHH_nvsts_y12_publ was int now byte
+  variable EEHH_nvsts_y15_publ was int now byte
+  variable EEHH_nvsts_y16_publ was int now byte
+  variable hospvsts_by_09 was int now byte
+  variable hospvsts_by_10 was int now byte
+  variable hospvsts_by_11 was int now byte
+  variable hospdays_by_12 was int now byte
+  variable hospvsts_by_12 was int now byte
+  variable hospdays2_by_12 was int now byte
+  variable hospdays_by_13 was int now byte
+  variable hospvsts_by_13 was int now byte
+  variable hospdays2_by_13 was int now byte
+  variable hospdays_by_14 was int now byte
+  variable hospvsts_by_14 was int now byte
+  variable hospdays2_by_14 was int now byte
+  variable hospdays_by_15 was int now byte
+  variable hospvsts_by_15 was int now byte
+  variable hospdays2_by_15 was int now byte
+  variable hospdays_by_16 was int now byte
+  variable hospvsts_by_16 was int now byte
+  variable hospdays2_by_16 was int now byte
+  variable hospdays_by_17 was int now byte
+  variable hospvsts_by_17 was int now byte
+  variable hospdays2_by_17 was int now byte
+  variable hospdays_by_18 was int now byte
+  variable hospvsts_by_18 was int now byte
+  variable hospdays2_by_18 was int now byte
+  variable hospdays_by_19 was int now byte
+  variable hospvsts_by_19 was int now byte
+  variable hospdays2_by_19 was int now byte
+  variable hospdays_by_20 was int now byte
+  variable hospvsts_by_20 was int now byte
+  variable hospdays2_by_20 was int now byte
+  variable hospdays_by_21 was int now byte
+  variable hospvsts_by_21 was int now byte
+  variable hospdays2_by_21 was int now byte
+  variable hospdays_by_22 was int now byte
+  variable hospvsts_by_22 was int now byte
+  variable hospdays2_by_22 was int now byte
+  variable hospdays_by_23 was int now byte
+  variable hospvsts_by_23 was int now byte
+  variable hospdays2_by_23 was int now byte
+  variable hospdays_by_24 was int now byte
+  variable hospvsts_by_24 was int now byte
+  variable hospdays2_by_24 was int now byte
+  variable hospdays_by_25 was int now byte
+  variable hospvsts_by_25 was int now byte
+  variable hospdays2_by_25 was int now byte
+  variable hospdays_by_26 was int now byte
+  variable hospvsts_by_26 was int now byte
+  variable hospdays2_by_26 was int now byte
+  variable hospdays_by_27 was int now byte
+  variable hospdays2_by_27 was int now byte
+  variable g2smpl was float now byte
+  variable NAC_PAIS_ORIGEN_MADRE was str41 now str40
+  variable DEF_GLOSA_OCUPACION was str68 now str27
+  variable DEF_CODIGO_TERMINO_DIAGNOSTICO_1 was str19 now str16
+  variable DEF_CODIGO_TERMINO_DIAGNOSTICO_2 was str19 now str16
+  variable DEF_CODIGO_TERMINO_DIAGNOSTICO_4 was str29 now str24
+  (76,604,940 bytes saved)
+
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> **** RDPLOT GRAPHS ****
+. 
+. ********************************************************************************
+. * Over 32 weeks gestation (of the mother):
+. rdbwselect $mydepvar NAC_PESO_MADRE if g2smpl == 1 & sem32m == 1, c(1500)
+Mass points detected in the running variable.
+
+Bandwidth estimators for sharp RD local polynomial regression.
+
+       Cutoff c =  | Left of c  Right of c            Number of obs =     422408
+-------------------+----------------------            Kernel        = Triangular
+     Number of obs |       532      421876            VCE method    =         NN
+Min of NAC_PESO_MADRE |   240.000 1500.000
+Max of NAC_PESO_MADRE |  1495.000 6480.000
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+        Unique obs |       105        1398
+
+Outcome: wkndbirth2. Running variable: NAC_PESO_MADRE.
+--------------------------------------------------------------------------------
+                   |         BW est. (h)          |        BW bias (b)
+            Method | Left of c         Right of c | Left of c        Right of c
+-------------------+------------------------------+-----------------------------
+             mserd |   251.942            251.942 |   431.760           431.760
+--------------------------------------------------------------------------------
+Estimates adjusted for mass points in the running variable.
+
+. scalar RBW_o32 = e(h_mserd)
+
+. scalar LBW_o32 = e(h_mserd)
+
+. scalar maxwt_o32 = 1500 + RBW_o32
+
+. scalar minwt_o32 = 1500 - LBW_o32
+
+. gen optbw_o32 = NAC_PESO_MADRE >= minwt_o32 & NAC_PESO_MADRE <= maxwt_o32
+
+. 
+. rdplot $mydepvar NAC_PESO_MADRE ///
+>         if optbw_o32 == 1 & g2smpl == 1 & sem32m == 1, ///
+>         c(1500) nbins(10) p(2) ///
+>         graph_options(${gphoptns} name(${abbrev}_o32_optbw_10bins, replace))
+Mass points detected in the running variable.
+
+RD Plot with RD plot with manually set number of bins.
+
+      Cutoff c = 1500 | Left of c  Right of c        Number of obs  =       1298
+----------------------+----------------------        Kernel         =    Uniform
+        Number of obs |       362         936
+   Eff. Number of obs |       362         936
+  Order poly. fit (p) |         2           2
+     BW poly. fit (h) |   250.000     250.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: wkndbirth2. Running variable: NAC_PESO_MADRE.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |        10          10
+   Average bin length |    25.000      25.000
+    Median bin length |    25.000      25.000
+----------------------+----------------------
+    IMSE-optimal bins |         6           4
+  Mimicking Var. bins |        27          26
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |     1.667       2.500
+    WIMSE var. weight |     0.178       0.060
+    WIMSE bias weight |     0.822       0.940
+---------------------------------------------
+
+
+.                                         
+. rdplot $mydepvar NAC_PESO_MADRE ///
+>         if optbw_o32 == 1 & g2smpl == 1 & sem32m == 1, ///
+>         c(1500) nbins(20) p(2) ///
+>         graph_options(${gphoptns} name(${abbrev}_o32_optbw_20bins, replace))
+Mass points detected in the running variable.
+
+RD Plot with RD plot with manually set number of bins.
+
+      Cutoff c = 1500 | Left of c  Right of c        Number of obs  =       1298
+----------------------+----------------------        Kernel         =    Uniform
+        Number of obs |       362         936
+   Eff. Number of obs |       362         936
+  Order poly. fit (p) |         2           2
+     BW poly. fit (h) |   250.000     250.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: wkndbirth2. Running variable: NAC_PESO_MADRE.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |        20          20
+   Average bin length |    12.500      12.500
+    Median bin length |    12.500      12.500
+----------------------+----------------------
+    IMSE-optimal bins |         6           4
+  Mimicking Var. bins |        27          26
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |     3.333       5.000
+    WIMSE var. weight |     0.026       0.008
+    WIMSE bias weight |     0.974       0.992
+---------------------------------------------
+
+
+.                                         
+. rdplot $mydepvar NAC_PESO_MADRE ///
+>         if optbw_o32 == 1 & g2smpl == 1 & sem32m == 1, ///
+>         c(1500) p(2) ///
+>         graph_options(${gphoptns} name(${abbrev}_o32_optbw_optbins, replace))
+Mass points detected in the running variable.
+
+RD Plot with evenly spaced mimicking variance number of bins using polynomial regression.
+
+      Cutoff c = 1500 | Left of c  Right of c        Number of obs  =       1298
+----------------------+----------------------        Kernel         =    Uniform
+        Number of obs |       362         936
+   Eff. Number of obs |       362         936
+  Order poly. fit (p) |         2           2
+     BW poly. fit (h) |   250.000     250.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: wkndbirth2. Running variable: NAC_PESO_MADRE.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |        27          26
+   Average bin length |     9.259       9.615
+    Median bin length |     9.259       9.615
+----------------------+----------------------
+    IMSE-optimal bins |         6           4
+  Mimicking Var. bins |        27          26
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |     4.500       6.500
+    WIMSE var. weight |     0.011       0.004
+    WIMSE bias weight |     0.989       0.996
+---------------------------------------------
+
+
+. 
+. ********************************************************************************
+. * Under 32 weeks gestation (of the mother):
+. /* (Note: so few observations that all bin selection procedures yield the same 
+> quantity of bins */
+. rdbwselect $mydepvar NAC_PESO_MADRE if g2smpl == 1 & sem32m == 0, c(1500)
+Mass points detected in the running variable.
+
+Bandwidth estimators for sharp RD local polynomial regression.
+
+       Cutoff c =  | Left of c  Right of c            Number of obs =       1441
+-------------------+----------------------            Kernel        = Triangular
+     Number of obs |       778         663            VCE method    =         NN
+Min of NAC_PESO_MADRE |   600.000 1500.000
+Max of NAC_PESO_MADRE |  1490.000 4710.000
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+        Unique obs |       125         171
+
+Outcome: wkndbirth2. Running variable: NAC_PESO_MADRE.
+--------------------------------------------------------------------------------
+                   |         BW est. (h)          |        BW bias (b)
+            Method | Left of c         Right of c | Left of c        Right of c
+-------------------+------------------------------+-----------------------------
+             mserd |   354.055            354.055 |   537.940           537.940
+--------------------------------------------------------------------------------
+Estimates adjusted for mass points in the running variable.
+
+. scalar RBW_u32 = e(h_mserd)
+
+. scalar LBW_u32 = e(h_mserd)
+
+. scalar maxwt_u32 = 1500 + RBW_o32
+
+. scalar minwt_u32 = 1500 - LBW_o32
+
+. gen optbw_u32 = NAC_PESO_MADRE >= minwt_u32 & NAC_PESO_MADRE <= maxwt_u32
+
+.                                 
+. rdplot $mydepvar NAC_PESO_MADRE ///
+>         if optbw_u32 == 1 & g2smpl == 1 & sem32m == 0, ///
+>         c(1500) nbins(10) p(2) ///
+>         graph_options(${gphoptns} name(${abbrev}_u32_optbw_10bins, replace))
+Mass points detected in the running variable.
+
+RD Plot with RD plot with manually set number of bins.
+
+      Cutoff c = 1500 | Left of c  Right of c        Number of obs  =        617
+----------------------+----------------------        Kernel         =    Uniform
+        Number of obs |       344         273
+   Eff. Number of obs |       344         273
+  Order poly. fit (p) |         2           2
+     BW poly. fit (h) |   250.000     250.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: wkndbirth2. Running variable: NAC_PESO_MADRE.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |        10          10
+   Average bin length |    25.000      25.000
+    Median bin length |    25.000      25.000
+----------------------+----------------------
+    IMSE-optimal bins |         9           6
+  Mimicking Var. bins |        16          16
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |     1.111       1.667
+    WIMSE var. weight |     0.422       0.178
+    WIMSE bias weight |     0.578       0.822
+---------------------------------------------
+
+
+.                                         
+. rdplot $mydepvar NAC_PESO_MADRE ///
+>         if optbw_u32 == 1 & g2smpl == 1 & sem32m == 0, ///
+>         c(1500) nbins(20) p(2) ///
+>         graph_options(${gphoptns} name(${abbrev}_u32_optbw_20bins, replace))
+Mass points detected in the running variable.
+
+RD Plot with RD plot with manually set number of bins.
+
+      Cutoff c = 1500 | Left of c  Right of c        Number of obs  =        617
+----------------------+----------------------        Kernel         =    Uniform
+        Number of obs |       344         273
+   Eff. Number of obs |       344         273
+  Order poly. fit (p) |         2           2
+     BW poly. fit (h) |   250.000     250.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: wkndbirth2. Running variable: NAC_PESO_MADRE.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |        20          20
+   Average bin length |    12.500      12.500
+    Median bin length |    12.500      12.500
+----------------------+----------------------
+    IMSE-optimal bins |         9           6
+  Mimicking Var. bins |        16          16
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |     2.222       3.333
+    WIMSE var. weight |     0.084       0.026
+    WIMSE bias weight |     0.916       0.974
+---------------------------------------------
+
+
+.                                         
+. rdplot $mydepvar NAC_PESO_MADRE ///
+>         if optbw_u32 == 1 & g2smpl == 1 & sem32m == 0, ///
+>         c(1500) p(2) ///
+>         graph_options(${gphoptns} name(${abbrev}_u32_optbw_optbins, replace))
+Mass points detected in the running variable.
+
+RD Plot with evenly spaced mimicking variance number of bins using polynomial regression.
+
+      Cutoff c = 1500 | Left of c  Right of c        Number of obs  =        617
+----------------------+----------------------        Kernel         =    Uniform
+        Number of obs |       344         273
+   Eff. Number of obs |       344         273
+  Order poly. fit (p) |         2           2
+     BW poly. fit (h) |   250.000     250.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: wkndbirth2. Running variable: NAC_PESO_MADRE.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |        16          16
+   Average bin length |    15.625      15.625
+    Median bin length |    15.625      15.625
+----------------------+----------------------
+    IMSE-optimal bins |         9           6
+  Mimicking Var. bins |        16          16
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |     1.778       2.667
+    WIMSE var. weight |     0.151       0.050
+    WIMSE bias weight |     0.849       0.950
+---------------------------------------------
+
+
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> 
+. * REGRESSIONS:
+. ********************************************************************************
+. * Over 32 weeks gestation (of the mother):
+. * No controls:
+. rdrobust $mydepvar NAC_PESO_MADRE if g2smpl == 1 & sem32m==1, c(1500) scalepar(-1) all
+Mass points detected in the running variable.
+
+Sharp RD estimates using local polynomial regression.
+
+   Cutoff c = 1500 | Left of c  Right of c            Number of obs =     422408
+-------------------+----------------------            BW type       =      mserd
+     Number of obs |       532      421876            Kernel        = Triangular
+Eff. Number of obs |       362         936            VCE method    =         NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |   251.942     251.942
+       BW bias (b) |   431.760     431.760
+         rho (h/b) |     0.584       0.584
+        Unique obs |       105        1398
+
+Outcome: wkndbirth2. Running variable: NAC_PESO_MADRE.
+--------------------------------------------------------------------------------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Interval]
+-------------------+------------------------------------------------------------
+      Conventional |  .06764     .06548   1.0329   0.302   -.060701      .195974
+    Bias-corrected |  .05547     .06548   0.8471   0.397   -.072868      .183807
+            Robust |  .05547     .07844   0.7072   0.479   -.098262        .2092
+--------------------------------------------------------------------------------
+Scale parameter: -1
+Estimates adjusted for mass points in the running variable.
+
+. est store ${abbrev}_o32_optbw
+
+. estadd scalar Hopt = e(h_l)
+
+added scalar:
+               e(Hopt) =  251.94242
+
+. estadd scalar Nl   = e(N_h_l)
+
+added scalar:
+                 e(Nl) =  362
+
+. estadd scalar Nr   = e(N_h_r)
+
+added scalar:
+                 e(Nr) =  936
+
+. local ef = e(N_h_l)+e(N_h_r)
+
+. estadd scalar effopt = `ef'
+
+added scalar:
+             e(effopt) =  1298
+
+. sum $mydepvar if optbw_o32 == 1 & g2smpl == 1 & sem32m == 1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+  wkndbirth2 |      1,298    .4098613    .4919975          0          1
+
+. estadd scalar dvmean = r(mean)
+
+added scalar:
+             e(dvmean) =  .40986133
+
+. 
+. * Heaping control:
+. rdrobust $mydepvar NAC_PESO_MADRE if g2smpl == 1 & sem32m == 1, c(1500) scalepar(-1) covs(round100m) all
+Mass points detected in the running variable.
+
+Covariate-adjusted sharp RD estimates using local polynomial regression.
+
+   Cutoff c = 1500 | Left of c  Right of c            Number of obs =     422408
+-------------------+----------------------            BW type       =      mserd
+     Number of obs |       532      421876            Kernel        = Triangular
+Eff. Number of obs |       424        1675            VCE method    =         NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |   363.295     363.295
+       BW bias (b) |   648.298     648.298
+         rho (h/b) |     0.560       0.560
+        Unique obs |       105        1398
+
+Outcome: wkndbirth2. Running variable: NAC_PESO_MADRE.
+--------------------------------------------------------------------------------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Interval]
+-------------------+------------------------------------------------------------
+      Conventional |  .08093     .05503   1.4707   0.141   -.026924      .188781
+    Bias-corrected |  .07123     .05503   1.2944   0.196   -.036622      .179082
+            Robust |  .07123     .06475   1.1000   0.271   -.055683      .198144
+--------------------------------------------------------------------------------
+Covariate-adjusted estimates. Additional covariates included: 1
+Scale parameter: -1
+Estimates adjusted for mass points in the running variable.
+
+. est store ${abbrev}_o32_optbw_heaps
+
+. estadd scalar Hopt = e(h_l)
+
+added scalar:
+               e(Hopt) =  363.29482
+
+. estadd scalar Nl   = e(N_h_l)
+
+added scalar:
+                 e(Nl) =  424
+
+. estadd scalar Nr   = e(N_h_r)
+
+added scalar:
+                 e(Nr) =  1675
+
+. local ef = e(N_h_l)+e(N_h_r)
+
+. estadd scalar effopt = `ef'
+
+added scalar:
+             e(effopt) =  2099
+
+. sum $mydepvar if optbw_o32 == 1 & g2smpl == 1 & sem32m == 1
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+  wkndbirth2 |      1,298    .4098613    .4919975          0          1
+
+. estadd scalar dvmean = r(mean)
+
+added scalar:
+             e(dvmean) =  .40986133
+
+. 
+. ********************************************************************************
+. * Under 32 weeks gestation (of the mother):
+. * No controls:
+. rdrobust $mydepvar NAC_PESO_MADRE if g2smpl == 1 & sem32m == 0, c(1500) scalepar(-1) all
+Mass points detected in the running variable.
+
+Sharp RD estimates using local polynomial regression.
+
+   Cutoff c = 1500 | Left of c  Right of c            Number of obs =       1441
+-------------------+----------------------            BW type       =      mserd
+     Number of obs |       778         663            Kernel        = Triangular
+Eff. Number of obs |       462         327            VCE method    =         NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |   354.055     354.055
+       BW bias (b) |   537.940     537.940
+         rho (h/b) |     0.658       0.658
+        Unique obs |       125         171
+
+Outcome: wkndbirth2. Running variable: NAC_PESO_MADRE.
+--------------------------------------------------------------------------------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Interval]
+-------------------+------------------------------------------------------------
+      Conventional |  .04489     .07132   0.6295   0.529   -.094887      .184669
+    Bias-corrected |  .04441     .07132   0.6227   0.534   -.095373      .184184
+            Robust |  .04441     .08531   0.5205   0.603   -.122793      .211605
+--------------------------------------------------------------------------------
+Scale parameter: -1
+Estimates adjusted for mass points in the running variable.
+
+. est store ${abbrev}_u32_optbw
+
+. estadd scalar Hopt = e(h_l)
+
+added scalar:
+               e(Hopt) =  354.0555
+
+. estadd scalar Nl   = e(N_h_l)
+
+added scalar:
+                 e(Nl) =  462
+
+. estadd scalar Nr   = e(N_h_r)
+
+added scalar:
+                 e(Nr) =  327
+
+. local ef = e(N_h_l)+e(N_h_r)
+
+. estadd scalar effopt = `ef'
+
+added scalar:
+             e(effopt) =  789
+
+. sum $mydepvar if optbw_u32 == 1 & g2smpl == 1 & sem32m == 0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+  wkndbirth2 |        617    .3841167    .4867803          0          1
+
+. estadd scalar dvmean = r(mean)
+
+added scalar:
+             e(dvmean) =  .38411669
+
+. 
+. * Heaping control:
+. rdrobust $mydepvar NAC_PESO_MADRE if g2smpl == 1 & sem32m == 0, c(1500) scalepar(-1) covs(round100m) all
+Mass points detected in the running variable.
+
+Covariate-adjusted sharp RD estimates using local polynomial regression.
+
+   Cutoff c = 1500 | Left of c  Right of c            Number of obs =       1441
+-------------------+----------------------            BW type       =      mserd
+     Number of obs |       778         663            Kernel        = Triangular
+Eff. Number of obs |       425         309            VCE method    =         NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |   318.934     318.934
+       BW bias (b) |   478.527     478.527
+         rho (h/b) |     0.666       0.666
+        Unique obs |       125         171
+
+Outcome: wkndbirth2. Running variable: NAC_PESO_MADRE.
+--------------------------------------------------------------------------------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Interval]
+-------------------+------------------------------------------------------------
+      Conventional |  .04306     .07455   0.5776   0.564   -.103054       .18917
+    Bias-corrected |  .03833     .07455   0.5141   0.607   -.107785       .18444
+            Robust |  .03833     .08937   0.4289   0.668   -.136831      .213486
+--------------------------------------------------------------------------------
+Covariate-adjusted estimates. Additional covariates included: 1
+Scale parameter: -1
+Estimates adjusted for mass points in the running variable.
+
+. est store ${abbrev}_u32_optbw_heaps
+
+. estadd scalar Hopt = e(h_l)
+
+added scalar:
+               e(Hopt) =  318.93366
+
+. estadd scalar Nl   = e(N_h_l)
+
+added scalar:
+                 e(Nl) =  425
+
+. estadd scalar Nr   = e(N_h_r)
+
+added scalar:
+                 e(Nr) =  309
+
+. local ef = e(N_h_l) + e(N_h_r)
+
+. estadd scalar effopt = `ef'
+
+added scalar:
+             e(effopt) =  734
+
+. sum $mydepvar if optbw_u32 == 1 & g2smpl == 1 & sem32m == 0
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+  wkndbirth2 |        617    .3841167    .4867803          0          1
+
+. estadd scalar dvmean = r(mean)
+
+added scalar:
+             e(dvmean) =  .38411669
+
+. 
+. gen RD_Estimate = .
+(425,583 missing values generated)
+
+. lab var RD_Estimate "Birth weight < 1,500"
+
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> * OUTPUTS:
+. 
+. ********************************************************************************
+. * Export graphs as .gph:
+. graph dir
+    g2_wkndb2_o32_optbw_10bins   g2_wkndb2_o32_optbw_optbins  g2_wkndb2_u32_optbw_20bins
+    g2_wkndb2_o32_optbw_20bins   g2_wkndb2_u32_optbw_10bins   g2_wkndb2_u32_optbw_optbins
+
+. foreach g in `r(list)' {
+  2.         graph save `g' "$figsdir/`g'.gph", replace
+  3. }
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_o32_optbw_10bins.gph not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_o32_optbw_10bins.gph saved)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_o32_optbw_20bins.gph not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_o32_optbw_20bins.gph saved)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_o32_optbw_optbins.gph not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_o32_optbw_optbins.gph saved)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_u32_optbw_10bins.gph not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_u32_optbw_10bins.gph saved)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_u32_optbw_20bins.gph not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_u32_optbw_20bins.gph saved)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_u32_optbw_optbins.gph not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_u32_optbw_optbins.gph saved)
+
+. 
+. * Export graphs as .eps:
+. graph dir
+    g2_wkndb2_o32_optbw_10bins   g2_wkndb2_o32_optbw_optbins  g2_wkndb2_u32_optbw_20bins
+    g2_wkndb2_o32_optbw_20bins   g2_wkndb2_u32_optbw_10bins   g2_wkndb2_u32_optbw_optbins
+
+. foreach g in `r(list)' {
+  2.         graph export "$figsdir/`g'.eps", replace name(`g')
+  3. }
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_o32_optbw_10bins.eps not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_o32_optbw_10bins.eps written in EPS format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_o32_optbw_20bins.eps not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_o32_optbw_20bins.eps written in EPS format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_o32_optbw_optbins.eps not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_o32_optbw_optbins.eps written in EPS format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_u32_optbw_10bins.eps not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_u32_optbw_10bins.eps written in EPS format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_u32_optbw_20bins.eps not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_u32_optbw_20bins.eps written in EPS format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_u32_optbw_optbins.eps not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_u32_optbw_optbins.eps written in EPS format)
+
+. 
+. * Export graphs as .png:
+. graph dir
+    g2_wkndb2_o32_optbw_10bins   g2_wkndb2_o32_optbw_optbins  g2_wkndb2_u32_optbw_20bins
+    g2_wkndb2_o32_optbw_20bins   g2_wkndb2_u32_optbw_10bins   g2_wkndb2_u32_optbw_optbins
+
+. foreach g in `r(list)' {
+  2.         graph export "$figsdir/`g'.png", replace name(`g')
+  3. }
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_o32_optbw_10bins.png not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_o32_optbw_10bins.png written in PNG format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_o32_optbw_20bins.png not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_o32_optbw_20bins.png written in PNG format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_o32_optbw_optbins.png not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_o32_optbw_optbins.png written in PNG format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_u32_optbw_10bins.png not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_u32_optbw_10bins.png written in PNG format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_u32_optbw_20bins.png not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_u32_optbw_20bins.png written in PNG format)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_u32_optbw_optbins.png not found)
+(file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/figures/g2_wkndb2_u32_optbw_optbins.png written in PNG format)
+
+. 
+. ********************************************************************************
+. * Export results as .ster files:
+. 
+. estimates dir
+
+-------------------------------------------------------
+        name | command      depvar       npar  title 
+-------------+-----------------------------------------
+g2_wkndb2_~w | rdrobust     wkndbirth2      3  
+g2_wkndb2_~s | rdrobust     wkndbirth2      3  
+g2_wkndb2_~w | rdrobust     wkndbirth2      3  
+g2_wkndb2_~s | rdrobust     wkndbirth2      3  
+-------------------------------------------------------
+
+. foreach result in `r(names)' {
+  2.         estimates restore `result'
+  3.         estimates save "$estdir/`result'", replace
+  4. }
+(results g2_wkndb2_o32_optbw are active now)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2_wkndb2_o32_optbw.ster not found)
+file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2_wkndb2_o32_optbw.ster saved
+(results g2_wkndb2_o32_optbw_heaps are active now)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2_wkndb2_o32_optbw_heaps.ster not found)
+file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2_wkndb2_o32_optbw_heaps.ster saved
+(results g2_wkndb2_u32_optbw are active now)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2_wkndb2_u32_optbw.ster not found)
+file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2_wkndb2_u32_optbw.ster saved
+(results g2_wkndb2_u32_optbw_heaps are active now)
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2_wkndb2_u32_optbw_heaps.ster not found)
+file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/results/g2_wkndb2_u32_optbw_heaps.ster saved
+
+. 
+. ********************************************************************************
+. * TABLES:
+. 
+. * ${abbrev}_o32_optbw: mother 32+ weeks, optimal bandwidth
+. * ${abbrev}_u32_optbw: mother <32 weeks, optimal bandwidth
+. * ${abbrev}_o32_optbw_heaps: mother 32+ weeks, optimal bandwidth, control for heaping
+. * ${abbrev}_u32_optbw_heaps: mother <32 weeks, optimal bandwidth, control for heaping
+. 
+. local ests ${abbrev}_o32_optbw ${abbrev}_u32_optbw ${abbrev}_o32_optbw_heaps ${abbrev}_u32_optbw_heaps 
+
+. 
+. * Display results:
+. esttab `ests', ///
+>         cells(b(fmt(%-9.4f) star) se(fmt(%-9.4f) par([ ]) )) label ///
+>         nonotes nogaps nonumber collabels(none) modelwidth(12) ///
+>         stats(dvmean N Hopt effopt Nl Nr, fmt(%05.3f %12.0gc %5.1f %9.0gc %9.0gc %9.0gc) ///
+>       label("Mean of Dep. Var." "Observations" "Optimal Bandwidth" ///
+>             "Effective Observations" "Observations (left)" "Observations (right)")) ///
+>         starlevel("*" 0.1 "**" 0.05 "***" 0.01) ///
+>         mtitles("32+" "<32" "32+" "<32") ///
+>         mgroups("No heaping" "Heaping", lhs("Birth Weight < 1500") pattern( 1 0 1 0))
+
+------------------------------------------------------------------------------------
+Birth Weight < 1500    No heaping                         Heaping                   
+                              32+             <32             32+             <32   
+------------------------------------------------------------------------------------
+Conventional               0.0676          0.0449          0.0809          0.0431   
+                         [0.0655]        [0.0713]        [0.0550]        [0.0745]   
+Bias-corrected             0.0555          0.0444          0.0712          0.0383   
+                         [0.0655]        [0.0713]        [0.0550]        [0.0745]   
+Robust                     0.0555          0.0444          0.0712          0.0383   
+                         [0.0784]        [0.0853]        [0.0648]        [0.0894]   
+------------------------------------------------------------------------------------
+Mean of Dep. Var.           0.410           0.384           0.410           0.384   
+Observations              422,408           1,441         422,408           1,441   
+Optimal Bandwidth           251.9           354.1           363.3           318.9   
+Effective Observat~s        1,298             789           2,099             734   
+Observations (left)           362             462             424             425   
+Observations (right)          936             327           1,675             309   
+------------------------------------------------------------------------------------
+
+. 
+. * Export results:
+. #delimit ;
+delimiter now ;
+. esttab `ests' using "$tbldir/${abbrev}.tex",
+> replace booktabs cells(b(fmt(%-9.4f) star) se(fmt(%-9.4f) par([ ]) )) label
+> stats(dvmean N Hopt effopt Nl Nr, fmt(%05.3f %12.0gc %5.1f %9.0gc %9.0gc %9.0gc) 
+>       label("\\ Mean of Dep. Var." "Observations" "Optimal Bandwidth" 
+>             "Effective Observations" "Observations (left)" "Observations (right)"))
+> nonotes nogaps mlabels(, none) nonumbers style(tex) fragment noline /*keep(RD_Estimate)*/
+> collabels(none) starlevel("*" 0.1 "**" 0.05 "***" 0.01);
+(note: file C:/Users/nicol/Dropbox/Research Projects/Intergenerational/textables/g2_wkndb2.tex not found)
+(output written to C:/Users/nicol/Dropbox/Research Projects/Intergenerational/textables/g2_wkndb2.tex)
+
+. #delimit cr
+delimiter now cr
+. 
+. 
+. log close _all
+      name:  masterlog
+       log:  C:/Users/nicol/Dropbox/Research Projects/Intergenerational/statalogs/nlillob_20210913_g2_wkndb2.log
+  log type:  text
+ closed on:  13 Sep 2021, 16:57:19
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------

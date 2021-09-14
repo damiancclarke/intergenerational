@@ -94,6 +94,14 @@ label var round100 "=1 if person's birthweight is a multiple of 100"
 label var round100m "=1 if person's mother's birthweight is a multiple of 100"
 note round100m: Available only for people born after 2001
 
+* Create new dependent variables:
+gen byte dayofweek = dow(NAC_FECHA_NACIMIENTO_SIF)
+label var dayofweek "Birth day of the week (Sunday = 0)"
+gen byte wkndbirth = (dayofweek == 0 | dayofweek == 6) if dayofweek != .
+label var wkndbirth "Birth during weekend (Saturday or Sunday)"
+gen byte wkndbirth2 = (dayofweek == 0 | dayofweek == 5 | dayofweek == 6) if dayofweek != .
+label var wkndbirth2 "Birth during weekend (Friday, Saturday, or Sunday)"
+
 * Compress newly created variables:
 compress
 
@@ -305,7 +313,7 @@ label data "Working dataset $S_DATE"
 notes drop _dta
 note: Last modified by: $id_user_full ($id_user_email)
 note: Last modification timestamp: $S_DATE at $S_TIME
-save `"workingdata`=subinstr("$S_DATE", " ", "", .)'.dta"', replace
+save `"workingdata`=string(date("$S_DATE", "DMY"), "%td")'.dta"', replace
 
 * Close log:
 log close _all
