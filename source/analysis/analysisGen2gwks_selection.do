@@ -143,6 +143,17 @@ estadd scalar effopt = `ef'
 sum $mydepvar if optbw_o32 == 1 & (g2smpl == 1 | app_deadmom == 1) & sem32m == 1
 estadd scalar dvmean = r(mean)
 
+* robust rd estimation (heaping control):
+rdrobust $mydepvar NAC_PESO_MADRE if g2smpl == 1 & sem32m==1, c(1500) scalepar(-1) all covs(round100m) 
+est store ${abbrev}_o32_optbw_heaps
+estadd scalar Hopt = e(h_l)
+estadd scalar Nl  = e(N_h_l)
+estadd scalar Nr  = e(N_h_r)
+local ef = e(N_h_l)+e(N_h_r)
+estadd scalar effopt = `ef'
+sum $mydepvar if optbw_o32 == 1 & (g2smpl == 1 | app_deadmom == 1) & sem32m == 1
+estadd scalar dvmean = r(mean)
+
 * Imputing percentile birth weight of a hypothetical child for dead potential mothers:
 forval p = 10(10)90 {
 	* graph:
@@ -154,6 +165,23 @@ forval p = 10(10)90 {
 	* robust rd estimation:
 	rdrobust ${mydepvar}_imp`p' NAC_PESO_MADRE if (g2smpl == 1 | app_deadmom == 1) & sem32m==1 , c(1500) scalepar(-1) all
 	est store ${abbrev}i`p'_o32_optbw
+	estadd scalar Hopt = e(h_l)
+	estadd scalar Nl  = e(N_h_l)
+	estadd scalar Nr  = e(N_h_r)
+	local ef = e(N_h_l)+e(N_h_r)
+	estadd scalar effopt = `ef'
+	sum ${mydepvar}_imp`p' if optbw_o32 == 1 & (g2smpl == 1 | app_deadmom == 1) & sem32m == 1 & ${mydepvar}_imp`p' != . & NAC_PESO_MADRE != . & abs(NAC_PESO_MADRE - 1500) <= e(h_l)
+	estadd scalar dvmean = r(mean)
+	
+	count if (g2smpl == 1 | app_deadmom == 1) & sem32m == 1 & ${mydepvar}_imp`p' != . & NAC_PESO_MADRE != . & abs(NAC_PESO_MADRE - 1500) <= e(h_l) & NAC_PESO_MADRE < 1500 & app_deadmom == 1
+	estadd scalar N_l_i = r(N)
+	
+	count if (g2smpl == 1 | app_deadmom == 1) & sem32m == 1 & ${mydepvar}_imp`p' != . & NAC_PESO_MADRE != . & abs(NAC_PESO_MADRE - 1500) <= e(h_l) & NAC_PESO_MADRE >= 1500 & app_deadmom == 1
+	estadd scalar N_r_i = r(N)
+	
+	* robust rd estimation (heaping control):
+	rdrobust ${mydepvar}_imp`p' NAC_PESO_MADRE if (g2smpl == 1 | app_deadmom == 1) & sem32m==1 , c(1500) scalepar(-1) all covs(round100m) 
+	est store ${abbrev}i`p'_o32_optbw_heaps
 	estadd scalar Hopt = e(h_l)
 	estadd scalar Nl  = e(N_h_l)
 	estadd scalar Nr  = e(N_h_r)
@@ -216,7 +244,6 @@ esttab `ests', ///
 	starlevel("*" 0.1 "**" 0.05 "***" 0.01) ///
 	mtitles("Baseline" "10th" "20th" "30th" "40th" "Median" "60th" "70th" "80th" "90th")
 
-	
 /*
 Statistically significant effects at the baseline: treated are born aproximately
 0.5 weeks earlier than control group.
@@ -229,8 +256,6 @@ to have a child somewhere below the 10th percentile of weeks of gestation to
 make the treatment zero.
 */
 
-
-********************************************************************************
 * Export results:
 local texfilename = `"${id_user_prefix}_`=subinstr("${S_DATE}", " ", "", .)'_${abbrev}_selection"'
 #delimit ;
@@ -240,8 +265,35 @@ stats(dvmean N Hopt effopt Nl Nr N_l_i N_r_i, fmt(%05.3f %12.0gc %5.1f %9.0gc %9
    label("Mean of Dep. Var." "Observations" "Optimal Bandwidth" 
       "Effective Observations" "Observations (left)" "Observations (right)" 
 			"Imputed Obs. (left)" "Imputed Obs. (right)")) 
-nonotes nogaps nonumbers style(tex) fragment noline collabels(none) 
-mtitles("Baseline" "10th" "20th" "30th" "40th" "Median" "60th" "70th" "80th" "90th")
+nonotes nogaps nonumbers mlabels(, none) style(tex) fragment noline collabels(none) 
+starlevel("*" 0.1 "**" 0.05 "***" 0.01);
+#delimit cr
+
+********************************************************************************
+* heaps:
+local ests ${abbrev}_o32_optbw_heaps ${abbrev}i??_o32_optbw_heaps
+
+* Display results:
+esttab `ests', ///
+	cells(b(fmt(%-9.4f) star) se(fmt(%-9.4f) par([ ]) )) label ///
+	nonotes nogaps collabels(none) modelwidth(10) ///
+	stats(dvmean N Hopt effopt Nl Nr N_l_i N_r_i, fmt(%05.3f %12.0gc %5.1f %9.0gc %9.0gc %9.0gc %9.0gc %9.0gc) ///
+   label("Mean of Dep. Var." "Observations" "Optimal Bandwidth" ///
+      "Effective Observations" "Observations (left)" "Observations (right)" ///
+			"Imputed Obs. (left)" "Imputed Obs. (right)")) ///
+	starlevel("*" 0.1 "**" 0.05 "***" 0.01) ///
+	mtitles("Baseline" "10th" "20th" "30th" "40th" "Median" "60th" "70th" "80th" "90th")
+
+* Export results:
+local texfilename = `"${id_user_prefix}_`=subinstr("${S_DATE}", " ", "", .)'_${abbrev}_selection_heaps"'
+#delimit ;
+esttab `ests' using "$tbldir/`texfilename'.tex",
+replace booktabs cells(b(fmt(%-9.4f) star) se(fmt(%-9.4f) par([ ]) )) label
+stats(dvmean N Hopt effopt Nl Nr N_l_i N_r_i, fmt(%05.3f %12.0gc %5.1f %9.0gc %9.0gc %9.0gc %9.0gc %9.0gc)
+   label("\addlinespace Mean of Dep. Var." "Observations" "Optimal Bandwidth" 
+      "Effective Observations" "Observations (left)" "Observations (right)" 
+			"Imputed Obs. (left)" "Imputed Obs. (right)")) 
+nonotes nogaps mlabels(, none) nonumbers style(tex) fragment noline collabels(none) 
 starlevel("*" 0.1 "**" 0.05 "***" 0.01);
 #delimit cr
 
