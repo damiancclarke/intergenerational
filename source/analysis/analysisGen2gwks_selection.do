@@ -236,12 +236,13 @@ local texfilename = `"${id_user_prefix}_`=subinstr("${S_DATE}", " ", "", .)'_${a
 #delimit ;
 esttab `ests' using "$tbldir/`texfilename'.tex",
 replace booktabs cells(b(fmt(%-9.4f) star) se(fmt(%-9.4f) par([ ]) )) label
-stats(dvmean N Hopt effopt Nl Nr, fmt(%05.3f %12.0gc %5.1f %9.0gc %9.0gc %9.0gc) 
+stats(dvmean N Hopt effopt Nl Nr N_l_i N_r_i, fmt(%05.3f %12.0gc %5.1f %9.0gc %9.0gc %9.0gc %9.0gc %9.0gc)
    label("Mean of Dep. Var." "Observations" "Optimal Bandwidth" 
-      "Effective Observations" "Observations (left)" "Observations (right)"))
-nonotes nogaps nonumbers style(tex) fragment noline keep(Robust)
+      "Effective Observations" "Observations (left)" "Observations (right)" 
+			"Imputed Obs. (left)" "Imputed Obs. (right)")) 
+nonotes nogaps nonumbers style(tex) fragment noline collabels(none) 
 mtitles("Baseline" "10th" "20th" "30th" "40th" "Median" "60th" "70th" "80th" "90th")
-collabels(none) starlevel("*" 0.1 "**" 0.05 "***" 0.01);
+starlevel("*" 0.1 "**" 0.05 "***" 0.01);
 #delimit cr
 
 * close log:
